@@ -5,11 +5,13 @@ import moment from 'moment';
 
 function AdminDashboard() {
     const [appointments, setAppointments] = useState([]);
+    const [unavailableDays, setUnavailableDays] = useState([]);
     const [unavailableDate, setUnavailableDate] = useState(null);
     const [reason, setReason] = useState('');
 
     useEffect(() => {
         fetchAppointments();
+        fetchUnavailableDays();
     }, []);
 
     const fetchAppointments = async () => {
@@ -32,6 +34,20 @@ function AdminDashboard() {
             }
         } catch (error) {
             console.error('Error fetching appointments:', error);
+        }
+    };
+
+    const fetchUnavailableDays = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get('http://localhost:8000/api/unavailable-days/', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            setUnavailableDays(response.data);
+        } catch (error) {
+            console.error('Error fetching unavailable days:', error);
         }
     };
 
@@ -72,9 +88,24 @@ function AdminDashboard() {
                 }
             });
             alert('Date marked as unavailable');
-            fetchAppointments(); // Refresh appointments
+            fetchUnavailableDays(); // Refresh unavailable days
         } catch (error) {
             console.error('Error marking date as unavailable:', error);
+        }
+    };
+
+    const handleRemoveUnavailable = async (id) => {
+        try {
+            const token = localStorage.getItem('token');
+            await axios.delete(`http://localhost:8000/api/unavailable-days/${id}/`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            alert('Unavailable day removed');
+            fetchUnavailableDays(); // Refresh unavailable days
+        } catch (error) {
+            console.error('Error removing unavailable day:', error);
         }
     };
 
@@ -119,6 +150,33 @@ function AdminDashboard() {
                 <Button variant="contained" color="primary" onClick={markUnavailable}>
                     Mark Unavailable
                 </Button>
+            </div>
+            <div>
+                <Typography variant="h6" component="h2" gutterBottom>
+                    Unavailable Days
+                </Typography>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Date</TableCell>
+                            <TableCell>Reason</TableCell>
+                            <TableCell>Actions</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {unavailableDays.map(day => (
+                            <TableRow key={day.id}>
+                                <TableCell>{moment(day.date).format('MM/DD/YYYY')}</TableCell>
+                                <TableCell>{day.reason}</TableCell>
+                                <TableCell>
+                                    <Button variant="contained" color="secondary" onClick={() => handleRemoveUnavailable(day.id)}>
+                                        Remove Unavailable
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
             </div>
         </Container>
     );
