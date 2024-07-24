@@ -121,12 +121,12 @@ function AdminDashboard() {
                         <TableRow key={appointment.id}>
                             <TableCell>{appointment.user.username}</TableCell>
                             <TableCell>{moment(appointment.date).format('MM/DD/YYYY')}</TableCell>
-                            <TableCell>{appointment.status}</TableCell>
+                            <TableCell>{appointment.status_display}</TableCell>
                             <TableCell>
-                                <Button onClick={() => handleStatusChange(appointment.id, 'confirmed')} disabled={appointment.status === 'confirmed'}>
+                                <Button onClick={() => handleStatusChange(appointment.id, 'approve')} disabled={appointment.status === 'confirmed'}>
                                     Approve
                                 </Button>
-                                <Button onClick={() => handleStatusChange(appointment.id, 'denied')} disabled={appointment.status === 'denied'}>
+                                <Button onClick={() => handleStatusChange(appointment.id, 'deny')} disabled={appointment.status === 'denied'}>
                                     Deny
                                 </Button>
                                 <Button onClick={() => handleStatusChange(appointment.id, 'flagged')} disabled={appointment.status === 'flagged'}>
@@ -156,7 +156,7 @@ function AdminDashboard() {
                         <TableRow key={appointment.id}>
                             <TableCell>{appointment.user.username}</TableCell>
                             <TableCell>{moment(appointment.date).format('MM/DD/YYYY')}</TableCell>
-                            <TableCell>{appointment.status}</TableCell>
+                            <TableCell>{appointment.status_display}</TableCell>
                             <TableCell>
                                 <Button onClick={() => handleStatusChange(appointment.id, 'to_completion')} disabled={appointment.status === 'to_completion'}>
                                     Mark as Completed
@@ -185,12 +185,12 @@ function AdminDashboard() {
                         <TableRow key={appointment.id}>
                             <TableCell>{appointment.user.username}</TableCell>
                             <TableCell>{moment(appointment.date).format('MM/DD/YYYY')}</TableCell>
-                            <TableCell>{appointment.status}</TableCell>
+                            <TableCell>{appointment.status_display}</TableCell>
                             <TableCell>
-                                <Button onClick={() => handleStatusChange(appointment.id, 'confirmed')} disabled={appointment.status === 'confirmed'}>
+                                <Button onClick={() => handleStatusChange(appointment.id, 'approve')} disabled={appointment.status === 'confirmed'}>
                                     Approve
                                 </Button>
-                                <Button onClick={() => handleStatusChange(appointment.id, 'denied')} disabled={appointment.status === 'denied'}>
+                                <Button onClick={() => handleStatusChange(appointment.id, 'deny')} disabled={appointment.status === 'denied'}>
                                     Deny
                                 </Button>
                             </TableCell>
@@ -209,7 +209,6 @@ function AdminDashboard() {
                         <TableCell>User</TableCell>
                         <TableCell>Date</TableCell>
                         <TableCell>Status</TableCell>
-                        <TableCell>Actions</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -217,7 +216,7 @@ function AdminDashboard() {
                         <TableRow key={appointment.id}>
                             <TableCell>{appointment.user.username}</TableCell>
                             <TableCell>{moment(appointment.date).format('MM/DD/YYYY')}</TableCell>
-                            <TableCell>{appointment.status}</TableCell>
+                            <TableCell>{appointment.status_display}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
