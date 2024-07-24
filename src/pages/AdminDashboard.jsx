@@ -4,7 +4,10 @@ import axios from 'axios';
 import moment from 'moment';
 
 function AdminDashboard() {
-    const [appointments, setAppointments] = useState([]);
+    const [incomingRequests, setIncomingRequests] = useState([]);
+    const [processedRequests, setProcessedRequests] = useState([]);
+    const [flaggedRequests, setFlaggedRequests] = useState([]);
+    const [toCompletionRequests, setToCompletionRequests] = useState([]);
     const [unavailableDays, setUnavailableDays] = useState([]);
     const [unavailableDate, setUnavailableDate] = useState(null);
     const [reason, setReason] = useState('');
@@ -24,11 +27,10 @@ function AdminDashboard() {
             });
             const data = response.data;
             if (Array.isArray(data)) {
-                const transformedData = data.map(appointment => ({
-                    ...appointment,
-                    date: moment(appointment.date).format('YYYY-MM-DD')
-                }));
-                setAppointments(transformedData);
+                setIncomingRequests(data.filter(a => a.status === 'pending'));
+                setProcessedRequests(data.filter(a => a.status === 'confirmed' || a.status === 'denied'));
+                setFlaggedRequests(data.filter(a => a.status === 'flagged'));
+                setToCompletionRequests(data.filter(a => a.status === 'to_completion'));
             } else {
                 console.error('Unexpected data format:', data);
             }
@@ -51,31 +53,17 @@ function AdminDashboard() {
         }
     };
 
-    const handleApprove = async (id) => {
+    const handleStatusChange = async (id, status) => {
         try {
             const token = localStorage.getItem('token');
-            await axios.post(`http://localhost:8000/api/appointments/${id}/approve/`, {}, {
+            await axios.post(`http://localhost:8000/api/appointments/${id}/${status}/`, {}, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
             fetchAppointments(); // Refresh appointments
         } catch (error) {
-            console.error('Error approving appointment:', error);
-        }
-    };
-
-    const handleDeny = async (id) => {
-        try {
-            const token = localStorage.getItem('token');
-            await axios.post(`http://localhost:8000/api/appointments/${id}/deny/`, {}, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            fetchAppointments(); // Refresh appointments
-        } catch (error) {
-            console.error('Error denying appointment:', error);
+            console.error(`Error updating appointment to ${status}:`, error);
         }
     };
 
@@ -114,6 +102,11 @@ function AdminDashboard() {
             <Typography variant="h4" component="h1" gutterBottom>
                 Admin Dashboard
             </Typography>
+
+            {/* Incoming Requests Section */}
+            <Typography variant="h5" component="h2" gutterBottom>
+                Incoming Requests
+            </Typography>
             <Table>
                 <TableHead>
                     <TableRow>
@@ -124,16 +117,80 @@ function AdminDashboard() {
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {appointments.map(appointment => (
+                    {incomingRequests.map(appointment => (
                         <TableRow key={appointment.id}>
                             <TableCell>{appointment.user.username}</TableCell>
                             <TableCell>{moment(appointment.date).format('MM/DD/YYYY')}</TableCell>
                             <TableCell>{appointment.status}</TableCell>
                             <TableCell>
-                                <Button onClick={() => handleApprove(appointment.id)} disabled={appointment.status === 'confirmed'}>
+                                <Button onClick={() => handleStatusChange(appointment.id, 'confirmed')} disabled={appointment.status === 'confirmed'}>
                                     Approve
                                 </Button>
-                                <Button onClick={() => handleDeny(appointment.id)} disabled={appointment.status === 'denied'}>
+                                <Button onClick={() => handleStatusChange(appointment.id, 'denied')} disabled={appointment.status === 'denied'}>
+                                    Deny
+                                </Button>
+                                <Button onClick={() => handleStatusChange(appointment.id, 'flagged')} disabled={appointment.status === 'flagged'}>
+                                    Flag
+                                </Button>
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+
+            {/* Processed Requests Section */}
+            <Typography variant="h5" component="h2" gutterBottom>
+                Processed Requests
+            </Typography>
+            <Table>
+                <TableHead>
+                    <TableRow>
+                        <TableCell>User</TableCell>
+                        <TableCell>Date</TableCell>
+                        <TableCell>Status</TableCell>
+                        <TableCell>Actions</TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {processedRequests.map(appointment => (
+                        <TableRow key={appointment.id}>
+                            <TableCell>{appointment.user.username}</TableCell>
+                            <TableCell>{moment(appointment.date).format('MM/DD/YYYY')}</TableCell>
+                            <TableCell>{appointment.status}</TableCell>
+                            <TableCell>
+                                <Button onClick={() => handleStatusChange(appointment.id, 'to_completion')} disabled={appointment.status === 'to_completion'}>
+                                    Mark as Completed
+                                </Button>
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+
+            {/* Flagged Requests Section */}
+            <Typography variant="h5" component="h2" gutterBottom>
+                Flagged Requests
+            </Typography>
+            <Table>
+                <TableHead>
+                    <TableRow>
+                        <TableCell>User</TableCell>
+                        <TableCell>Date</TableCell>
+                        <TableCell>Status</TableCell>
+                        <TableCell>Actions</TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {flaggedRequests.map(appointment => (
+                        <TableRow key={appointment.id}>
+                            <TableCell>{appointment.user.username}</TableCell>
+                            <TableCell>{moment(appointment.date).format('MM/DD/YYYY')}</TableCell>
+                            <TableCell>{appointment.status}</TableCell>
+                            <TableCell>
+                                <Button onClick={() => handleStatusChange(appointment.id, 'confirmed')} disabled={appointment.status === 'confirmed'}>
+                                    Approve
+                                </Button>
+                                <Button onClick={() => handleStatusChange(appointment.id, 'denied')} disabled={appointment.status === 'denied'}>
                                     Deny
                                 </Button>
                             </TableCell>
@@ -141,6 +198,32 @@ function AdminDashboard() {
                     ))}
                 </TableBody>
             </Table>
+
+            {/* To Completion Section */}
+            <Typography variant="h5" component="h2" gutterBottom>
+                To Completion
+            </Typography>
+            <Table>
+                <TableHead>
+                    <TableRow>
+                        <TableCell>User</TableCell>
+                        <TableCell>Date</TableCell>
+                        <TableCell>Status</TableCell>
+                        <TableCell>Actions</TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {toCompletionRequests.map(appointment => (
+                        <TableRow key={appointment.id}>
+                            <TableCell>{appointment.user.username}</TableCell>
+                            <TableCell>{moment(appointment.date).format('MM/DD/YYYY')}</TableCell>
+                            <TableCell>{appointment.status}</TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+
+            {/* Mark a Date as Unavailable */}
             <div>
                 <Typography variant="h6" component="h2" gutterBottom>
                     Mark a Date as Unavailable
@@ -151,6 +234,8 @@ function AdminDashboard() {
                     Mark Unavailable
                 </Button>
             </div>
+
+            {/* Unavailable Days Section */}
             <div>
                 <Typography variant="h6" component="h2" gutterBottom>
                     Unavailable Days
