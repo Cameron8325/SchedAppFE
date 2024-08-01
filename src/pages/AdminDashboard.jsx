@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Container,
   Typography,
@@ -8,6 +8,7 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  TextField,
 } from "@mui/material";
 import axios from "axios";
 import moment from "moment";
@@ -17,16 +18,12 @@ function AdminDashboard() {
   const [processedRequests, setProcessedRequests] = useState([]);
   const [flaggedRequests, setFlaggedRequests] = useState([]);
   const [toCompletionRequests, setToCompletionRequests] = useState([]);
-  const [unavailableDays, setUnavailableDays] = useState([]);
-  const [unavailableDate, setUnavailableDate] = useState(null);
+  const [availableDays, setAvailableDays] = useState([]);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [reason, setReason] = useState("");
 
-  useEffect(() => {
-    fetchAppointments();
-    fetchUnavailableDays();
-  }, []);
-
-  const fetchAppointments = async () => {
+  const fetchAppointments = useCallback(async () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
@@ -53,24 +50,52 @@ function AdminDashboard() {
     } catch (error) {
       console.error("Error fetching appointments:", error);
     }
-  };
+  }, []);
 
-  const fetchUnavailableDays = async () => {
+  const fetchAvailableDays = useCallback(async () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        "http://localhost:8000/api/unavailable-days/",
+        "http://localhost:8000/api/available-days/",
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      setUnavailableDays(response.data);
+      const data = response.data;
+      const groupedData = groupConsecutiveDates(data);
+      setAvailableDays(groupedData);
     } catch (error) {
-      console.error("Error fetching unavailable days:", error);
+      console.error("Error fetching available days:", error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchAppointments();
+    fetchAvailableDays();
+  }, [fetchAppointments, fetchAvailableDays]);
+
+const groupConsecutiveDates = (days) => {
+    if (!days.length) return [];
+    const grouped = [];
+    let group = [days[0]];
+
+    for (let i = 1; i < days.length; i++) {
+        const prevDay = moment(days[i - 1].date);
+        const currDay = moment(days[i].date);
+
+        if (currDay.diff(prevDay, 'days') === 1) {
+            group.push(days[i]);
+        } else {
+            grouped.push(group);
+            group = [days[i]];
+        }
+    }
+    grouped.push(group);
+    return grouped;
+};
+
 
   const handleStatusChange = async (id, status) => {
     try {
@@ -90,39 +115,46 @@ function AdminDashboard() {
     }
   };
 
-  const markUnavailable = async () => {
+  const markAvailable = async () => {
     try {
-      const token = localStorage.getItem("token");
-      await axios.post(
-        "http://localhost:8000/api/unavailable-days/",
-        { date: unavailableDate, reason },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      alert("Date marked as unavailable");
-      fetchUnavailableDays(); // Refresh unavailable days
+        const token = localStorage.getItem("token");
+        await axios.post(
+            "http://localhost:8000/api/set-availability/",
+            {
+                start_date: startDate,
+                end_date: endDate,
+                reason,
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+        alert("Availability updated");
+        fetchAvailableDays(); // Refresh available days
     } catch (error) {
-      console.error("Error marking date as unavailable:", error);
+        console.error("Error updating availability:", error);
     }
-  };
+};
 
-  const handleRemoveUnavailable = async (id) => {
-    try {
+const handleRemoveAvailable = async (start_date, end_date) => {
+  try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:8000/api/unavailable-days/${id}/`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      await axios.delete('http://localhost:8000/api/remove-availability/', {
+          data: { start_date, end_date },
+          headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json', // Ensure JSON content type
+          },
       });
-      alert("Unavailable day removed");
-      fetchUnavailableDays(); // Refresh unavailable days
-    } catch (error) {
-      console.error("Error removing unavailable day:", error);
-    }
-  };
+      alert("Available days removed");
+      fetchAvailableDays(); // Refresh available days
+  } catch (error) {
+      console.error("Error removing available days:", error);
+  }
+};
+
 
   return (
     <Container>
@@ -283,51 +315,61 @@ function AdminDashboard() {
         </TableBody>
       </Table>
 
-      {/* Mark a Date as Unavailable */}
+      {/* Set Availability Section */}
       <div>
         <Typography variant="h6" component="h2" gutterBottom>
-          Mark a Date as Unavailable
+          Set Availability
         </Typography>
-        <input
+        <TextField
           type="date"
-          onChange={(e) => setUnavailableDate(e.target.value)}
+          label="Start Date"
+          onChange={(e) => setStartDate(e.target.value)}
         />
-        <input
+        <TextField
+          type="date"
+          label="End Date"
+          onChange={(e) => setEndDate(e.target.value)}
+        />
+        <TextField
           type="text"
-          placeholder="Reason"
+          label="Reason"
           value={reason}
           onChange={(e) => setReason(e.target.value)}
         />
-        <Button variant="contained" color="primary" onClick={markUnavailable}>
-          Mark Unavailable
+        <Button variant="contained" color="primary" onClick={markAvailable}>
+          Set Availability
         </Button>
       </div>
 
-      {/* Unavailable Days Section */}
+      {/* Available Days Section */}
       <div>
         <Typography variant="h6" component="h2" gutterBottom>
-          Unavailable Days
+          Available Days
         </Typography>
         <Table style={{ tableLayout: "fixed" }}>
           <TableHead>
             <TableRow>
-              <TableCell style={{ width: "20%" }}>Date</TableCell>
+              <TableCell style={{ width: "20%" }}>Date Range</TableCell>
               <TableCell style={{ width: "20%" }}>Reason</TableCell>
               <TableCell style={{ width: "20%" }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {unavailableDays.map((day) => (
-              <TableRow key={day.id}>
-                <TableCell>{moment(day.date).format("MM/DD/YYYY")}</TableCell>
-                <TableCell>{day.reason}</TableCell>
+            {availableDays.map((group, index) => (
+              <TableRow key={index}>
+                <TableCell>
+                  {group.length === 1
+                    ? moment(group[0].date).format("MM/DD/YYYY")
+                    : `${moment(group[0].date).format("MM/DD/YYYY")} - ${moment(group[group.length - 1].date).format("MM/DD/YYYY")}`}
+                </TableCell>
+                <TableCell>{group[0].reason}</TableCell>
                 <TableCell>
                   <Button
                     variant="contained"
                     color="secondary"
-                    onClick={() => handleRemoveUnavailable(day.id)}
+                    onClick={() => handleRemoveAvailable(group[0].id)}
                   >
-                    Remove Unavailable
+                    Remove Available
                   </Button>
                 </TableCell>
               </TableRow>

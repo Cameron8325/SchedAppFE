@@ -11,14 +11,14 @@ const localizer = momentLocalizer(moment);
 
 function AppointmentsPage() {
     const [events, setEvents] = useState([]);
-    const [unavailableDays, setUnavailableDays] = useState([]);
+    const [availableDays, setAvailableDays] = useState([]);
     const [selectedDate, setSelectedDate] = useState(null);
     const [modalIsOpen, setModalIsOpen] = useState(false);
     const [modalMessage, setModalMessage] = useState('');
 
     useEffect(() => {
         fetchAppointments();
-        fetchUnavailableDays();
+        fetchAvailableDays();
     }, []);
 
     const fetchAppointments = async () => {
@@ -30,40 +30,23 @@ function AppointmentsPage() {
                 }
             });
             const data = response.data;
-            const aggregatedData = {};
-            data.forEach(event => {
-                const date = moment(event.date).format('YYYY-MM-DD');
-                if (!aggregatedData[date]) {
-                    aggregatedData[date] = { date, spots_left: 4 };
-                }
-                aggregatedData[date].spots_left -= 1;
-            });
-            const transformedData = Object.values(aggregatedData).map(event => {
-                let title = `${event.spots_left} spots left`;
-                let backgroundColor = '#3174ad';
-                if (event.spots_left === 0) {
-                    title = 'Fully Booked';
-                    backgroundColor = '#4caf50';
-                }
-                return {
-                    start: moment(event.date).toDate(),
-                    end: moment(event.date).toDate(),
-                    title,
-                    allDay: true,
-                    backgroundColor,
-                    spots_left: event.spots_left
-                };
-            });
+            const transformedData = data.map(event => ({
+                start: moment(event.date).toDate(),
+                end: moment(event.date).toDate(),
+                title: `${event.spots_left} spots left`,
+                allDay: true,
+                backgroundColor: event.spots_left === 0 ? '#d32f2f' : '#3174ad'
+            }));
             setEvents(transformedData);
         } catch (error) {
             console.error('Error fetching appointments:', error);
         }
     };
 
-    const fetchUnavailableDays = async () => {
+    const fetchAvailableDays = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.get('http://localhost:8000/api/unavailable-days/', {
+            const response = await axios.get('http://localhost:8000/api/available-days/', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -72,30 +55,26 @@ function AppointmentsPage() {
             const transformedData = data.map(day => ({
                 start: new Date(day.date),
                 end: new Date(day.date),
-                title: day.reason || 'Unavailable',
+                title: day.reason || 'Available',
                 allDay: true,
-                backgroundColor: '#d3d3d3',
+                backgroundColor: '#4caf50',
             }));
-            setUnavailableDays(transformedData);
+            setAvailableDays(transformedData);
         } catch (error) {
-            console.error('Error fetching unavailable days:', error);
+            console.error('Error fetching available days:', error);
         }
     };
 
     const handleSelectSlot = ({ start }) => {
         const today = moment().startOf('day');
         const selected = moment(start).startOf('day');
-        const isUnavailable = unavailableDays.some(day => moment(day.start).isSame(start, 'day'));
-        const isFullyBooked = events.some(event => moment(event.start).isSame(start, 'day') && event.spots_left === 0);
+        const isAvailable = availableDays.some(day => moment(day.start).isSame(start, 'day'));
         
         if (selected.isBefore(today)) {
             setModalMessage("You cannot select today or past dates for appointments.");
             setModalIsOpen(true);
-        } else if (isUnavailable) {
+        } else if (!isAvailable) {
             setModalMessage("We're sorry, this date is currently unavailable.");
-            setModalIsOpen(true);
-        } else if (isFullyBooked) {
-            setModalMessage("We're sorry, this date is currently fully booked.");
             setModalIsOpen(true);
         } else {
             setSelectedDate(start);
@@ -137,7 +116,7 @@ function AppointmentsPage() {
             </Typography>
             <Calendar
                 localizer={localizer}
-                events={[...events, ...unavailableDays]}
+                events={[...events, ...availableDays]}
                 startAccessor="start"
                 endAccessor="end"
                 selectable
