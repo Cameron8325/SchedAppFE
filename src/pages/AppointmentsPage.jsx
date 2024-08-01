@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import 'moment-timezone';
@@ -11,65 +11,79 @@ const localizer = momentLocalizer(moment);
 
 function AppointmentsPage() {
     const [events, setEvents] = useState([]);
-    const [availableDays, setAvailableDays] = useState([]);
     const [selectedDate, setSelectedDate] = useState(null);
     const [modalIsOpen, setModalIsOpen] = useState(false);
     const [modalMessage, setModalMessage] = useState('');
 
-    useEffect(() => {
-        fetchAppointments();
-        fetchAvailableDays();
-    }, []);
-
-    const fetchAppointments = async () => {
+    const fetchAppointmentsAndAvailableDays = useCallback(async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.get('http://localhost:8000/api/appointments/', {
+
+            // Fetch appointments
+            const appointmentsResponse = await axios.get('http://localhost:8000/api/appointments/', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            const data = response.data;
-            const transformedData = data.map(event => ({
-                start: moment(event.date).toDate(),
-                end: moment(event.date).toDate(),
-                title: `${event.spots_left} spots left`,
-                allDay: true,
-                backgroundColor: event.spots_left === 0 ? '#d32f2f' : '#3174ad'
-            }));
-            setEvents(transformedData);
-        } catch (error) {
-            console.error('Error fetching appointments:', error);
-        }
-    };
+            const appointmentsData = appointmentsResponse.data;
 
-    const fetchAvailableDays = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            const response = await axios.get('http://localhost:8000/api/available-days/', {
+            // Fetch available days
+            const availableDaysResponse = await axios.get('http://localhost:8000/api/available-days/', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            const data = response.data;
-            const transformedData = data.map(day => ({
-                start: new Date(day.date),
-                end: new Date(day.date),
+            const availableDaysData = availableDaysResponse.data;
+
+            // Group appointments by date and calculate spots left
+            const groupedAppointments = appointmentsData.reduce((acc, appointment) => {
+                const date = moment(appointment.date).startOf('day').format('YYYY-MM-DD');
+                if (!acc[date]) acc[date] = [];
+                acc[date].push(appointment);
+                return acc;
+            }, {});
+
+            // Create events combining appointments and available days
+            const eventsData = Object.keys(groupedAppointments).map(date => {
+                const appointments = groupedAppointments[date];
+                const spotsLeft = 4 - appointments.length;
+                return {
+                    start: moment(date).toDate(),
+                    end: moment(date).toDate(),
+                    title: spotsLeft === 0 ? 'Fully Booked' : `${spotsLeft} spots left`,
+                    allDay: true,
+                    backgroundColor: spotsLeft === 0 ? '#ff9800' : '#3174ad'
+                };
+            });
+
+            const filteredAvailableDays = availableDaysData.filter(day => {
+                const date = moment(day.date).startOf('day').format('YYYY-MM-DD');
+                return !groupedAppointments[date] || groupedAppointments[date].length < 4;
+            });
+
+            const availableDaysEvents = filteredAvailableDays.map(day => ({
+                start: moment(day.date).startOf('day').toDate(),
+                end: moment(day.date).startOf('day').toDate(),
                 title: day.reason || 'Available',
                 allDay: true,
                 backgroundColor: '#4caf50',
             }));
-            setAvailableDays(transformedData);
+
+            setEvents([...eventsData, ...availableDaysEvents]);
         } catch (error) {
-            console.error('Error fetching available days:', error);
+            console.error('Error fetching data:', error);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        fetchAppointmentsAndAvailableDays();
+    }, [fetchAppointmentsAndAvailableDays]);
 
     const handleSelectSlot = ({ start }) => {
         const today = moment().startOf('day');
         const selected = moment(start).startOf('day');
-        const isAvailable = availableDays.some(day => moment(day.start).isSame(start, 'day'));
-        
+        const isAvailable = events.some(event => moment(event.start).isSame(start, 'day') && event.title !== 'Fully Booked');
+
         if (selected.isBefore(today)) {
             setModalMessage("You cannot select today or past dates for appointments.");
             setModalIsOpen(true);
@@ -102,7 +116,7 @@ function AppointmentsPage() {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
         }).then(response => {
-            fetchAppointments();
+            fetchAppointmentsAndAvailableDays();
             setModalIsOpen(false);
         }).catch(error => {
             console.error('Error:', error.response ? error.response.data : error.message);
@@ -116,7 +130,7 @@ function AppointmentsPage() {
             </Typography>
             <Calendar
                 localizer={localizer}
-                events={[...events, ...availableDays]}
+                events={events}
                 startAccessor="start"
                 endAccessor="end"
                 selectable

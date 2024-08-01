@@ -122,7 +122,7 @@ const groupConsecutiveDates = (days) => {
             "http://localhost:8000/api/set-availability/",
             {
                 start_date: startDate,
-                end_date: endDate,
+                end_date: endDate || startDate, // Use startDate if endDate is not provided
                 reason,
             },
             {
@@ -138,14 +138,13 @@ const groupConsecutiveDates = (days) => {
     }
 };
 
+
 const handleRemoveAvailable = async (start_date, end_date) => {
   try {
       const token = localStorage.getItem("token");
-      await axios.delete('http://localhost:8000/api/remove-availability/', {
-          data: { start_date, end_date },
+      await axios.delete(`http://localhost:8000/api/remove-availability/?start_date=${start_date}&end_date=${end_date}`, {
           headers: {
               Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json', // Ensure JSON content type
           },
       });
       alert("Available days removed");
@@ -154,6 +153,9 @@ const handleRemoveAvailable = async (start_date, end_date) => {
       console.error("Error removing available days:", error);
   }
 };
+
+
+
 
 
   return (
