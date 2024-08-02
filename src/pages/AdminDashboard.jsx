@@ -141,21 +141,21 @@ const groupConsecutiveDates = (days) => {
 
 const handleRemoveAvailable = async (start_date, end_date) => {
   try {
-      const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:8000/api/remove-availability/?start_date=${start_date}&end_date=${end_date}`, {
-          headers: {
-              Authorization: `Bearer ${token}`,
-          },
-      });
-      alert("Available days removed");
-      fetchAvailableDays(); // Refresh available days
+    const token = localStorage.getItem("token");
+    await axios.delete(
+      `http://localhost:8000/api/remove-availability/?start_date=${start_date}&end_date=${end_date}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    alert("Available days removed");
+    fetchAvailableDays(); // Refresh available days
   } catch (error) {
-      console.error("Error removing available days:", error);
+    console.error("Error removing available days:", error);
   }
 };
-
-
-
 
 
   return (
@@ -302,6 +302,7 @@ const handleRemoveAvailable = async (start_date, end_date) => {
             <TableCell style={{ width: "20%" }}>User</TableCell>
             <TableCell style={{ width: "20%" }}>Date</TableCell>
             <TableCell style={{ width: "20%" }}>Status</TableCell>
+            <TableCell style={{ width: "40%" }}>Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -317,31 +318,40 @@ const handleRemoveAvailable = async (start_date, end_date) => {
         </TableBody>
       </Table>
 
-      {/* Set Availability Section */}
-      <div>
-        <Typography variant="h6" component="h2" gutterBottom>
-          Set Availability
-        </Typography>
-        <TextField
-          type="date"
-          label="Start Date"
-          onChange={(e) => setStartDate(e.target.value)}
-        />
-        <TextField
-          type="date"
-          label="End Date"
-          onChange={(e) => setEndDate(e.target.value)}
-        />
-        <TextField
-          type="text"
-          label="Reason"
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-        />
-        <Button variant="contained" color="primary" onClick={markAvailable}>
-          Set Availability
-        </Button>
-      </div>
+{/* Set Availability Section */}
+<div>
+  <Typography variant="h6" component="h2" gutterBottom>
+    Set Availability
+  </Typography>
+  <TextField
+    type="date"
+    label="Start Date"
+    InputLabelProps={{
+      shrink: true,
+    }}
+    inputProps={{ placeholder: "" }}
+    onChange={(e) => setStartDate(e.target.value)}
+  />
+  <TextField
+    type="date"
+    label="End Date"
+    InputLabelProps={{
+      shrink: true,
+    }}
+    inputProps={{ placeholder: "" }}
+    onChange={(e) => setEndDate(e.target.value)}
+  />
+  <TextField
+    type="text"
+    label="Reason"
+    value={reason}
+    onChange={(e) => setReason(e.target.value)}
+  />
+  <Button variant="contained" color="primary" onClick={markAvailable}>
+    Set Availability
+  </Button>
+</div>
+
 
       {/* Available Days Section */}
       <div>
@@ -352,31 +362,35 @@ const handleRemoveAvailable = async (start_date, end_date) => {
           <TableHead>
             <TableRow>
               <TableCell style={{ width: "20%" }}>Date Range</TableCell>
-              <TableCell style={{ width: "20%" }}>Reason</TableCell>
+              <TableCell style={{ width: "20%" }}></TableCell>
               <TableCell style={{ width: "20%" }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {availableDays.map((group, index) => (
-              <TableRow key={index}>
-                <TableCell>
-                  {group.length === 1
-                    ? moment(group[0].date).format("MM/DD/YYYY")
-                    : `${moment(group[0].date).format("MM/DD/YYYY")} - ${moment(group[group.length - 1].date).format("MM/DD/YYYY")}`}
-                </TableCell>
-                <TableCell>{group[0].reason}</TableCell>
-                <TableCell>
-                  <Button
-                    variant="contained"
-                    color="secondary"
-                    onClick={() => handleRemoveAvailable(group[0].id)}
-                  >
-                    Remove Available
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
+  {availableDays.map((group, index) => (
+    <TableRow key={index}>
+      <TableCell>
+        {group.length === 1
+          ? moment(group[0].date).format("MM/DD/YYYY")
+          : `${moment(group[0].date).format("MM/DD/YYYY")} - ${moment(group[group.length - 1].date).format("MM/DD/YYYY")}`}
+      </TableCell>
+      <TableCell>{group[0].reason}</TableCell>
+      <TableCell>
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={() => handleRemoveAvailable(
+            moment(group[0].date).format('YYYY-MM-DD'),
+            moment(group[group.length - 1].date).format('YYYY-MM-DD')
+          )}
+        >
+          Remove Available
+        </Button>
+      </TableCell>
+    </TableRow>
+  ))}
+</TableBody>
+
         </Table>
       </div>
     </Container>
