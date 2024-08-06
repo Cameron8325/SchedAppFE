@@ -64,7 +64,8 @@ function AdminDashboard() {
         }
       );
       const data = response.data;
-      const groupedData = groupConsecutiveDates(data);
+      const sortedData = data.sort((a, b) => moment(a.date).diff(moment(b.date)));
+      const groupedData = groupConsecutiveDates(sortedData);
       setAvailableDays(groupedData);
     } catch (error) {
       console.error("Error fetching available days:", error);
@@ -76,26 +77,25 @@ function AdminDashboard() {
     fetchAvailableDays();
   }, [fetchAppointments, fetchAvailableDays]);
 
-const groupConsecutiveDates = (days) => {
+  const groupConsecutiveDates = (days) => {
     if (!days.length) return [];
     const grouped = [];
     let group = [days[0]];
 
     for (let i = 1; i < days.length; i++) {
-        const prevDay = moment(days[i - 1].date);
-        const currDay = moment(days[i].date);
+      const prevDay = moment(days[i - 1].date);
+      const currDay = moment(days[i].date);
 
-        if (currDay.diff(prevDay, 'days') === 1) {
-            group.push(days[i]);
-        } else {
-            grouped.push(group);
-            group = [days[i]];
-        }
+      if (currDay.diff(prevDay, "days") === 1) {
+        group.push(days[i]);
+      } else {
+        grouped.push(group);
+        group = [days[i]];
+      }
     }
     grouped.push(group);
     return grouped;
-};
-
+  };
 
   const handleStatusChange = async (id, status) => {
     try {
@@ -117,46 +117,44 @@ const groupConsecutiveDates = (days) => {
 
   const markAvailable = async () => {
     try {
-        const token = localStorage.getItem("token");
-        await axios.post(
-            "http://localhost:8000/api/set-availability/",
-            {
-                start_date: startDate,
-                end_date: endDate || startDate, // Use startDate if endDate is not provided
-                reason,
-            },
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            }
-        );
-        alert("Availability updated");
-        fetchAvailableDays(); // Refresh available days
-    } catch (error) {
-        console.error("Error updating availability:", error);
-    }
-};
-
-
-const handleRemoveAvailable = async (start_date, end_date) => {
-  try {
-    const token = localStorage.getItem("token");
-    await axios.delete(
-      `http://localhost:8000/api/remove-availability/?start_date=${start_date}&end_date=${end_date}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const token = localStorage.getItem("token");
+      await axios.post(
+        "http://localhost:8000/api/set-availability/",
+        {
+          start_date: startDate,
+          end_date: endDate || startDate, // Use startDate if endDate is not provided
+          reason,
         },
-      }
-    );
-    alert("Available days removed");
-    fetchAvailableDays(); // Refresh available days
-  } catch (error) {
-    console.error("Error removing available days:", error);
-  }
-};
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      alert("Availability updated");
+      fetchAvailableDays(); // Refresh available days
+    } catch (error) {
+      console.error("Error updating availability:", error);
+    }
+  };
 
+  const handleRemoveAvailable = async (start_date, end_date) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(
+        `http://localhost:8000/api/remove-availability/?start_date=${start_date}&end_date=${end_date}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      alert("Available days removed");
+      fetchAvailableDays(); // Refresh available days
+    } catch (error) {
+      console.error("Error removing available days:", error);
+    }
+  };
 
   return (
     <Container>
@@ -318,40 +316,39 @@ const handleRemoveAvailable = async (start_date, end_date) => {
         </TableBody>
       </Table>
 
-{/* Set Availability Section */}
-<div>
-  <Typography variant="h6" component="h2" gutterBottom>
-    Set Availability
-  </Typography>
-  <TextField
-    type="date"
-    label="Start Date"
-    InputLabelProps={{
-      shrink: true,
-    }}
-    inputProps={{ placeholder: "" }}
-    onChange={(e) => setStartDate(e.target.value)}
-  />
-  <TextField
-    type="date"
-    label="End Date"
-    InputLabelProps={{
-      shrink: true,
-    }}
-    inputProps={{ placeholder: "" }}
-    onChange={(e) => setEndDate(e.target.value)}
-  />
-  <TextField
-    type="text"
-    label="Reason"
-    value={reason}
-    onChange={(e) => setReason(e.target.value)}
-  />
-  <Button variant="contained" color="primary" onClick={markAvailable}>
-    Set Availability
-  </Button>
-</div>
-
+      {/* Set Availability Section */}
+      <div>
+        <Typography variant="h6" component="h2" gutterBottom>
+          Set Availability
+        </Typography>
+        <TextField
+          type="date"
+          label="Start Date"
+          InputLabelProps={{
+            shrink: true,
+          }}
+          inputProps={{ placeholder: "" }}
+          onChange={(e) => setStartDate(e.target.value)}
+        />
+        <TextField
+          type="date"
+          label="End Date"
+          InputLabelProps={{
+            shrink: true,
+          }}
+          inputProps={{ placeholder: "" }}
+          onChange={(e) => setEndDate(e.target.value)}
+        />
+        <TextField
+          type="text"
+          label="Reason"
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+        />
+        <Button variant="contained" color="primary" onClick={markAvailable}>
+          Set Availability
+        </Button>
+      </div>
 
       {/* Available Days Section */}
       <div>
@@ -367,30 +364,29 @@ const handleRemoveAvailable = async (start_date, end_date) => {
             </TableRow>
           </TableHead>
           <TableBody>
-  {availableDays.map((group, index) => (
-    <TableRow key={index}>
-      <TableCell>
-        {group.length === 1
-          ? moment(group[0].date).format("MM/DD/YYYY")
-          : `${moment(group[0].date).format("MM/DD/YYYY")} - ${moment(group[group.length - 1].date).format("MM/DD/YYYY")}`}
-      </TableCell>
-      <TableCell>{group[0].reason}</TableCell>
-      <TableCell>
-        <Button
-          variant="contained"
-          color="secondary"
-          onClick={() => handleRemoveAvailable(
-            moment(group[0].date).format('YYYY-MM-DD'),
-            moment(group[group.length - 1].date).format('YYYY-MM-DD')
-          )}
-        >
-          Remove Available
-        </Button>
-      </TableCell>
-    </TableRow>
-  ))}
-</TableBody>
-
+            {availableDays.map((group, index) => (
+              <TableRow key={index}>
+                <TableCell>
+                  {group.length === 1
+                    ? moment(group[0].date).format("MM/DD/YYYY")
+                    : `${moment(group[0].date).format("MM/DD/YYYY")} - ${moment(group[group.length - 1].date).format("MM/DD/YYYY")}`}
+                </TableCell>
+                <TableCell>{group[0].reason}</TableCell>
+                <TableCell>
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    onClick={() => handleRemoveAvailable(
+                      moment(group[0].date).format('YYYY-MM-DD'),
+                      moment(group[group.length - 1].date).format('YYYY-MM-DD')
+                    )}
+                  >
+                    Remove Available
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
         </Table>
       </div>
     </Container>
