@@ -1,8 +1,18 @@
-// src/components/CustomModal.js
 import React from 'react';
-import { Modal, Button, Typography } from '@mui/material';
+import { Modal, Button, Typography, Checkbox, FormControlLabel, FormGroup } from '@mui/material';
 
-function CustomModal({ open, onClose, title, description, onConfirm, isConfirmVisible, confirmButtonText }) {
+function CustomModal({ 
+  open, 
+  onClose, 
+  title, 
+  description, 
+  onConfirm, 
+  isConfirmVisible, 
+  confirmButtonText, 
+  dateList, 
+  selectedDates, 
+  handleDateSelection 
+}) {
   return (
     <Modal
       open={open}
@@ -10,13 +20,29 @@ function CustomModal({ open, onClose, title, description, onConfirm, isConfirmVi
       aria-labelledby="custom-modal-title"
       aria-describedby="custom-modal-description"
     >
-      <div style={{ margin: '20px', padding: '20px', backgroundColor: 'white' }}>
+      <div style={{ margin: '20px', padding: '20px', backgroundColor: 'white', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 400 }}>
         <Typography variant="h6" id="custom-modal-title">
           {title}
         </Typography>
         <Typography variant="body1" id="custom-modal-description">
           {description}
         </Typography>
+        {dateList && (
+          <FormGroup>
+            {dateList.map(date => (
+              <FormControlLabel
+                key={date}
+                control={
+                  <Checkbox 
+                    checked={selectedDates.includes(date)}
+                    onChange={() => handleDateSelection(date)}
+                  />
+                }
+                label={date}
+              />
+            ))}
+          </FormGroup>
+        )}
         {isConfirmVisible && (
           <Button variant="contained" color="primary" onClick={onConfirm} style={{ marginRight: '10px' }}>
             {confirmButtonText}

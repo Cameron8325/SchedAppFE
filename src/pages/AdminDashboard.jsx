@@ -1,17 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  Container,
-  Typography,
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TextField,
-} from "@mui/material";
+import { Container, Typography, Button, Table, TableBody, TableCell, TableHead, TableRow, TextField } from "@mui/material";
 import axios from "axios";
 import moment from "moment";
+import CustomModal from "../components/modal/CustomModal";
 
 function AdminDashboard() {
   const [incomingRequests, setIncomingRequests] = useState([]);
@@ -22,28 +13,31 @@ function AdminDashboard() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [reason, setReason] = useState("");
+  
+  // Modal state
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalDescription, setModalDescription] = useState("");
+  const [isConfirmVisible, setIsConfirmVisible] = useState(true);
+  const [confirmButtonText, setConfirmButtonText] = useState("");
+  const [dateList, setDateList] = useState([]);
+  const [selectedDates, setSelectedDates] = useState([]);
+  const [removeRange, setRemoveRange] = useState({});
 
   const fetchAppointments = useCallback(async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        "http://localhost:8000/api/appointments/",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      const response = await axios.get("http://localhost:8000/api/appointments/", {
+        headers: {
+          Authorization: `Bearer ${token}`,
         }
-      );
+      });
       const data = response.data;
       if (Array.isArray(data)) {
         setIncomingRequests(data.filter((a) => a.status === "pending"));
-        setProcessedRequests(
-          data.filter((a) => a.status === "confirmed" || a.status === "denied")
-        );
+        setProcessedRequests(data.filter((a) => a.status === "confirmed" || a.status === "denied"));
         setFlaggedRequests(data.filter((a) => a.status === "flagged"));
-        setToCompletionRequests(
-          data.filter((a) => a.status === "to_completion")
-        );
+        setToCompletionRequests(data.filter((a) => a.status === "to_completion"));
       } else {
         console.error("Unexpected data format:", data);
       }
@@ -55,14 +49,11 @@ function AdminDashboard() {
   const fetchAvailableDays = useCallback(async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        "http://localhost:8000/api/available-days/",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      const response = await axios.get("http://localhost:8000/api/available-days/", {
+        headers: {
+          Authorization: `Bearer ${token}`,
         }
-      );
+      });
       const data = response.data;
       const sortedData = data.sort((a, b) => moment(a.date).diff(moment(b.date)));
       const groupedData = groupConsecutiveDates(sortedData);
@@ -100,15 +91,11 @@ function AdminDashboard() {
   const handleStatusChange = async (id, status) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.post(
-        `http://localhost:8000/api/appointments/${id}/${status}/`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      await axios.post(`http://localhost:8000/api/appointments/${id}/${status}/`, {}, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         }
-      );
+      });
       fetchAppointments(); // Refresh appointments
     } catch (error) {
       console.error(`Error updating appointment to ${status}:`, error);
@@ -118,42 +105,91 @@ function AdminDashboard() {
   const markAvailable = async () => {
     try {
       const token = localStorage.getItem("token");
-      await axios.post(
-        "http://localhost:8000/api/set-availability/",
-        {
-          start_date: startDate,
-          end_date: endDate || startDate, // Use startDate if endDate is not provided
-          reason,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      await axios.post("http://localhost:8000/api/set-availability/", {
+        start_date: startDate,
+        end_date: endDate || startDate, // Use startDate if endDate is not provided
+        reason,
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         }
-      );
-      alert("Availability updated");
+      });
+      setModalTitle("Availability");
+      setModalDescription("Availability updated");
+      setIsConfirmVisible(false);
+      setModalIsOpen(true);
       fetchAvailableDays(); // Refresh available days
     } catch (error) {
       console.error("Error updating availability:", error);
     }
   };
 
-  const handleRemoveAvailable = async (start_date, end_date) => {
+  const handleRemoveAvailable = async () => {
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(
-        `http://localhost:8000/api/remove-availability/?start_date=${start_date}&end_date=${end_date}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      await axios.delete(`http://localhost:8000/api/remove-availability/?start_date=${removeRange.start}&end_date=${removeRange.end}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         }
-      );
-      alert("Available days removed");
+      });
+      setModalTitle("Availability");
+      setModalDescription("Availability removed");
+      setIsConfirmVisible(false);
+      setModalIsOpen(true);
       fetchAvailableDays(); // Refresh available days
     } catch (error) {
       console.error("Error removing available days:", error);
     }
+  };  
+
+  const handleDateSelection = (date) => {
+    setSelectedDates(prevDates => prevDates.includes(date)
+      ? prevDates.filter(d => d !== date)
+      : [...prevDates, date]
+    );
+  };
+
+  const confirmRemoveSelectedDates = () => {
+    const selected = selectedDates.join(', ');
+    const apiFormatSelectedDates = selectedDates.map(date => moment(date, "MM/DD/YYYY").format("YYYY-MM-DD"));
+    setRemoveRange({ start: apiFormatSelectedDates[0], end: apiFormatSelectedDates[apiFormatSelectedDates.length - 1] });
+    setDateList([]);  // Clear the date list
+    setModalDescription(`Are you sure you want to remove ${selected} from your availability?`);
+    setConfirmButtonText("Confirm");
+    setIsConfirmVisible(true);
+    setModalIsOpen(true);
+  };      
+
+  const openRemoveAvailabilityModal = (group) => {
+    if (group.length === 1) {
+      const date = moment(group[0].date).format("YYYY-MM-DD");
+      setRemoveRange({ start: date, end: date });
+      setModalTitle("Availability");
+      setModalDescription(`Are you sure you want to remove ${moment(date).format("MM/DD/YYYY")} from your availability?`);
+      setIsConfirmVisible(true);
+      setConfirmButtonText("Confirm");
+      setModalIsOpen(true);
+    } else {
+      const displayDates = group.map(day => moment(day.date).format("MM/DD/YYYY"));
+      setDateList(displayDates);
+      setSelectedDates([]);
+      setModalTitle("Availability");
+      setModalDescription("Select dates to remove from availability:");
+      setIsConfirmVisible(true);
+      setConfirmButtonText("Remove Selected Date(s)");
+      setModalIsOpen(true);
+    }
+  };
+  
+  
+
+  const closeModal = () => {
+    setModalIsOpen(false);
+    setModalTitle("");
+    setModalDescription("");
+    setDateList([]);
+    setSelectedDates([]);
+    setRemoveRange({});
   };
 
   return (
@@ -237,9 +273,7 @@ function AdminDashboard() {
                   Flag
                 </Button>
                 <Button
-                  onClick={() =>
-                    handleStatusChange(appointment.id, "to_completion")
-                  }
+                  onClick={() => handleStatusChange(appointment.id, "to_completion")}
                   disabled={appointment.status === "to_completion"}
                 >
                   Mark as Completed
@@ -376,10 +410,7 @@ function AdminDashboard() {
                   <Button
                     variant="contained"
                     color="secondary"
-                    onClick={() => handleRemoveAvailable(
-                      moment(group[0].date).format('YYYY-MM-DD'),
-                      moment(group[group.length - 1].date).format('YYYY-MM-DD')
-                    )}
+                    onClick={() => openRemoveAvailabilityModal(group)}
                   >
                     Remove Available
                   </Button>
@@ -389,6 +420,20 @@ function AdminDashboard() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Modal Component */}
+      <CustomModal
+  open={modalIsOpen}
+  onClose={closeModal}
+  title={modalTitle}
+  description={modalDescription}
+  onConfirm={confirmButtonText === "Remove Selected Date(s)" ? confirmRemoveSelectedDates : handleRemoveAvailable}
+  isConfirmVisible={isConfirmVisible}
+  confirmButtonText={confirmButtonText}
+  dateList={dateList}
+  selectedDates={selectedDates}
+  handleDateSelection={handleDateSelection}
+/>
     </Container>
   );
 }
