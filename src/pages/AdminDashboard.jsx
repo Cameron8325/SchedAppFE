@@ -126,14 +126,25 @@ function AdminDashboard() {
   const handleRemoveAvailable = async () => {
     try {
       const token = localStorage.getItem("token");
-      for (let date of selectedDates) {
-        const apiFormattedDate = moment(date, "MM/DD/YYYY").format("YYYY-MM-DD");
+      
+      if (selectedDates.length === 1) {
+        const apiFormattedDate = moment(selectedDates[0], "MM/DD/YYYY").format("YYYY-MM-DD");
         await axios.delete(`http://localhost:8000/api/remove-availability/?start_date=${apiFormattedDate}&end_date=${apiFormattedDate}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           }
         });
+      } else {
+        for (let date of selectedDates) {
+          const apiFormattedDate = moment(date, "MM/DD/YYYY").format("YYYY-MM-DD");
+          await axios.delete(`http://localhost:8000/api/remove-availability/?start_date=${apiFormattedDate}&end_date=${apiFormattedDate}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            }
+          });
+        }
       }
+  
       setModalTitle("Availability");
       setModalDescription("Availability removed");
       setIsConfirmVisible(false);
@@ -143,6 +154,8 @@ function AdminDashboard() {
       console.error("Error removing available days:", error);
     }
   };
+  
+  
 
   const handleDateSelection = (date) => {
     setSelectedDates(prevDates => prevDates.includes(date)
@@ -162,9 +175,10 @@ function AdminDashboard() {
 
   const openRemoveAvailabilityModal = (group) => {
     if (group.length === 1) {
-      const date = moment(group[0].date).format("YYYY-MM-DD");
+      const date = moment(group[0].date).format("MM/DD/YYYY");
+      setSelectedDates([date]);
       setModalTitle("Availability");
-      setModalDescription(`Are you sure you want to remove ${moment(date).format("MM/DD/YYYY")} from your availability?`);
+      setModalDescription(`Are you sure you want to remove ${date} from your availability?`);
       setIsConfirmVisible(true);
       setConfirmButtonText("Confirm");
       setModalIsOpen(true);
@@ -179,6 +193,7 @@ function AdminDashboard() {
       setModalIsOpen(true);
     }
   };
+  
 
   const closeModal = () => {
     setModalIsOpen(false);
