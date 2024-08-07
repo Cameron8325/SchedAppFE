@@ -22,7 +22,6 @@ function AdminDashboard() {
   const [confirmButtonText, setConfirmButtonText] = useState("");
   const [dateList, setDateList] = useState([]);
   const [selectedDates, setSelectedDates] = useState([]);
-  const [removeRange, setRemoveRange] = useState({});
 
   const fetchAppointments = useCallback(async () => {
     try {
@@ -127,11 +126,14 @@ function AdminDashboard() {
   const handleRemoveAvailable = async () => {
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:8000/api/remove-availability/?start_date=${removeRange.start}&end_date=${removeRange.end}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        }
-      });
+      for (let date of selectedDates) {
+        const apiFormattedDate = moment(date, "MM/DD/YYYY").format("YYYY-MM-DD");
+        await axios.delete(`http://localhost:8000/api/remove-availability/?start_date=${apiFormattedDate}&end_date=${apiFormattedDate}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          }
+        });
+      }
       setModalTitle("Availability");
       setModalDescription("Availability removed");
       setIsConfirmVisible(false);
@@ -140,7 +142,7 @@ function AdminDashboard() {
     } catch (error) {
       console.error("Error removing available days:", error);
     }
-  };  
+  };
 
   const handleDateSelection = (date) => {
     setSelectedDates(prevDates => prevDates.includes(date)
@@ -151,19 +153,16 @@ function AdminDashboard() {
 
   const confirmRemoveSelectedDates = () => {
     const selected = selectedDates.join(', ');
-    const apiFormatSelectedDates = selectedDates.map(date => moment(date, "MM/DD/YYYY").format("YYYY-MM-DD"));
-    setRemoveRange({ start: apiFormatSelectedDates[0], end: apiFormatSelectedDates[apiFormatSelectedDates.length - 1] });
     setDateList([]);  // Clear the date list
     setModalDescription(`Are you sure you want to remove ${selected} from your availability?`);
     setConfirmButtonText("Confirm");
     setIsConfirmVisible(true);
     setModalIsOpen(true);
-  };      
+  };
 
   const openRemoveAvailabilityModal = (group) => {
     if (group.length === 1) {
       const date = moment(group[0].date).format("YYYY-MM-DD");
-      setRemoveRange({ start: date, end: date });
       setModalTitle("Availability");
       setModalDescription(`Are you sure you want to remove ${moment(date).format("MM/DD/YYYY")} from your availability?`);
       setIsConfirmVisible(true);
@@ -180,8 +179,6 @@ function AdminDashboard() {
       setModalIsOpen(true);
     }
   };
-  
-  
 
   const closeModal = () => {
     setModalIsOpen(false);
@@ -189,7 +186,6 @@ function AdminDashboard() {
     setModalDescription("");
     setDateList([]);
     setSelectedDates([]);
-    setRemoveRange({});
   };
 
   return (
@@ -423,17 +419,17 @@ function AdminDashboard() {
 
       {/* Modal Component */}
       <CustomModal
-  open={modalIsOpen}
-  onClose={closeModal}
-  title={modalTitle}
-  description={modalDescription}
-  onConfirm={confirmButtonText === "Remove Selected Date(s)" ? confirmRemoveSelectedDates : handleRemoveAvailable}
-  isConfirmVisible={isConfirmVisible}
-  confirmButtonText={confirmButtonText}
-  dateList={dateList}
-  selectedDates={selectedDates}
-  handleDateSelection={handleDateSelection}
-/>
+        open={modalIsOpen}
+        onClose={closeModal}
+        title={modalTitle}
+        description={modalDescription}
+        onConfirm={confirmButtonText === "Remove Selected Date(s)" ? confirmRemoveSelectedDates : handleRemoveAvailable}
+        isConfirmVisible={isConfirmVisible}
+        confirmButtonText={confirmButtonText}
+        dateList={dateList}
+        selectedDates={selectedDates}
+        handleDateSelection={handleDateSelection}
+      />
     </Container>
   );
 }
