@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Container, Typography, Button, Table, TableBody, TableCell, TableHead, TableRow, TextField } from "@mui/material";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { Container, Typography, Button, Table, TableBody, TableCell, TableHead, TableRow, TextField, MenuItem, Select } from "@mui/material";
 import axios from "axios";
 import moment from "moment";
 import CustomModal from "../components/modal/CustomModal";
@@ -12,7 +12,7 @@ function AdminDashboard() {
   const [availableDays, setAvailableDays] = useState([]);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [reason, setReason] = useState("");
+  const [dayType, setDayType] = useState("");
   
   // Modal state
   const [modalIsOpen, setModalIsOpen] = useState(false);
@@ -107,7 +107,7 @@ function AdminDashboard() {
       await axios.post("http://localhost:8000/api/set-availability/", {
         start_date: startDate,
         end_date: endDate || startDate, // Use startDate if endDate is not provided
-        reason,
+        type: dayType,
       }, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -203,6 +203,13 @@ function AdminDashboard() {
     setSelectedDates([]);
   };
 
+  const dayTypeMap = useMemo(() => ({
+    tea_tasting: 'Tea Tasting',
+    intro_gongfu: 'Intro to Gongfu',
+    guided_meditation: 'Guided Meditation',
+  }), []);
+  
+
   return (
     <Container>
       <Typography variant="h4" component="h1" gutterBottom>
@@ -211,49 +218,51 @@ function AdminDashboard() {
 
       {/* Incoming Requests Section */}
       <Typography variant="h5" component="h2" gutterBottom>
-        Incoming Requests
-      </Typography>
-      <Table style={{ tableLayout: "fixed" }}>
-        <TableHead>
-          <TableRow>
-            <TableCell style={{ width: "20%" }}>User</TableCell>
-            <TableCell style={{ width: "20%" }}>Date</TableCell>
-            <TableCell style={{ width: "20%" }}>Status</TableCell>
-            <TableCell style={{ width: "40%" }}>Actions</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {incomingRequests.map((appointment) => (
-            <TableRow key={appointment.id}>
-              <TableCell>{appointment.user.username}</TableCell>
-              <TableCell>
-                {moment(appointment.date).format("MM/DD/YYYY")}
-              </TableCell>
-              <TableCell>{appointment.status_display}</TableCell>
-              <TableCell>
-                <Button
-                  onClick={() => handleStatusChange(appointment.id, "approve")}
-                  disabled={appointment.status === "confirmed"}
-                >
-                  Approve
-                </Button>
-                <Button
-                  onClick={() => handleStatusChange(appointment.id, "deny")}
-                  disabled={appointment.status === "denied"}
-                >
-                  Deny
-                </Button>
-                <Button
-                  onClick={() => handleStatusChange(appointment.id, "flagged")}
-                  disabled={appointment.status === "flagged"}
-                >
-                  Flag
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+  Incoming Requests
+</Typography>
+<Table style={{ tableLayout: "fixed" }}>
+  <TableHead>
+    <TableRow>
+      <TableCell style={{ width: "20%" }}>User</TableCell>
+      <TableCell style={{ width: "20%" }}>Date</TableCell>
+      <TableCell style={{ width: "20%" }}>Day Type</TableCell>
+      <TableCell style={{ width: "20%" }}>Status</TableCell>
+      <TableCell style={{ width: "20%" }}>Actions</TableCell>
+    </TableRow>
+  </TableHead>
+  <TableBody>
+    {incomingRequests.map((appointment) => (
+      <TableRow key={appointment.id}>
+        <TableCell>{appointment.user.username}</TableCell>
+        <TableCell>
+          {moment(appointment.date).format("MM/DD/YYYY")}
+        </TableCell>
+        <TableCell>{dayTypeMap[appointment.day_type]}</TableCell>
+        <TableCell>{appointment.status_display}</TableCell>
+        <TableCell>
+          <Button
+            onClick={() => handleStatusChange(appointment.id, "approve")}
+            disabled={appointment.status === "confirmed"}
+          >
+            Approve
+          </Button>
+          <Button
+            onClick={() => handleStatusChange(appointment.id, "deny")}
+            disabled={appointment.status === "denied"}
+          >
+            Deny
+          </Button>
+          <Button
+            onClick={() => handleStatusChange(appointment.id, "flagged")}
+            disabled={appointment.status === "flagged"}
+          >
+            Flag
+          </Button>
+        </TableCell>
+      </TableRow>
+    ))}
+  </TableBody>
+</Table>
 
       {/* Processed Requests Section */}
       <Typography variant="h5" component="h2" gutterBottom>
@@ -363,74 +372,78 @@ function AdminDashboard() {
 
       {/* Set Availability Section */}
       <div>
-        <Typography variant="h6" component="h2" gutterBottom>
-          Set Availability
-        </Typography>
-        <TextField
-          type="date"
-          label="Start Date"
-          InputLabelProps={{
-            shrink: true,
-          }}
-          inputProps={{ placeholder: "" }}
-          onChange={(e) => setStartDate(e.target.value)}
-        />
-        <TextField
-          type="date"
-          label="End Date"
-          InputLabelProps={{
-            shrink: true,
-          }}
-          inputProps={{ placeholder: "" }}
-          onChange={(e) => setEndDate(e.target.value)}
-        />
-        <TextField
-          type="text"
-          label="Reason"
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-        />
-        <Button variant="contained" color="primary" onClick={markAvailable}>
-          Set Availability
-        </Button>
-      </div>
+  <Typography variant="h6" component="h2" gutterBottom>
+    Set Availability
+  </Typography>
+  <TextField
+    type="date"
+    label="Start Date"
+    InputLabelProps={{
+      shrink: true,
+    }}
+    inputProps={{ placeholder: "" }}
+    onChange={(e) => setStartDate(e.target.value)}
+  />
+  <TextField
+    type="date"
+    label="End Date"
+    InputLabelProps={{
+      shrink: true,
+    }}
+    inputProps={{ placeholder: "" }}
+    onChange={(e) => setEndDate(e.target.value)}
+  />
+  <Select
+    value={dayType}
+    onChange={(e) => setDayType(e.target.value)}
+    displayEmpty
+  >
+    <MenuItem value="" disabled>Select Day Type</MenuItem>
+    <MenuItem value="tea_tasting">Tea Tasting</MenuItem>
+    <MenuItem value="intro_gongfu">Intro to Gongfu</MenuItem>
+    <MenuItem value="guided_meditation">Guided Meditation</MenuItem>
+  </Select>
+  <Button variant="contained" color="primary" onClick={markAvailable}>
+    Set Availability
+  </Button>
+</div>
 
       {/* Available Days Section */}
       <div>
-        <Typography variant="h6" component="h2" gutterBottom>
-          Available Days
-        </Typography>
-        <Table style={{ tableLayout: "fixed" }}>
-          <TableHead>
-            <TableRow>
-              <TableCell style={{ width: "20%" }}>Date Range</TableCell>
-              <TableCell style={{ width: "20%" }}></TableCell>
-              <TableCell style={{ width: "20%" }}>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {availableDays.map((group, index) => (
-              <TableRow key={index}>
-                <TableCell>
-                  {group.length === 1
-                    ? moment(group[0].date).format("MM/DD/YYYY")
-                    : `${moment(group[0].date).format("MM/DD/YYYY")} - ${moment(group[group.length - 1].date).format("MM/DD/YYYY")}`}
-                </TableCell>
-                <TableCell>{group[0].reason}</TableCell>
-                <TableCell>
-                  <Button
-                    variant="contained"
-                    color="secondary"
-                    onClick={() => openRemoveAvailabilityModal(group)}
-                  >
-                    Remove Available
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+  <Typography variant="h6" component="h2" gutterBottom>
+    Available Days
+  </Typography>
+  <Table style={{ tableLayout: "fixed" }}>
+    <TableHead>
+      <TableRow>
+        <TableCell style={{ width: "20%" }}>Date Range</TableCell>
+        <TableCell style={{ width: "20%" }}>Day Type</TableCell>
+        <TableCell style={{ width: "20%" }}>Actions</TableCell>
+      </TableRow>
+    </TableHead>
+    <TableBody>
+      {availableDays.map((group, index) => (
+        <TableRow key={index}>
+          <TableCell>
+            {group.length === 1
+              ? moment(group[0].date).format("MM/DD/YYYY")
+              : `${moment(group[0].date).format("MM/DD/YYYY")} - ${moment(group[group.length - 1].date).format("MM/DD/YYYY")}`}
+          </TableCell>
+          <TableCell>{dayTypeMap[group[0].type]}</TableCell>
+          <TableCell>
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={() => openRemoveAvailabilityModal(group)}
+            >
+              Remove Available
+            </Button>
+          </TableCell>
+        </TableRow>
+      ))}
+    </TableBody>
+  </Table>
+</div>
 
       {/* Modal Component */}
       <CustomModal

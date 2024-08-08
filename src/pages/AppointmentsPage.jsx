@@ -1,5 +1,4 @@
-// src/pages/AppointmentsPage.js
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import 'moment-timezone';
@@ -19,6 +18,12 @@ function AppointmentsPage() {
   const [modalMessage, setModalMessage] = useState('');
   const [isConfirmVisible, setIsConfirmVisible] = useState(true);
   const [confirmButtonText, setConfirmButtonText] = useState('Confirm');
+
+  const dayTypeMap = useMemo(() => ({
+    tea_tasting: 'Tea Tasting',
+    intro_gongfu: 'Intro to Gongfu',
+    guided_meditation: 'Guided Meditation',
+  }), []);
 
   const fetchAppointmentsAndAvailableDays = useCallback(async () => {
     try {
@@ -69,20 +74,33 @@ function AppointmentsPage() {
       const availableDaysEvents = filteredAvailableDays.map(day => ({
         start: moment(day.date).startOf('day').toDate(),
         end: moment(day.date).startOf('day').toDate(),
-        title: day.reason || 'Available',
+        title: dayTypeMap[day.type] || 'Available', // Use the mapped human-readable value
         allDay: true,
-        backgroundColor: '#4caf50',
+        backgroundColor: getBackgroundColor(day.type),
       }));
 
       setEvents([...eventsData, ...availableDaysEvents]);
     } catch (error) {
       console.error('Error fetching data:', error);
     }
-  }, []);
+  }, [dayTypeMap]);
 
   useEffect(() => {
     fetchAppointmentsAndAvailableDays();
   }, [fetchAppointmentsAndAvailableDays]);
+
+  const getBackgroundColor = (type) => {
+    switch (type) {
+      case 'tea_tasting':
+        return '#ff9800';
+      case 'intro_gongfu':
+        return '#4caf50';
+      case 'guided_meditation':
+        return '#3f51b5';
+      default:
+        return '#3174ad';
+    }
+  };
 
   const handleSelectSlot = ({ start }) => {
     const today = moment().startOf('day');
@@ -140,6 +158,10 @@ function AppointmentsPage() {
     });
   };
 
+  const eventPropGetter = (event) => {
+    return { style: { backgroundColor: event.backgroundColor } };
+  };
+
   return (
     <Container>
       <Typography variant="h4" component="h1" gutterBottom>
@@ -153,9 +175,7 @@ function AppointmentsPage() {
         selectable
         onSelectSlot={handleSelectSlot}
         style={{ height: 500 }}
-        eventPropGetter={(event) => ({
-          style: { backgroundColor: event.backgroundColor || '#3174ad' }
-        })}
+        eventPropGetter={eventPropGetter}
       />
       <CustomModal
         open={modalIsOpen}
