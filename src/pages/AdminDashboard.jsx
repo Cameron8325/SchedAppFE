@@ -271,10 +271,11 @@ function AdminDashboard() {
       <Table style={{ tableLayout: "fixed" }}>
         <TableHead>
           <TableRow>
-            <TableCell style={{ width: "20%" }}>User</TableCell>
-            <TableCell style={{ width: "20%" }}>Date</TableCell>
-            <TableCell style={{ width: "20%" }}>Status</TableCell>
-            <TableCell style={{ width: "40%" }}>Actions</TableCell>
+          <TableCell style={{ width: "20%" }}>User</TableCell>
+      <TableCell style={{ width: "20%" }}>Date</TableCell>
+      <TableCell style={{ width: "20%" }}>Day Type</TableCell>
+      <TableCell style={{ width: "20%" }}>Status</TableCell>
+      <TableCell style={{ width: "20%" }}>Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -284,6 +285,7 @@ function AdminDashboard() {
               <TableCell>
                 {moment(appointment.date).format("MM/DD/YYYY")}
               </TableCell>
+        <TableCell>{dayTypeMap[appointment.day_type]}</TableCell>
               <TableCell>{appointment.status_display}</TableCell>
               <TableCell>
                 <Button
@@ -311,10 +313,11 @@ function AdminDashboard() {
       <Table style={{ tableLayout: "fixed" }}>
         <TableHead>
           <TableRow>
-            <TableCell style={{ width: "20%" }}>User</TableCell>
-            <TableCell style={{ width: "20%" }}>Date</TableCell>
-            <TableCell style={{ width: "20%" }}>Status</TableCell>
-            <TableCell style={{ width: "40%" }}>Actions</TableCell>
+          <TableCell style={{ width: "20%" }}>User</TableCell>
+      <TableCell style={{ width: "20%" }}>Date</TableCell>
+      <TableCell style={{ width: "20%" }}>Day Type</TableCell>
+      <TableCell style={{ width: "20%" }}>Status</TableCell>
+      <TableCell style={{ width: "20%" }}>Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -324,6 +327,8 @@ function AdminDashboard() {
               <TableCell>
                 {moment(appointment.date).format("MM/DD/YYYY")}
               </TableCell>
+        <TableCell>{dayTypeMap[appointment.day_type]}</TableCell>
+
               <TableCell>{appointment.status_display}</TableCell>
               <TableCell>
                 <Button
@@ -351,10 +356,11 @@ function AdminDashboard() {
       <Table style={{ tableLayout: "fixed" }}>
         <TableHead>
           <TableRow>
-            <TableCell style={{ width: "20%" }}>User</TableCell>
-            <TableCell style={{ width: "20%" }}>Date</TableCell>
-            <TableCell style={{ width: "20%" }}>Status</TableCell>
-            <TableCell style={{ width: "40%" }}>Actions</TableCell>
+          <TableCell style={{ width: "20%" }}>User</TableCell>
+      <TableCell style={{ width: "20%" }}>Date</TableCell>
+      <TableCell style={{ width: "20%" }}>Day Type</TableCell>
+      <TableCell style={{ width: "20%" }}>Status</TableCell>
+      <TableCell style={{ width: "20%" }}>Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -364,6 +370,8 @@ function AdminDashboard() {
               <TableCell>
                 {moment(appointment.date).format("MM/DD/YYYY")}
               </TableCell>
+        <TableCell>{dayTypeMap[appointment.day_type]}</TableCell>
+
               <TableCell>{appointment.status_display}</TableCell>
             </TableRow>
           ))}
