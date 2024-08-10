@@ -3,12 +3,17 @@ import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import 'moment-timezone';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { Container, Typography, Button, ButtonGroup } from '@mui/material';
+import { Container, Typography, ButtonGroup, Button } from '@mui/material';
 import axios from 'axios';
+import { useLocation, useNavigate } from 'react-router-dom';
 import authService from '../services/authService';
 import CustomModal from '../components/modal/CustomModal';
 
 const localizer = momentLocalizer(moment);
+
+function useQuery() {
+  return new URLSearchParams(useLocation().search);
+}
 
 function AppointmentsPage() {
   const [events, setEvents] = useState([]);
@@ -19,13 +24,16 @@ function AppointmentsPage() {
   const [modalMessage, setModalMessage] = useState('');
   const [isConfirmVisible, setIsConfirmVisible] = useState(true);
   const [confirmButtonText, setConfirmButtonText] = useState('Confirm');
-  const [selectedDayType, setSelectedDayType] = useState('all'); // New state for filtering
+  const [selectedDayType, setSelectedDayType] = useState('all');
 
   const dayTypeMap = useMemo(() => ({
     tea_tasting: 'Tea Tasting',
     intro_gongfu: 'Intro to Gongfu',
     guided_meditation: 'Guided Meditation',
   }), []);
+
+  const query = useQuery();
+  const navigate = useNavigate();
 
   const fetchAppointmentsAndAvailableDays = useCallback(async () => {
     try {
@@ -64,7 +72,8 @@ function AppointmentsPage() {
           end: moment(date).toDate(),
           title: spotsLeft === 0 ? 'Fully Booked' : `${spotsLeft} spots left`,
           allDay: true,
-          backgroundColor: spotsLeft === 0 ? '#ff9800' : '#3174ad'
+          backgroundColor: spotsLeft === 0 ? '#ff9800' : '#3174ad',
+          type: null // No specific type for spots left events
         };
       });
 
@@ -76,43 +85,58 @@ function AppointmentsPage() {
       const availableDaysEvents = filteredAvailableDays.map(day => ({
         start: moment(day.date).startOf('day').toDate(),
         end: moment(day.date).startOf('day').toDate(),
-        title: dayTypeMap[day.type] || 'Available',
+        title: dayTypeMap[day.type],
         allDay: true,
         backgroundColor: getBackgroundColor(day.type),
-        type: day.type, // Add type to filter later
+        type: day.type, // Include type for filtering
       }));
 
       const allEvents = [...eventsData, ...availableDaysEvents];
-      setEvents(allEvents);
-      setFilteredEvents(allEvents); // Initially show all events
+      const sortedEvents = sortEvents(allEvents); // Apply sorting on initial load
+      setEvents(sortedEvents);
+      setFilteredEvents(sortedEvents); // Initially show all events
     } catch (error) {
       console.error('Error fetching data:', error);
     }
   }, [dayTypeMap]);
+
+  const sortEvents = (events) => {
+    return events.sort((a, b) => {
+      if (a.type && !b.type) return -1;
+      if (!a.type && b.type) return 1;
+      return 0;
+    });
+  };
 
   useEffect(() => {
     fetchAppointmentsAndAvailableDays();
   }, [fetchAppointmentsAndAvailableDays]);
 
   useEffect(() => {
-    if (selectedDayType === 'all') {
-      setFilteredEvents(events);
+    const dayTypeQuery = query.get('dayType');
+    if (dayTypeQuery) {
+      setSelectedDayType(dayTypeQuery);
     } else {
-      // Filter only the selected day type events
+      setSelectedDayType('all');
+    }
+  }, [query]);
+
+  useEffect(() => {
+    if (selectedDayType === 'all') {
+      const sortedEvents = sortEvents(events); // Re-apply sorting when showing all events
+      setFilteredEvents(sortedEvents);
+    } else {
       const dayTypeEvents = events.filter(event => event.type === selectedDayType);
-      
-      // Filter the corresponding spots left information for the selected day type
-      const spotsLeftEvents = events.filter(event => 
+
+      const spotsLeftEvents = events.filter(event =>
         event.title.includes('spots left') &&
         dayTypeEvents.some(dayEvent => moment(dayEvent.start).isSame(event.start, 'day'))
       );
-  
-      // Combine day type events and their corresponding spots left info
-      const combinedEvents = [...dayTypeEvents, ...spotsLeftEvents];
+
+      const combinedEvents = sortEvents([...dayTypeEvents, ...spotsLeftEvents]);
       setFilteredEvents(combinedEvents);
     }
   }, [selectedDayType, events]);
-
 
   const getBackgroundColor = (type) => {
     switch (type) {
@@ -187,6 +211,11 @@ function AppointmentsPage() {
     return { style: { backgroundColor: event.backgroundColor } };
   };
 
+  const handleDayTypeChange = (type) => {
+    setSelectedDayType(type);
+    navigate(`/appointments?dayType=${type}`);
+  };
+
   return (
     <Container>
       <Typography variant="h4" component="h1" gutterBottom>
@@ -195,10 +224,10 @@ function AppointmentsPage() {
 
       {/* Day Type Filter Buttons */}
       <ButtonGroup variant="contained" color="primary" style={{ marginBottom: '1rem' }}>
-        <Button onClick={() => setSelectedDayType('all')}>All</Button>
-        <Button onClick={() => setSelectedDayType('tea_tasting')}>Tea Tasting</Button>
-        <Button onClick={() => setSelectedDayType('intro_gongfu')}>Intro to Gongfu</Button>
-        <Button onClick={() => setSelectedDayType('guided_meditation')}>Guided Meditation</Button>
+        <Button onClick={() => handleDayTypeChange('all')}>All</Button>
+        <Button onClick={() => handleDayTypeChange('tea_tasting')}>Tea Tasting</Button>
+        <Button onClick={() => handleDayTypeChange('intro_gongfu')}>Intro to Gongfu</Button>
+        <Button onClick={() => handleDayTypeChange('guided_meditation')}>Guided Meditation</Button>
       </ButtonGroup>
 
       <Calendar
