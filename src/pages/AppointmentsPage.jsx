@@ -3,7 +3,7 @@ import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import 'moment-timezone';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { Container, Typography } from '@mui/material';
+import { Container, Typography, Button, ButtonGroup } from '@mui/material';
 import axios from 'axios';
 import authService from '../services/authService';
 import CustomModal from '../components/modal/CustomModal';
@@ -12,12 +12,14 @@ const localizer = momentLocalizer(moment);
 
 function AppointmentsPage() {
   const [events, setEvents] = useState([]);
+  const [filteredEvents, setFilteredEvents] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalMessage, setModalMessage] = useState('');
   const [isConfirmVisible, setIsConfirmVisible] = useState(true);
   const [confirmButtonText, setConfirmButtonText] = useState('Confirm');
+  const [selectedDayType, setSelectedDayType] = useState('all'); // New state for filtering
 
   const dayTypeMap = useMemo(() => ({
     tea_tasting: 'Tea Tasting',
@@ -74,12 +76,15 @@ function AppointmentsPage() {
       const availableDaysEvents = filteredAvailableDays.map(day => ({
         start: moment(day.date).startOf('day').toDate(),
         end: moment(day.date).startOf('day').toDate(),
-        title: dayTypeMap[day.type] || 'Available', // Use the mapped human-readable value
+        title: dayTypeMap[day.type] || 'Available',
         allDay: true,
         backgroundColor: getBackgroundColor(day.type),
+        type: day.type, // Add type to filter later
       }));
 
-      setEvents([...eventsData, ...availableDaysEvents]);
+      const allEvents = [...eventsData, ...availableDaysEvents];
+      setEvents(allEvents);
+      setFilteredEvents(allEvents); // Initially show all events
     } catch (error) {
       console.error('Error fetching data:', error);
     }
@@ -88,6 +93,15 @@ function AppointmentsPage() {
   useEffect(() => {
     fetchAppointmentsAndAvailableDays();
   }, [fetchAppointmentsAndAvailableDays]);
+
+  useEffect(() => {
+    if (selectedDayType === 'all') {
+      setFilteredEvents(events);
+    } else {
+      const filtered = events.filter(event => event.type === selectedDayType || event.type === undefined);
+      setFilteredEvents(filtered);
+    }
+  }, [selectedDayType, events]);
 
   const getBackgroundColor = (type) => {
     switch (type) {
@@ -105,7 +119,7 @@ function AppointmentsPage() {
   const handleSelectSlot = ({ start }) => {
     const today = moment().startOf('day');
     const selected = moment(start).startOf('day');
-    const isAvailable = events.some(event => moment(event.start).isSame(start, 'day') && event.title !== 'Fully Booked');
+    const isAvailable = filteredEvents.some(event => moment(event.start).isSame(start, 'day') && event.title !== 'Fully Booked');
 
     if (selected.isBefore(today)) {
       setModalTitle('Invalid Selection');
@@ -167,9 +181,18 @@ function AppointmentsPage() {
       <Typography variant="h4" component="h1" gutterBottom>
         Schedule an Appointment
       </Typography>
+
+      {/* Day Type Filter Buttons */}
+      <ButtonGroup variant="contained" color="primary" style={{ marginBottom: '1rem' }}>
+        <Button onClick={() => setSelectedDayType('all')}>All</Button>
+        <Button onClick={() => setSelectedDayType('tea_tasting')}>Tea Tasting</Button>
+        <Button onClick={() => setSelectedDayType('intro_gongfu')}>Intro to Gongfu</Button>
+        <Button onClick={() => setSelectedDayType('guided_meditation')}>Guided Meditation</Button>
+      </ButtonGroup>
+
       <Calendar
         localizer={localizer}
-        events={events}
+        events={filteredEvents}
         startAccessor="start"
         endAccessor="end"
         selectable
