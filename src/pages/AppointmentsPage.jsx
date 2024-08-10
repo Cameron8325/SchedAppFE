@@ -3,17 +3,12 @@ import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import 'moment-timezone';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { Container, Typography, ButtonGroup, Button } from '@mui/material';
+import { Container, Typography, Button, ButtonGroup } from '@mui/material';
 import axios from 'axios';
-import { useLocation, useNavigate } from 'react-router-dom';  // Import useLocation and useNavigate
 import authService from '../services/authService';
 import CustomModal from '../components/modal/CustomModal';
 
 const localizer = momentLocalizer(moment);
-
-function useQuery() {
-  return new URLSearchParams(useLocation().search);
-}
 
 function AppointmentsPage() {
   const [events, setEvents] = useState([]);
@@ -24,16 +19,13 @@ function AppointmentsPage() {
   const [modalMessage, setModalMessage] = useState('');
   const [isConfirmVisible, setIsConfirmVisible] = useState(true);
   const [confirmButtonText, setConfirmButtonText] = useState('Confirm');
-  const [selectedDayType, setSelectedDayType] = useState('all');
+  const [selectedDayType, setSelectedDayType] = useState('all'); // New state for filtering
 
   const dayTypeMap = useMemo(() => ({
     tea_tasting: 'Tea Tasting',
     intro_gongfu: 'Intro to Gongfu',
     guided_meditation: 'Guided Meditation',
   }), []);
-
-  const query = useQuery();
-  const navigate = useNavigate(); // To update the query parameters
 
   const fetchAppointmentsAndAvailableDays = useCallback(async () => {
     try {
@@ -103,22 +95,24 @@ function AppointmentsPage() {
   }, [fetchAppointmentsAndAvailableDays]);
 
   useEffect(() => {
-    const dayTypeQuery = query.get('dayType');
-    if (dayTypeQuery) {
-      setSelectedDayType(dayTypeQuery);
-    } else {
-      setSelectedDayType('all'); // Reset to 'all' if no query parameter is present
-    }
-  }, [query]);
-
-  useEffect(() => {
     if (selectedDayType === 'all') {
       setFilteredEvents(events);
     } else {
-      const filtered = events.filter(event => event.type === selectedDayType || event.type === undefined);
-      setFilteredEvents(filtered);
+      // Filter only the selected day type events
+      const dayTypeEvents = events.filter(event => event.type === selectedDayType);
+      
+      // Filter the corresponding spots left information for the selected day type
+      const spotsLeftEvents = events.filter(event => 
+        event.title.includes('spots left') &&
+        dayTypeEvents.some(dayEvent => moment(dayEvent.start).isSame(event.start, 'day'))
+      );
+  
+      // Combine day type events and their corresponding spots left info
+      const combinedEvents = [...dayTypeEvents, ...spotsLeftEvents];
+      setFilteredEvents(combinedEvents);
     }
   }, [selectedDayType, events]);
+
 
   const getBackgroundColor = (type) => {
     switch (type) {
@@ -193,11 +187,6 @@ function AppointmentsPage() {
     return { style: { backgroundColor: event.backgroundColor } };
   };
 
-  const handleDayTypeChange = (type) => {
-    setSelectedDayType(type);
-    navigate(`/appointments?dayType=${type}`);
-  };
-
   return (
     <Container>
       <Typography variant="h4" component="h1" gutterBottom>
@@ -206,10 +195,10 @@ function AppointmentsPage() {
 
       {/* Day Type Filter Buttons */}
       <ButtonGroup variant="contained" color="primary" style={{ marginBottom: '1rem' }}>
-        <Button onClick={() => handleDayTypeChange('all')}>All</Button>
-        <Button onClick={() => handleDayTypeChange('tea_tasting')}>Tea Tasting</Button>
-        <Button onClick={() => handleDayTypeChange('intro_gongfu')}>Intro to Gongfu</Button>
-        <Button onClick={() => handleDayTypeChange('guided_meditation')}>Guided Meditation</Button>
+        <Button onClick={() => setSelectedDayType('all')}>All</Button>
+        <Button onClick={() => setSelectedDayType('tea_tasting')}>Tea Tasting</Button>
+        <Button onClick={() => setSelectedDayType('intro_gongfu')}>Intro to Gongfu</Button>
+        <Button onClick={() => setSelectedDayType('guided_meditation')}>Guided Meditation</Button>
       </ButtonGroup>
 
       <Calendar
