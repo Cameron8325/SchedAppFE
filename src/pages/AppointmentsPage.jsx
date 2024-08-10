@@ -3,12 +3,17 @@ import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import 'moment-timezone';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { Container, Typography, Button, ButtonGroup } from '@mui/material';
+import { Container, Typography, ButtonGroup, Button } from '@mui/material';
 import axios from 'axios';
+import { useLocation, useNavigate } from 'react-router-dom';  // Import useLocation and useNavigate
 import authService from '../services/authService';
 import CustomModal from '../components/modal/CustomModal';
 
 const localizer = momentLocalizer(moment);
+
+function useQuery() {
+  return new URLSearchParams(useLocation().search);
+}
 
 function AppointmentsPage() {
   const [events, setEvents] = useState([]);
@@ -19,13 +24,16 @@ function AppointmentsPage() {
   const [modalMessage, setModalMessage] = useState('');
   const [isConfirmVisible, setIsConfirmVisible] = useState(true);
   const [confirmButtonText, setConfirmButtonText] = useState('Confirm');
-  const [selectedDayType, setSelectedDayType] = useState('all'); // New state for filtering
+  const [selectedDayType, setSelectedDayType] = useState('all');
 
   const dayTypeMap = useMemo(() => ({
     tea_tasting: 'Tea Tasting',
     intro_gongfu: 'Intro to Gongfu',
     guided_meditation: 'Guided Meditation',
   }), []);
+
+  const query = useQuery();
+  const navigate = useNavigate(); // To update the query parameters
 
   const fetchAppointmentsAndAvailableDays = useCallback(async () => {
     try {
@@ -93,6 +101,15 @@ function AppointmentsPage() {
   useEffect(() => {
     fetchAppointmentsAndAvailableDays();
   }, [fetchAppointmentsAndAvailableDays]);
+
+  useEffect(() => {
+    const dayTypeQuery = query.get('dayType');
+    if (dayTypeQuery) {
+      setSelectedDayType(dayTypeQuery);
+    } else {
+      setSelectedDayType('all'); // Reset to 'all' if no query parameter is present
+    }
+  }, [query]);
 
   useEffect(() => {
     if (selectedDayType === 'all') {
@@ -176,6 +193,11 @@ function AppointmentsPage() {
     return { style: { backgroundColor: event.backgroundColor } };
   };
 
+  const handleDayTypeChange = (type) => {
+    setSelectedDayType(type);
+    navigate(`/appointments?dayType=${type}`);
+  };
+
   return (
     <Container>
       <Typography variant="h4" component="h1" gutterBottom>
@@ -184,10 +206,10 @@ function AppointmentsPage() {
 
       {/* Day Type Filter Buttons */}
       <ButtonGroup variant="contained" color="primary" style={{ marginBottom: '1rem' }}>
-        <Button onClick={() => setSelectedDayType('all')}>All</Button>
-        <Button onClick={() => setSelectedDayType('tea_tasting')}>Tea Tasting</Button>
-        <Button onClick={() => setSelectedDayType('intro_gongfu')}>Intro to Gongfu</Button>
-        <Button onClick={() => setSelectedDayType('guided_meditation')}>Guided Meditation</Button>
+        <Button onClick={() => handleDayTypeChange('all')}>All</Button>
+        <Button onClick={() => handleDayTypeChange('tea_tasting')}>Tea Tasting</Button>
+        <Button onClick={() => handleDayTypeChange('intro_gongfu')}>Intro to Gongfu</Button>
+        <Button onClick={() => handleDayTypeChange('guided_meditation')}>Guided Meditation</Button>
       </ButtonGroup>
 
       <Calendar

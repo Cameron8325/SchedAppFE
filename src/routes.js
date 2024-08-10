@@ -7,6 +7,7 @@ import ProfilePage from './pages/ProfilePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import AdminDashboard from './pages/AdminDashboard';
+import CatalogPage from './pages/CatalogPage'; // Import the CatalogPage
 import NavBar from './components/navbar/navbar';
 
 function AppRoutes() {
@@ -16,6 +17,7 @@ function AppRoutes() {
             <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/about" element={<AboutPage />} />
+                <Route path="/catalog" element={<CatalogPage />} /> {/* Catalog Route */}
                 <Route path="/appointments" element={<AppointmentsPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/login" element={<LoginPage />} />
