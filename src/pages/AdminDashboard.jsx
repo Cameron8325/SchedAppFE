@@ -104,29 +104,59 @@ function AdminDashboard() {
   const markAvailable = async () => {
     try {
       const token = localStorage.getItem("token");
-      await axios.post("http://localhost:8000/api/set-availability/", {
-        start_date: startDate,
-        end_date: endDate || startDate, // Use startDate if endDate is not provided
-        type: dayType,
-      }, {
+  
+      // Fetch existing available days
+      const response = await axios.get("http://localhost:8000/api/available-days/", {
         headers: {
           Authorization: `Bearer ${token}`,
         }
       });
-      setModalTitle("Availability");
-      setModalDescription("Availability updated");
-      setIsConfirmVisible(false);
-      setModalIsOpen(true);
-      fetchAvailableDays(); // Refresh available days
   
-      // Clear the date fields and day type after success
-      setStartDate("");
-      setEndDate("");
-      setDayType("");
+      const existingDays = response.data;
+  
+      // Filter existing days to only include those within the selected date range
+      const conflictingDays = existingDays.filter(day => {
+        const dayDate = moment(day.date);
+        const start = moment(startDate);
+        const end = endDate ? moment(endDate) : start;
+        return day.type !== dayType && dayDate.isBetween(start, end, 'day', '[]'); // '[]' includes start and end dates
+      });
+  
+      if (conflictingDays.length > 0) {
+        // If there are conflicting days, show an error modal with only those dates
+        const conflictingDates = conflictingDays.map(day => moment(day.date).format("MM/DD/YYYY")).join(', ');
+        setModalTitle("Conflict Detected");
+        setModalDescription(`The following date(s) already have a different day type: ${conflictingDates}. Please adjust your selection.`);
+        setIsConfirmVisible(false);
+        setModalIsOpen(true);
+      } else {
+        // If no conflicts, proceed with setting availability
+        await axios.post("http://localhost:8000/api/set-availability/", {
+          start_date: startDate,
+          end_date: endDate || startDate, // Use startDate if endDate is not provided
+          type: dayType,
+        }, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          }
+        });
+        setModalTitle("Availability");
+        setModalDescription("Availability updated successfully.");
+        setIsConfirmVisible(false);
+        setModalIsOpen(true);
+        fetchAvailableDays(); // Refresh available days
+    
+        // Clear the date fields and day type after success
+        setStartDate("");
+        setEndDate("");
+        setDayType("");
+      }
     } catch (error) {
       console.error("Error updating availability:", error);
     }
   };
+  
+  
   
 
   const handleRemoveAvailable = async () => {
