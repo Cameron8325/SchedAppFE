@@ -13,6 +13,16 @@ function CustomModal({
   selectedDates, 
   handleDateSelection 
 }) {
+  const handleSelectAll = (event) => {
+    if (event.target.checked) {
+      // Select all dates
+      handleDateSelection(dateList);
+    } else {
+      // Deselect all dates
+      handleDateSelection([]);
+    }
+  };
+
   return (
     <Modal
       open={open}
@@ -29,6 +39,15 @@ function CustomModal({
         </Typography>
         {dateList && (
           <FormGroup>
+            <FormControlLabel
+              control={
+                <Checkbox 
+                  onChange={handleSelectAll} 
+                  checked={selectedDates.length === dateList.length} // Checked if all dates are selected
+                />
+              }
+              label="Select All"
+            />
             {dateList.map(date => (
               <FormControlLabel
                 key={date}
