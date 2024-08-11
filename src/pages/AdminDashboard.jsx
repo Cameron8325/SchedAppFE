@@ -194,11 +194,18 @@ function AdminDashboard() {
   
 
   const handleDateSelection = (date) => {
-    setSelectedDates(prevDates => prevDates.includes(date)
-      ? prevDates.filter(d => d !== date)
-      : [...prevDates, date]
-    );
+    if (Array.isArray(date)) {
+      // Handle "Select All" functionality
+      setSelectedDates(date);
+    } else {
+      setSelectedDates(prevDates => 
+        prevDates.includes(date)
+          ? prevDates.filter(d => d !== date)
+          : [...prevDates, date]
+      );
+    }
   };
+  
 
   const confirmRemoveSelectedDates = () => {
     const selected = selectedDates.join(', ');
@@ -229,7 +236,6 @@ function AdminDashboard() {
       setModalIsOpen(true);
     }
   };
-  
 
   const closeModal = () => {
     setModalIsOpen(false);
