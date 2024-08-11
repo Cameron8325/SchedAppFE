@@ -118,10 +118,16 @@ function AdminDashboard() {
       setIsConfirmVisible(false);
       setModalIsOpen(true);
       fetchAvailableDays(); // Refresh available days
+  
+      // Clear the date fields and day type after success
+      setStartDate("");
+      setEndDate("");
+      setDayType("");
     } catch (error) {
       console.error("Error updating availability:", error);
     }
   };
+  
 
   const handleRemoveAvailable = async () => {
     try {
@@ -384,23 +390,26 @@ function AdminDashboard() {
     Set Availability
   </Typography>
   <TextField
-    type="date"
-    label="Start Date"
-    InputLabelProps={{
-      shrink: true,
-    }}
-    inputProps={{ placeholder: "" }}
-    onChange={(e) => setStartDate(e.target.value)}
-  />
-  <TextField
-    type="date"
-    label="End Date"
-    InputLabelProps={{
-      shrink: true,
-    }}
-    inputProps={{ placeholder: "" }}
-    onChange={(e) => setEndDate(e.target.value)}
-  />
+  type="date"
+  label="Start Date"
+  InputLabelProps={{
+    shrink: true,
+  }}
+  inputProps={{ placeholder: "" }}
+  value={startDate} // Bind the state value to the field
+  onChange={(e) => setStartDate(e.target.value)}
+/>
+<TextField
+  type="date"
+  label="End Date"
+  InputLabelProps={{
+    shrink: true,
+  }}
+  inputProps={{ placeholder: "" }}
+  value={endDate} // Bind the state value to the field
+  onChange={(e) => setEndDate(e.target.value)}
+/>
+
   <Select
     value={dayType}
     onChange={(e) => setDayType(e.target.value)}
