@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Container, Typography, Button, Table, TableBody, TableCell, TableHead, TableRow, TextField, MenuItem, Select } from "@mui/material";
+import { Container, Typography, Button, Table, TableBody, TableCell, TableHead, TableRow, TextField, MenuItem, Select, Grid } from "@mui/material";
 import axios from "axios";
 import moment from "moment";
 import CustomModal from "../components/modal/CustomModal";
@@ -576,29 +576,34 @@ function AdminDashboard() {
       />
 
       {/* Edit Day Types Modal */}
-      <CustomModal
-        open={editDayTypesModalIsOpen}
-        onClose={closeEditDayTypesModal}
-        title="Edit Day Types"
-        description="Update the day types for the selected dates:"
-        isConfirmVisible={true}
-        confirmButtonText="Save Changes"
-        onConfirm={confirmEditDayTypes}
-      >
-        {editDayTypesData.map((item, index) => (
-          <div key={index}>
-            <Typography variant="body1">{item.date}</Typography>
-            <Select
-              value={item.newType}
-              onChange={(e) => handleDayTypeChange(index, e.target.value)}
-            >
-              <MenuItem value="tea_tasting">Tea Tasting</MenuItem>
-              <MenuItem value="intro_gongfu">Intro to Gongfu</MenuItem>
-              <MenuItem value="guided_meditation">Guided Meditation</MenuItem>
-            </Select>
-          </div>
-        ))}
-      </CustomModal>
+<CustomModal
+  open={editDayTypesModalIsOpen}
+  onClose={closeEditDayTypesModal}
+  title="Edit Day Types"
+  description="Update the day types for the selected dates:"
+  isConfirmVisible={true}
+  confirmButtonText="Save Changes"
+  onConfirm={confirmEditDayTypes}
+>
+  {editDayTypesData.map((item, index) => (
+    <Grid container key={index} spacing={2} alignItems="center">
+      <Grid item xs={6}>
+        <Typography variant="body1">{item.date}</Typography>
+      </Grid>
+      <Grid item ={6}>
+        <Select
+          fullWidth
+          value={item.newType}
+          onChange={(e) => handleDayTypeChange(index, e.target.value)}
+        >
+          <MenuItem value="tea_tasting">Tea Tasting</MenuItem>
+          <MenuItem value="intro_gongfu">Intro to Gongfu</MenuItem>
+          <MenuItem value="guided_meditation">Guided Meditation</MenuItem>
+        </Select>
+      </Grid>
+    </Grid>
+  ))}
+</CustomModal>
 
       {/* Confirmation Modal */}
       <CustomModal
