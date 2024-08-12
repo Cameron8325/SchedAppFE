@@ -38,7 +38,7 @@ function CustomModal({
         <Typography variant="body1" id="custom-modal-description">
           {description}
         </Typography>
-        {dateList && (
+        {dateList && dateList.length > 0 && (
           <FormGroup>
             <FormControlLabel
               control={

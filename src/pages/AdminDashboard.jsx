@@ -542,7 +542,7 @@ function AdminDashboard() {
                 <TableCell>
                   <Button
                     variant="contained"
-                    color="secondary"
+                    color="primary"
                     onClick={() => openEditDayTypesModal(group)}
                   >
                     Edit Day Types
