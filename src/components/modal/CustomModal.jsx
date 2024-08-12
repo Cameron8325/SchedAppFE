@@ -11,7 +11,8 @@ function CustomModal({
   confirmButtonText, 
   dateList, 
   selectedDates, 
-  handleDateSelection 
+  handleDateSelection, 
+  children 
 }) {
   const handleSelectAll = (event) => {
     if (event.target.checked) {
@@ -62,6 +63,7 @@ function CustomModal({
             ))}
           </FormGroup>
         )}
+        {children}
         {isConfirmVisible && (
           <Button variant="contained" color="primary" onClick={onConfirm} style={{ marginRight: '10px' }}>
             {confirmButtonText}

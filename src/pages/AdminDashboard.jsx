@@ -14,7 +14,7 @@ function AdminDashboard() {
   const [endDate, setEndDate] = useState("");
   const [dayType, setDayType] = useState("");
   
-  // Modal state
+  // Modal states
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalDescription, setModalDescription] = useState("");
@@ -22,6 +22,14 @@ function AdminDashboard() {
   const [confirmButtonText, setConfirmButtonText] = useState("");
   const [dateList, setDateList] = useState([]);
   const [selectedDates, setSelectedDates] = useState([]);
+
+  // Edit Day Types Modal states
+  const [editDayTypesModalIsOpen, setEditDayTypesModalIsOpen] = useState(false);
+  const [editDayTypesData, setEditDayTypesData] = useState([]);
+  
+  // Confirmation Modal states
+  const [confirmModalIsOpen, setConfirmModalIsOpen] = useState(false);
+  const [confirmMessage, setConfirmMessage] = useState("");
 
   const fetchAppointments = useCallback(async () => {
     try {
@@ -71,12 +79,14 @@ function AdminDashboard() {
     if (!days.length) return [];
     const grouped = [];
     let group = [days[0]];
-
+  
     for (let i = 1; i < days.length; i++) {
       const prevDay = moment(days[i - 1].date);
       const currDay = moment(days[i].date);
-
-      if (currDay.diff(prevDay, "days") === 1) {
+      const isConsecutive = currDay.diff(prevDay, "days") === 1;
+      const hasSameType = days[i].type === days[i - 1].type;
+  
+      if (isConsecutive && hasSameType) {
         group.push(days[i]);
       } else {
         grouped.push(group);
@@ -86,6 +96,7 @@ function AdminDashboard() {
     grouped.push(group);
     return grouped;
   };
+  
 
   const handleStatusChange = async (id, status) => {
     try {
@@ -155,9 +166,6 @@ function AdminDashboard() {
       console.error("Error updating availability:", error);
     }
   };
-  
-  
-  
 
   const handleRemoveAvailable = async () => {
     try {
@@ -190,8 +198,6 @@ function AdminDashboard() {
       console.error("Error removing available days:", error);
     }
   };
-  
-  
 
   const handleDateSelection = (date) => {
     if (Array.isArray(date)) {
@@ -205,7 +211,6 @@ function AdminDashboard() {
       );
     }
   };
-  
 
   const confirmRemoveSelectedDates = () => {
     const selected = selectedDates.join(', ');
@@ -245,12 +250,73 @@ function AdminDashboard() {
     setSelectedDates([]);
   };
 
+  const openEditDayTypesModal = (group) => {
+    const displayDates = group.map(day => ({
+      date: moment(day.date).format("MM/DD/YYYY"),
+      oldType: day.type,
+      newType: day.type, // Initialize with the old type
+    }));
+    setEditDayTypesData(displayDates);
+    setEditDayTypesModalIsOpen(true);
+  };
+
+  const closeEditDayTypesModal = () => {
+    setEditDayTypesModalIsOpen(false);
+    setEditDayTypesData([]);
+  };
+
+  const handleDayTypeChange = (index, newType) => {
+    const updatedData = [...editDayTypesData];
+    updatedData[index].newType = newType;
+    setEditDayTypesData(updatedData);
+  };
+
+  const confirmEditDayTypes = () => {
+    const changes = editDayTypesData
+      .filter(item => item.oldType !== item.newType)
+      .map(item => `${item.date} from ${dayTypeMap[item.oldType]} to ${dayTypeMap[item.newType]}`)
+      .join(', ');
+
+    setConfirmMessage(`Are you sure you want to make the following changes: ${changes}?`);
+    setConfirmModalIsOpen(true);
+  };
+
+  const handleConfirmChanges = async () => {
+    try {
+      const token = localStorage.getItem("token");
+  
+      for (let item of editDayTypesData) {
+        if (item.oldType !== item.newType) {
+          const apiFormattedDate = moment(item.date, "MM/DD/YYYY").format("YYYY-MM-DD");
+          await axios.post(`http://localhost:8000/api/set-availability/`, {
+            start_date: apiFormattedDate,
+            end_date: apiFormattedDate,
+            type: item.newType,
+          }, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            }
+          });
+        }
+      }
+  
+      setConfirmModalIsOpen(false);
+      closeEditDayTypesModal();
+      
+      // Refresh and regroup available days
+      fetchAvailableDays();
+  
+    } catch (error) {
+      console.error("Error updating day types:", error);
+    }
+  };
+  
+
   const dayTypeMap = useMemo(() => ({
     tea_tasting: 'Tea Tasting',
     intro_gongfu: 'Intro to Gongfu',
     guided_meditation: 'Guided Meditation',
   }), []);
-  
 
   return (
     <Container>
@@ -260,51 +326,49 @@ function AdminDashboard() {
 
       {/* Incoming Requests Section */}
       <Typography variant="h5" component="h2" gutterBottom>
-  Incoming Requests
-</Typography>
-<Table style={{ tableLayout: "fixed" }}>
-  <TableHead>
-    <TableRow>
-      <TableCell style={{ width: "20%" }}>User</TableCell>
-      <TableCell style={{ width: "20%" }}>Date</TableCell>
-      <TableCell style={{ width: "20%" }}>Day Type</TableCell>
-      <TableCell style={{ width: "20%" }}>Status</TableCell>
-      <TableCell style={{ width: "20%" }}>Actions</TableCell>
-    </TableRow>
-  </TableHead>
-  <TableBody>
-    {incomingRequests.map((appointment) => (
-      <TableRow key={appointment.id}>
-        <TableCell>{appointment.user.username}</TableCell>
-        <TableCell>
-          {moment(appointment.date).format("MM/DD/YYYY")}
-        </TableCell>
-        <TableCell>{dayTypeMap[appointment.day_type]}</TableCell>
-        <TableCell>{appointment.status_display}</TableCell>
-        <TableCell>
-          <Button
-            onClick={() => handleStatusChange(appointment.id, "approve")}
-            disabled={appointment.status === "confirmed"}
-          >
-            Approve
-          </Button>
-          <Button
-            onClick={() => handleStatusChange(appointment.id, "deny")}
-            disabled={appointment.status === "denied"}
-          >
-            Deny
-          </Button>
-          <Button
-            onClick={() => handleStatusChange(appointment.id, "flagged")}
-            disabled={appointment.status === "flagged"}
-          >
-            Flag
-          </Button>
-        </TableCell>
-      </TableRow>
-    ))}
-  </TableBody>
-</Table>
+        Incoming Requests
+      </Typography>
+      <Table style={{ tableLayout: "fixed" }}>
+        <TableHead>
+          <TableRow>
+            <TableCell style={{ width: "20%" }}>User</TableCell>
+            <TableCell style={{ width: "20%" }}>Date</TableCell>
+            <TableCell style={{ width: "20%" }}>Day Type</TableCell>
+            <TableCell style={{ width: "20%" }}>Status</TableCell>
+            <TableCell style={{ width: "20%" }}>Actions</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {incomingRequests.map((appointment) => (
+            <TableRow key={appointment.id}>
+              <TableCell>{appointment.user.username}</TableCell>
+              <TableCell>{moment(appointment.date).format("MM/DD/YYYY")}</TableCell>
+              <TableCell>{dayTypeMap[appointment.day_type]}</TableCell>
+              <TableCell>{appointment.status_display}</TableCell>
+              <TableCell>
+                <Button
+                  onClick={() => handleStatusChange(appointment.id, "approve")}
+                  disabled={appointment.status === "confirmed"}
+                >
+                  Approve
+                </Button>
+                <Button
+                  onClick={() => handleStatusChange(appointment.id, "deny")}
+                  disabled={appointment.status === "denied"}
+                >
+                  Deny
+                </Button>
+                <Button
+                  onClick={() => handleStatusChange(appointment.id, "flagged")}
+                  disabled={appointment.status === "flagged"}
+                >
+                  Flag
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
 
       {/* Processed Requests Section */}
       <Typography variant="h5" component="h2" gutterBottom>
@@ -313,21 +377,19 @@ function AdminDashboard() {
       <Table style={{ tableLayout: "fixed" }}>
         <TableHead>
           <TableRow>
-          <TableCell style={{ width: "20%" }}>User</TableCell>
-      <TableCell style={{ width: "20%" }}>Date</TableCell>
-      <TableCell style={{ width: "20%" }}>Day Type</TableCell>
-      <TableCell style={{ width: "20%" }}>Status</TableCell>
-      <TableCell style={{ width: "20%" }}>Actions</TableCell>
+            <TableCell style={{ width: "20%" }}>User</TableCell>
+            <TableCell style={{ width: "20%" }}>Date</TableCell>
+            <TableCell style={{ width: "20%" }}>Day Type</TableCell>
+            <TableCell style={{ width: "20%" }}>Status</TableCell>
+            <TableCell style={{ width: "20%" }}>Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {processedRequests.map((appointment) => (
             <TableRow key={appointment.id}>
               <TableCell>{appointment.user.username}</TableCell>
-              <TableCell>
-                {moment(appointment.date).format("MM/DD/YYYY")}
-              </TableCell>
-        <TableCell>{dayTypeMap[appointment.day_type]}</TableCell>
+              <TableCell>{moment(appointment.date).format("MM/DD/YYYY")}</TableCell>
+              <TableCell>{dayTypeMap[appointment.day_type]}</TableCell>
               <TableCell>{appointment.status_display}</TableCell>
               <TableCell>
                 <Button
@@ -355,22 +417,19 @@ function AdminDashboard() {
       <Table style={{ tableLayout: "fixed" }}>
         <TableHead>
           <TableRow>
-          <TableCell style={{ width: "20%" }}>User</TableCell>
-      <TableCell style={{ width: "20%" }}>Date</TableCell>
-      <TableCell style={{ width: "20%" }}>Day Type</TableCell>
-      <TableCell style={{ width: "20%" }}>Status</TableCell>
-      <TableCell style={{ width: "20%" }}>Actions</TableCell>
+            <TableCell style={{ width: "20%" }}>User</TableCell>
+            <TableCell style={{ width: "20%" }}>Date</TableCell>
+            <TableCell style={{ width: "20%" }}>Day Type</TableCell>
+            <TableCell style={{ width: "20%" }}>Status</TableCell>
+            <TableCell style={{ width: "20%" }}>Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {flaggedRequests.map((appointment) => (
             <TableRow key={appointment.id}>
               <TableCell>{appointment.user.username}</TableCell>
-              <TableCell>
-                {moment(appointment.date).format("MM/DD/YYYY")}
-              </TableCell>
-        <TableCell>{dayTypeMap[appointment.day_type]}</TableCell>
-
+              <TableCell>{moment(appointment.date).format("MM/DD/YYYY")}</TableCell>
+              <TableCell>{dayTypeMap[appointment.day_type]}</TableCell>
               <TableCell>{appointment.status_display}</TableCell>
               <TableCell>
                 <Button
@@ -398,22 +457,19 @@ function AdminDashboard() {
       <Table style={{ tableLayout: "fixed" }}>
         <TableHead>
           <TableRow>
-          <TableCell style={{ width: "20%" }}>User</TableCell>
-      <TableCell style={{ width: "20%" }}>Date</TableCell>
-      <TableCell style={{ width: "20%" }}>Day Type</TableCell>
-      <TableCell style={{ width: "20%" }}>Status</TableCell>
-      <TableCell style={{ width: "20%" }}>Actions</TableCell>
+            <TableCell style={{ width: "20%" }}>User</TableCell>
+            <TableCell style={{ width: "20%" }}>Date</TableCell>
+            <TableCell style={{ width: "20%" }}>Day Type</TableCell>
+            <TableCell style={{ width: "20%" }}>Status</TableCell>
+            <TableCell style={{ width: "20%" }}>Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {toCompletionRequests.map((appointment) => (
             <TableRow key={appointment.id}>
               <TableCell>{appointment.user.username}</TableCell>
-              <TableCell>
-                {moment(appointment.date).format("MM/DD/YYYY")}
-              </TableCell>
-        <TableCell>{dayTypeMap[appointment.day_type]}</TableCell>
-
+              <TableCell>{moment(appointment.date).format("MM/DD/YYYY")}</TableCell>
+              <TableCell>{dayTypeMap[appointment.day_type]}</TableCell>
               <TableCell>{appointment.status_display}</TableCell>
             </TableRow>
           ))}
@@ -422,81 +478,88 @@ function AdminDashboard() {
 
       {/* Set Availability Section */}
       <div>
-  <Typography variant="h6" component="h2" gutterBottom>
-    Set Availability
-  </Typography>
-  <TextField
-  type="date"
-  label="Start Date"
-  InputLabelProps={{
-    shrink: true,
-  }}
-  inputProps={{ placeholder: "" }}
-  value={startDate} // Bind the state value to the field
-  onChange={(e) => setStartDate(e.target.value)}
-/>
-<TextField
-  type="date"
-  label="End Date"
-  InputLabelProps={{
-    shrink: true,
-  }}
-  inputProps={{ placeholder: "" }}
-  value={endDate} // Bind the state value to the field
-  onChange={(e) => setEndDate(e.target.value)}
-/>
+        <Typography variant="h6" component="h2" gutterBottom>
+          Set Availability
+        </Typography>
+        <TextField
+          type="date"
+          label="Start Date"
+          InputLabelProps={{
+            shrink: true,
+          }}
+          inputProps={{ placeholder: "" }}
+          value={startDate} // Bind the state value to the field
+          onChange={(e) => setStartDate(e.target.value)}
+        />
+        <TextField
+          type="date"
+          label="End Date"
+          InputLabelProps={{
+            shrink: true,
+          }}
+          inputProps={{ placeholder: "" }}
+          value={endDate} // Bind the state value to the field
+          onChange={(e) => setEndDate(e.target.value)}
+        />
 
-  <Select
-    value={dayType}
-    onChange={(e) => setDayType(e.target.value)}
-    displayEmpty
-  >
-    <MenuItem value="" disabled>Select Day Type</MenuItem>
-    <MenuItem value="tea_tasting">Tea Tasting</MenuItem>
-    <MenuItem value="intro_gongfu">Intro to Gongfu</MenuItem>
-    <MenuItem value="guided_meditation">Guided Meditation</MenuItem>
-  </Select>
-  <Button variant="contained" color="primary" onClick={markAvailable}>
-    Set Availability
-  </Button>
-</div>
+        <Select
+          value={dayType}
+          onChange={(e) => setDayType(e.target.value)}
+          displayEmpty
+        >
+          <MenuItem value="" disabled>Select Day Type</MenuItem>
+          <MenuItem value="tea_tasting">Tea Tasting</MenuItem>
+          <MenuItem value="intro_gongfu">Intro to Gongfu</MenuItem>
+          <MenuItem value="guided_meditation">Guided Meditation</MenuItem>
+        </Select>
+        <Button variant="contained" color="primary" onClick={markAvailable}>
+          Set Availability
+        </Button>
+      </div>
 
       {/* Available Days Section */}
       <div>
-  <Typography variant="h6" component="h2" gutterBottom>
-    Available Days
-  </Typography>
-  <Table style={{ tableLayout: "fixed" }}>
-    <TableHead>
-      <TableRow>
-        <TableCell style={{ width: "20%" }}>Date Range</TableCell>
-        <TableCell style={{ width: "20%" }}>Day Type</TableCell>
-        <TableCell style={{ width: "20%" }}>Actions</TableCell>
-      </TableRow>
-    </TableHead>
-    <TableBody>
-      {availableDays.map((group, index) => (
-        <TableRow key={index}>
-          <TableCell>
-            {group.length === 1
-              ? moment(group[0].date).format("MM/DD/YYYY")
-              : `${moment(group[0].date).format("MM/DD/YYYY")} - ${moment(group[group.length - 1].date).format("MM/DD/YYYY")}`}
-          </TableCell>
-          <TableCell>{dayTypeMap[group[0].type]}</TableCell>
-          <TableCell>
-            <Button
-              variant="contained"
-              color="secondary"
-              onClick={() => openRemoveAvailabilityModal(group)}
-            >
-              Remove Available
-            </Button>
-          </TableCell>
-        </TableRow>
-      ))}
-    </TableBody>
-  </Table>
-</div>
+        <Typography variant="h6" component="h2" gutterBottom>
+          Available Days
+        </Typography>
+        <Table style={{ tableLayout: "fixed" }}>
+          <TableHead>
+            <TableRow>
+              <TableCell style={{ width: "20%" }}>Date Range</TableCell>
+              <TableCell style={{ width: "20%" }}>Day Type</TableCell>
+              <TableCell style={{ width: "20%" }}>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {availableDays.map((group, index) => (
+              <TableRow key={index}>
+                <TableCell>
+                  {group.length === 1
+                    ? moment(group[0].date).format("MM/DD/YYYY")
+                    : `${moment(group[0].date).format("MM/DD/YYYY")} - ${moment(group[group.length - 1].date).format("MM/DD/YYYY")}`}
+                </TableCell>
+                <TableCell>{dayTypeMap[group[0].type]}</TableCell>
+                <TableCell>
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    onClick={() => openEditDayTypesModal(group)}
+                  >
+                    Edit Day Types
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    onClick={() => openRemoveAvailabilityModal(group)}
+                  >
+                    Remove Available
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
       {/* Modal Component */}
       <CustomModal
@@ -510,6 +573,42 @@ function AdminDashboard() {
         dateList={dateList}
         selectedDates={selectedDates}
         handleDateSelection={handleDateSelection}
+      />
+
+      {/* Edit Day Types Modal */}
+      <CustomModal
+        open={editDayTypesModalIsOpen}
+        onClose={closeEditDayTypesModal}
+        title="Edit Day Types"
+        description="Update the day types for the selected dates:"
+        isConfirmVisible={true}
+        confirmButtonText="Save Changes"
+        onConfirm={confirmEditDayTypes}
+      >
+        {editDayTypesData.map((item, index) => (
+          <div key={index}>
+            <Typography variant="body1">{item.date}</Typography>
+            <Select
+              value={item.newType}
+              onChange={(e) => handleDayTypeChange(index, e.target.value)}
+            >
+              <MenuItem value="tea_tasting">Tea Tasting</MenuItem>
+              <MenuItem value="intro_gongfu">Intro to Gongfu</MenuItem>
+              <MenuItem value="guided_meditation">Guided Meditation</MenuItem>
+            </Select>
+          </div>
+        ))}
+      </CustomModal>
+
+      {/* Confirmation Modal */}
+      <CustomModal
+        open={confirmModalIsOpen}
+        onClose={() => setConfirmModalIsOpen(false)}
+        title="Confirm Changes"
+        description={confirmMessage}
+        isConfirmVisible={true}
+        confirmButtonText="Confirm"
+        onConfirm={handleConfirmChanges}
       />
     </Container>
   );
