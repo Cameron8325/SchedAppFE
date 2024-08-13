@@ -156,7 +156,9 @@ function AdminDashboard() {
       );
       fetchAppointments(); // Refresh appointments
     } catch (error) {
-      showErrorModal(`Error updating appointment to ${status}. Please try again later.`);
+      showErrorModal(
+        `Error updating appointment to ${status}. Please try again later.`
+      );
       console.error(`Error updating appointment to ${status}:`, error);
     }
   };
@@ -164,17 +166,19 @@ function AdminDashboard() {
   const markAvailable = async () => {
     try {
       const token = localStorage.getItem("token");
-  
+
       const start = moment(startDate);
       const end = endDate ? moment(endDate) : start;
       const today = moment().startOf("day");
-  
+
       // Check if the start or end date is in the past
       if (start.isBefore(today) || end.isBefore(today)) {
-        showErrorModal("You cannot set availability for a past date. Please select a future date.");
+        showErrorModal(
+          "You cannot set availability for a past date. Please select a future date."
+        );
         return;
       }
-  
+
       // Fetch existing available days
       const response = await axios.get(
         "http://localhost:8000/api/available-days/",
@@ -184,9 +188,9 @@ function AdminDashboard() {
           },
         }
       );
-  
+
       const existingDays = response.data;
-  
+
       // Filter existing days to only include those within the selected date range
       const conflictingDays = existingDays.filter((day) => {
         const dayDate = moment(day.date);
@@ -194,7 +198,7 @@ function AdminDashboard() {
           day.type !== dayType && dayDate.isBetween(start, end, "day", "[]")
         ); // '[]' includes start and end dates
       });
-  
+
       if (conflictingDays.length > 0) {
         // If there are conflicting days, show an error modal with only those dates
         const conflictingDates = conflictingDays
@@ -226,7 +230,7 @@ function AdminDashboard() {
         setIsConfirmVisible(false);
         setModalIsOpen(true);
         fetchAvailableDays(); // Refresh available days
-  
+
         // Clear the date fields and day type after success
         setStartDate("");
         setEndDate("");
@@ -237,7 +241,6 @@ function AdminDashboard() {
       console.error("Error updating availability:", error);
     }
   };
-  
 
   const handleRemoveAvailable = async () => {
     try {
@@ -414,7 +417,14 @@ function AdminDashboard() {
   };
 
   const openUserDetailsModal = (user) => {
-    setSelectedUser(user);
+    const userWithPhoneNumber = {
+      first_name: user.first_name,
+      last_name: user.last_name,
+      email: user.email,
+      phone_number: user.profile?.phone_number || "N/A",
+    };
+
+    setSelectedUser(userWithPhoneNumber);
     setUserDetailsModalIsOpen(true);
   };
 
@@ -768,7 +778,11 @@ function AdminDashboard() {
           <strong>Email:</strong> {selectedUser.email}
         </Typography>
         <Typography variant="body1">
-          <strong>Phone Number:</strong> {selectedUser.phone_number}
+          <strong>Phone Number:</strong>{" "}
+          {selectedUser.phone_number.replace(
+            /(\d{3})(\d{3})(\d{4})/,
+            "($1) $2-$3"
+          )}
         </Typography>
       </CustomModal>
 
