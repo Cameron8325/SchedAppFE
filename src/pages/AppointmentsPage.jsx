@@ -141,7 +141,7 @@ function AppointmentsPage() {
   const getBackgroundColor = (type) => {
     switch (type) {
       case 'tea_tasting':
-        return '#ff9800';
+        return '#af4c91';
       case 'intro_gongfu':
         return '#4caf50';
       case 'guided_meditation':
