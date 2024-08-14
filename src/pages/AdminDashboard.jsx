@@ -25,6 +25,12 @@ function AdminDashboard() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [dayType, setDayType] = useState("");
+  const [selectedUserTokens, setSelectedUserTokens] = useState(0);
+  const [searchUsername, setSearchUsername] = useState("");
+  const [searchFirstName, setSearchFirstName] = useState("");
+  const [searchLastName, setSearchLastName] = useState("");
+
+  const [searchResult, setSearchResult] = useState(null);
 
   // Modal states
   const [modalIsOpen, setModalIsOpen] = useState(false);
@@ -50,6 +56,7 @@ function AdminDashboard() {
     last_name: "",
     email: "",
     phone_number: "",
+    tokens: 0,
   });
 
   // Error Modal states
@@ -422,12 +429,114 @@ function AdminDashboard() {
       last_name: user.last_name,
       email: user.email,
       phone_number: user.profile?.phone_number || "N/A",
+      tokens: user.profile?.tokens || 0,
     };
 
     setSelectedUser(userWithPhoneNumber);
+    setSelectedUserTokens(userWithPhoneNumber.tokens);
     setUserDetailsModalIsOpen(true);
   };
 
+  const formatPhoneNumber = (phoneNumber) => {
+    // Remove any non-digit characters
+    const cleaned = ("" + phoneNumber).replace(/\D/g, "");
+    const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
+
+    if (match) {
+      return `(${match[1]}) ${match[2]}-${match[3]}`;
+    }
+
+    return phoneNumber; // Return the original input if it's not 10 digits
+  };
+
+  const searchUser = async () => {
+    // Check if all search fields are empty
+    if (!searchUsername && !searchFirstName && !searchLastName) {
+      return; // Do nothing if all search fields are empty
+    }
+  
+    try {
+      const token = localStorage.getItem("token");
+      let query = "";
+  
+      // Construct the query string based on the provided search fields
+      if (searchUsername) {
+        query += `username=${searchUsername}`;
+      }
+      if (searchFirstName) {
+        query += `${query ? "&" : ""}first_name=${searchFirstName}`;
+      }
+      if (searchLastName) {
+        query += `${query ? "&" : ""}last_name=${searchLastName}`;
+      }
+  
+      // Make the API call to search for the user
+      const response = await axios.get(
+        `http://localhost:8000/api/users/search/?${query}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+  
+      if (response.data.length > 0) {
+        const user = response.data[0]; // Get the first user object
+  
+        // Format the user details and set the state
+        const userWithDetails = {
+          ...user,
+          phone_number: user.profile?.phone_number
+            ? formatPhoneNumber(user.profile.phone_number)
+            : "N/A",
+          tokens: user.profile?.tokens || 0,
+        };
+  
+        setSearchResult(userWithDetails);
+        setSelectedUser(userWithDetails);
+        setSelectedUserTokens(userWithDetails.tokens); // Set current token count
+      } else {
+        setSearchResult(null);
+        showErrorModal("User not found.");
+      }
+    } catch (error) {
+      console.error("Error searching for user:", error);
+      showErrorModal("Error searching for user.");
+    }
+  };
+  
+  const handleTokenUpdate = async () => {
+    try {
+      const token = localStorage.getItem("token");
+  
+      // Ensure selectedUserTokens is a valid number
+      if (isNaN(selectedUserTokens) || selectedUserTokens < 0) {
+        showErrorModal("Invalid token count. Please enter a valid number.");
+        return;
+      }
+  
+      const response = await axios.post(
+        `http://localhost:8000/api/admin-panel/update-tokens/${selectedUser.id}/`,
+        { tokens: parseInt(selectedUserTokens) }, // Ensure it's an integer
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+  
+      if (response.status === 200) {
+        showErrorModal("Tokens updated successfully.");
+      }
+    } catch (error) {
+      console.error("Error updating tokens:", error.response.data || error);
+      showErrorModal("Error updating tokens. Please try again later.");
+    }
+  };
+  
+  
+  
+  
   const dayTypeMap = useMemo(
     () => ({
       tea_tasting: "Tea Tasting",
@@ -442,6 +551,75 @@ function AdminDashboard() {
       <Typography variant="h4" component="h1" gutterBottom>
         Admin Dashboard
       </Typography>
+
+      {/* Search User Section */}
+      <TextField
+        label="Username"
+        variant="outlined"
+        fullWidth
+        margin="normal"
+        value={searchUsername}
+        onChange={(e) => setSearchUsername(e.target.value)}
+      />
+      <TextField
+        label="First Name"
+        variant="outlined"
+        fullWidth
+        margin="normal"
+        value={searchFirstName}
+        onChange={(e) => setSearchFirstName(e.target.value)}
+      />
+      <TextField
+        label="Last Name"
+        variant="outlined"
+        fullWidth
+        margin="normal"
+        value={searchLastName}
+        onChange={(e) => setSearchLastName(e.target.value)}
+      />
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={searchUser}
+        fullWidth
+      >
+        Search User
+      </Button>
+
+      {searchResult && (
+        <div>
+          <Typography variant="h6" component="h3" gutterBottom>
+            User Details
+          </Typography>
+          <Typography variant="body1">
+            <strong>Name:</strong> {selectedUser.first_name}{" "}
+            {selectedUser.last_name}
+          </Typography>
+          <Typography variant="body1">
+            <strong>Email:</strong> {selectedUser.email}
+          </Typography>
+          <Typography variant="body1">
+            <strong>Phone Number:</strong> {selectedUser.phone_number}
+          </Typography>
+          <TextField
+            label="Token Count"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            type="number"
+            value={selectedUserTokens}
+            onChange={(e) => setSelectedUserTokens(e.target.value)}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleTokenUpdate}
+            fullWidth
+          >
+            Update Tokens
+          </Button>
+        </div>
+      )}
 
       {/* Incoming Requests Section */}
       <Typography variant="h5" component="h2" gutterBottom>
@@ -594,7 +772,6 @@ function AdminDashboard() {
             <TableCell style={{ width: "20%" }}>Date</TableCell>
             <TableCell style={{ width: "20%" }}>Day Type</TableCell>
             <TableCell style={{ width: "20%" }}>Status</TableCell>
-            <TableCell style={{ width: "20%" }}>Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -772,18 +949,32 @@ function AdminDashboard() {
         onClose={() => setUserDetailsModalIsOpen(false)}
         title="User Details"
         description={`Here are the details for ${selectedUser.first_name} ${selectedUser.last_name}:`}
-        isConfirmVisible={false} // No need for a confirm button
+        isConfirmVisible={true}
+        confirmButtonText="Update Tokens"
+        onConfirm={handleTokenUpdate}
       >
         <Typography variant="body1">
           <strong>Email:</strong> {selectedUser.email}
         </Typography>
         <Typography variant="body1">
           <strong>Phone Number:</strong>{" "}
-          {selectedUser.phone_number.replace(
-            /(\d{3})(\d{3})(\d{4})/,
-            "($1) $2-$3"
-          )}
+          {selectedUser.phone_number
+            ? selectedUser.phone_number.replace(
+                /(\d{3})(\d{3})(\d{4})/,
+                "($1) $2-$3"
+              )
+            : "N/A"}
         </Typography>
+
+        <TextField
+          label="Token Count"
+          variant="outlined"
+          fullWidth
+          margin="normal"
+          type="number"
+          value={selectedUserTokens}
+          onChange={(e) => setSelectedUserTokens(e.target.value)}
+        />
       </CustomModal>
 
       {/* Error Modal */}

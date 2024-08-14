@@ -38,7 +38,7 @@ function AppointmentsPage() {
   const fetchAppointmentsAndAvailableDays = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
-
+  
       // Fetch appointments
       const appointmentsResponse = await axios.get('http://localhost:8000/api/appointments/', {
         headers: {
@@ -46,7 +46,7 @@ function AppointmentsPage() {
         }
       });
       const appointmentsData = appointmentsResponse.data;
-
+  
       // Fetch available days
       const availableDaysResponse = await axios.get('http://localhost:8000/api/available-days/', {
         headers: {
@@ -54,7 +54,7 @@ function AppointmentsPage() {
         }
       });
       const availableDaysData = availableDaysResponse.data;
-
+  
       // Group appointments by date and calculate spots left
       const groupedAppointments = appointmentsData.reduce((acc, appointment) => {
         const date = moment(appointment.date).startOf('day').format('YYYY-MM-DD');
@@ -62,43 +62,42 @@ function AppointmentsPage() {
         acc[date].push(appointment);
         return acc;
       }, {});
-
+  
       // Create events combining appointments and available days
-      const eventsData = Object.keys(groupedAppointments).map(date => {
-        const appointments = groupedAppointments[date];
-        const spotsLeft = 4 - appointments.length;
-        return {
-          start: moment(date).toDate(),
-          end: moment(date).toDate(),
-          title: spotsLeft === 0 ? 'Fully Booked' : `${spotsLeft} spots left`,
-          allDay: true,
-          backgroundColor: spotsLeft === 0 ? '#ff9800' : '#3174ad',
-          type: null // No specific type for spots left events
-        };
-      });
-
-      const filteredAvailableDays = availableDaysData.filter(day => {
+      const eventsData = availableDaysData.flatMap(day => {
         const date = moment(day.date).startOf('day').format('YYYY-MM-DD');
-        return !groupedAppointments[date] || groupedAppointments[date].length < 4;
+        const appointments = groupedAppointments[date] || [];
+        const spotsLeft = 4 - appointments.length;
+        const dayType = dayTypeMap[day.type]; // Get day type from available days
+  
+        return [
+          {
+            start: moment(day.date).toDate(),
+            end: moment(day.date).toDate(),
+            title: dayType, // Event for day type
+            allDay: true,
+            backgroundColor: getBackgroundColor(day.type),
+            type: day.type
+          },
+          {
+            start: moment(day.date).toDate(),
+            end: moment(day.date).toDate(),
+            title: spotsLeft === 0 ? 'Fully Booked' : `${spotsLeft} spots left`, // Event for booking status
+            allDay: true,
+            backgroundColor: spotsLeft === 0 ? '#ff9800' : '#3174ad',
+            type: null // This event is purely for status
+          }
+        ];
       });
-
-      const availableDaysEvents = filteredAvailableDays.map(day => ({
-        start: moment(day.date).startOf('day').toDate(),
-        end: moment(day.date).startOf('day').toDate(),
-        title: dayTypeMap[day.type],
-        allDay: true,
-        backgroundColor: getBackgroundColor(day.type),
-        type: day.type, // Include type for filtering
-      }));
-
-      const allEvents = [...eventsData, ...availableDaysEvents];
-      const sortedEvents = sortEvents(allEvents); // Apply sorting on initial load
+  
+      const sortedEvents = sortEvents(eventsData); // Apply sorting on initial load
       setEvents(sortedEvents);
       setFilteredEvents(sortedEvents); // Initially show all events
     } catch (error) {
       console.error('Error fetching data:', error);
     }
   }, [dayTypeMap]);
+  
 
   const sortEvents = (events) => {
     return events.sort((a, b) => {
