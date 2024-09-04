@@ -125,17 +125,21 @@ function AppointmentsPage() {
       const sortedEvents = sortEvents(events); // Re-apply sorting when showing all events
       setFilteredEvents(sortedEvents);
     } else {
+      // Filter for day type events
       const dayTypeEvents = events.filter(event => event.type === selectedDayType);
-
+  
+      // Filter for booking status events and ensure they are for the same days as the day type events
       const spotsLeftEvents = events.filter(event =>
-        event.title.includes('spots left') &&
+        event.title.includes('spots left') || event.title === 'Fully Booked'
+      ).filter(event =>
         dayTypeEvents.some(dayEvent => moment(dayEvent.start).isSame(event.start, 'day'))
       );
-
+  
       const combinedEvents = sortEvents([...dayTypeEvents, ...spotsLeftEvents]);
       setFilteredEvents(combinedEvents);
     }
   }, [selectedDayType, events]);
+  
 
   const getBackgroundColor = (type) => {
     switch (type) {
