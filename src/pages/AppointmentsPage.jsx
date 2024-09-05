@@ -157,11 +157,24 @@ function AppointmentsPage() {
   const handleSelectSlot = ({ start }) => {
     const today = moment().startOf('day');
     const selected = moment(start).startOf('day');
-    const isAvailable = filteredEvents.some(event => moment(event.start).isSame(start, 'day') && event.title !== 'Fully Booked');
-
+  
+    // Check if the selected date is fully booked
+    const isFullyBooked = filteredEvents.some(event => 
+      moment(event.start).isSame(start, 'day') && event.title === 'Fully Booked'
+    );
+  
+    const isAvailable = filteredEvents.some(event => 
+      moment(event.start).isSame(start, 'day') && event.title !== 'Fully Booked'
+    );
+  
     if (selected.isBefore(today)) {
       setModalTitle('Invalid Selection');
       setModalMessage("You cannot select today or past dates for appointments.");
+      setIsConfirmVisible(false);
+      setModalIsOpen(true);
+    } else if (isFullyBooked) {
+      setModalTitle('Fully Booked');
+      setModalMessage("We're sorry, this date is fully booked.");
       setIsConfirmVisible(false);
       setModalIsOpen(true);
     } else if (!isAvailable) {
@@ -178,6 +191,7 @@ function AppointmentsPage() {
       setModalIsOpen(true);
     }
   };
+  
 
   const handleReserve = () => {
     const user = authService.getCurrentUser();

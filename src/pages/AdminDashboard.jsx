@@ -80,18 +80,20 @@ function AdminDashboard() {
           },
         }
       );
-      const data = response.data;
-      if (Array.isArray(data)) {
-        setIncomingRequests(data.filter((a) => a.status === "pending"));
+      const sortedAppointments = response.data.sort(
+        (a, b) => new Date(a.date) - new Date(b.date)
+      );
+      if (Array.isArray(sortedAppointments)) {
+        setIncomingRequests(sortedAppointments.filter((a) => a.status === "pending"));
         setProcessedRequests(
-          data.filter((a) => a.status === "confirmed" || a.status === "denied")
+          sortedAppointments.filter((a) => a.status === "confirmed" || a.status === "denied")
         );
-        setFlaggedRequests(data.filter((a) => a.status === "flagged"));
+        setFlaggedRequests(sortedAppointments.filter((a) => a.status === "flagged"));
         setToCompletionRequests(
-          data.filter((a) => a.status === "to_completion")
+          sortedAppointments.filter((a) => a.status === "to_completion")
         );
       } else {
-        console.error("Unexpected data format:", data);
+        console.error("Unexpected data format:", sortedAppointments);
       }
     } catch (error) {
       showErrorModal("Error fetching appointments. Please try again later.");
