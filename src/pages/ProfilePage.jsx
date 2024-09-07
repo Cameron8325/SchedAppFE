@@ -9,12 +9,9 @@ import {
   TableCell,
   TableHead,
   TableRow,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
 } from "@mui/material";
 import axios from "axios";
+import CustomModal from "../components/modal/CustomModal";
 import authService from "../services/authService";
 
 function ProfilePage() {
@@ -30,6 +27,16 @@ function ProfilePage() {
   const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
   const [flagReason, setFlagReason] = useState("");
   const [modalStep, setModalStep] = useState(1); // Track the steps of the modal
+
+   // Reason Modal states
+   const [reasonModalIsOpen, setReasonModalIsOpen] = useState(false);
+   const [reasonModalContent, setReasonModalContent] = useState("");
+
+     //Reason Modal handler
+  const openReasonModal = (reason) => {
+    setReasonModalContent(reason);
+    setReasonModalIsOpen(true);
+  };
 
   useEffect(() => {
     const currentUser = authService.getCurrentUser();
@@ -207,79 +214,93 @@ function ProfilePage() {
         Tokens: {tokens}
       </Typography>
 
-      {/* Appointments Section */}
-      <Typography variant="h5" component="h2" gutterBottom>
-        Your Appointments
-      </Typography>
-      <Table style={{ tableLayout: "fixed" }}>
-        <TableHead>
-          <TableRow>
-            <TableCell style={{ width: "20%" }}>Date</TableCell>
-            <TableCell style={{ width: "30%" }}>Day Type</TableCell>
-            <TableCell style={{ width: "30%" }}>Status</TableCell>
-            <TableCell style={{ width: "20%" }}>Actions</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {appointments
-            .filter((appointment) => appointment.status !== "to_completion")
-            .map((appointment) => (
-              <TableRow key={appointment.id}>
-                <TableCell>
-                  {new Date(appointment.date).toLocaleDateString()}
-                </TableCell>
-                <TableCell>{appointment.day_type_display}</TableCell>
-                <TableCell>{appointment.status_display}</TableCell>
-                <TableCell>
-                  <Button
-                    onClick={() => handleOpenFlagModal(appointment.id)}
-                    disabled={appointment.status === "flagged"}
-                  >
-                    Flag
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-        </TableBody>
-      </Table>
+{/* Appointments Section */}
+<Typography variant="h5" component="h2" gutterBottom>
+  Your Appointments
+</Typography>
+<Table style={{ tableLayout: "fixed" }}>
+  <TableHead>
+    <TableRow>
+      <TableCell style={{ width: "20%" }}>Date</TableCell>
+      <TableCell style={{ width: "20%" }}>Day Type</TableCell>
+      <TableCell style={{ width: "20%" }}>Status</TableCell>
+      <TableCell style={{ width: "20%" }}>Actions</TableCell>
+    </TableRow>
+  </TableHead>
+  <TableBody>
+    {appointments
+      .filter((appointment) => appointment.status !== "to_completion")
+      .map((appointment) => (
+        <TableRow key={appointment.id}>
+          <TableCell>{new Date(appointment.date).toLocaleDateString()}</TableCell>
+          <TableCell>{appointment.day_type_display}</TableCell>
+          <TableCell>{appointment.status_display}</TableCell>
+          <TableCell>
+            {/* Conditionally render buttons based on appointment status */}
+            {appointment.status === "flagged" ? (
+              <Button
+                onClick={() => openReasonModal(appointment.reason)}
+                variant="outlined"
+              >
+                View Reason
+              </Button>
+            ) : (
+              <Button
+                onClick={() => handleOpenFlagModal(appointment.id)}
+                disabled={appointment.status === "flagged"}
+              >
+                Flag
+              </Button>
+            )}
+          </TableCell>
+        </TableRow>
+      ))}
+  </TableBody>
+</Table>
 
-      {/* Flag Modal */}
-      <Dialog open={isFlagModalOpen} onClose={handleCloseFlagModal}>
-        <DialogTitle>
-          {modalStep === 1 ? "Confirm Flagging" : modalStep === 2 ? "Provide Reason for Flagging" : "Appointment Flagged"}
-        </DialogTitle>
-        <DialogContent>
-          {modalStep === 1 ? (
-            <Typography>Are you sure you want to flag this appointment?</Typography>
-          ) : modalStep === 2 ? (
-            <TextField
-              label="Reason for Flagging"
-              fullWidth
-              multiline
-              rows={4}
-              value={flagReason}
-              onChange={(e) => setFlagReason(e.target.value)}
-            />
-          ) : (
-            <Typography>Your appointment has been successfully flagged.</Typography>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseFlagModal} color="primary">
-            {modalStep === 3 ? "Close" : "Cancel"}
-          </Button>
-          {modalStep === 1 && (
-            <Button onClick={handleModalConfirm} color="secondary">
-              Confirm
-            </Button>
-          )}
-          {modalStep === 2 && (
-            <Button onClick={handleModalConfirm} color="secondary">
-              Submit
-            </Button>
-          )}
-        </DialogActions>
-      </Dialog>
+{/* Flag Modal */}
+<CustomModal
+  open={isFlagModalOpen}
+  onClose={handleCloseFlagModal}
+  title={
+    modalStep === 1
+      ? "Confirm Flagging"
+      : modalStep === 2
+      ? "Provide Reason"
+      : "Flagged"
+  }
+  description={
+    modalStep === 1
+      ? "Are you sure you want to flag this appointment?"
+      : modalStep === 2
+      ? "Please provide a reason for flagging this appointment."
+      : "Your appointment has been flagged successfully."
+  }
+  isConfirmVisible={modalStep !== 3} // Only show confirm button in step 1 and 2
+  confirmButtonText={
+    modalStep === 1 ? "Confirm" : modalStep === 2 ? "Submit" : "Close"
+  }
+  onConfirm={handleModalConfirm} // Move through the steps or submit flag
+  showTextInput={modalStep === 2} // Show input only on step 2
+  inputValue={flagReason}
+  handleInputChange={(e) => setFlagReason(e.target.value)} // Handle input change
+>
+  {modalStep === 3 && (
+    <Typography variant="body1">
+      The appointment has been flagged successfully.
+    </Typography>
+  )}
+</CustomModal>
+
+{/* Reason Modal */}
+<CustomModal
+  open={reasonModalIsOpen}
+  onClose={() => setReasonModalIsOpen(false)}
+  title="Flagged Request Reason"
+  description={reasonModalContent}
+  isConfirmVisible={false} // No confirm button needed
+/>
+
     </Container>
   );
 }

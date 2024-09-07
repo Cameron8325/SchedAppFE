@@ -63,6 +63,12 @@ function AdminDashboard() {
   const [reasonModalIsOpen, setReasonModalIsOpen] = useState(false);
   const [reasonModalContent, setReasonModalContent] = useState("");
 
+  //Flag Modal states
+  const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
+  const [flagReason, setFlagReason] = useState("");
+  const [modalStep, setModalStep] = useState(1); // Track the steps of the modal
+
   //Reason Modal handler
   const openReasonModal = (reason) => {
     setReasonModalContent(reason);
@@ -116,6 +122,63 @@ function AdminDashboard() {
       console.error("Error fetching appointments:", error);
     }
   }, []);
+
+  const handleOpenFlagModal = (appointmentId) => {
+    setSelectedAppointmentId(appointmentId);
+    setIsFlagModalOpen(true);
+    setModalStep(1); // Start at the first step
+  };
+  
+  const handleCloseFlagModal = () => {
+    setIsFlagModalOpen(false);
+    setSelectedAppointmentId(null);
+    setFlagReason("");
+    setModalStep(1); // Reset modal to the first step
+  };
+  
+
+  const handleModalConfirm = () => {
+    if (modalStep === 1) {
+      setModalStep(2); // Move to reason input step
+    } else if (modalStep === 2 && flagReason.trim()) {
+      handleSubmitFlag(); // Submit the flag if reason is provided
+    } else {
+      // Show error if no reason is provided
+      setErrorModalIsOpen(true);
+      setErrorMessage("Please provide a reason for flagging.");
+    }
+  };
+  
+  const handleSubmitFlag = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(
+        `http://localhost:8000/api/appointments/${selectedAppointmentId}/flagged/`,
+        { reason: flagReason },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+  
+      // Update flagged requests in the dashboard state
+      setFlaggedRequests((prevRequests) =>
+        prevRequests.map((appointment) =>
+          appointment.id === selectedAppointmentId
+            ? { ...appointment, status: "flagged" }
+            : appointment
+        )
+      );
+  
+      // Move to the success step
+      setModalStep(3);
+    } catch (error) {
+      setErrorModalIsOpen(true);
+      setErrorMessage("Error flagging appointment.");
+    }
+  };
+  
 
   const fetchAvailableDays = useCallback(async () => {
     try {
@@ -688,50 +751,48 @@ function AdminDashboard() {
 
       {/* Processed Requests Section */}
       <Typography variant="h5" component="h2" gutterBottom>
-        Processed Requests
-      </Typography>
-      <Table style={{ tableLayout: "fixed" }}>
-        <TableHead>
-          <TableRow>
-            <TableCell style={{ width: "20%" }}>User</TableCell>
-            <TableCell style={{ width: "20%" }}>Date</TableCell>
-            <TableCell style={{ width: "20%" }}>Day Type</TableCell>
-            <TableCell style={{ width: "20%" }}>Status</TableCell>
-            <TableCell style={{ width: "20%" }}>Actions</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {processedRequests.map((appointment) => (
-            <TableRow key={appointment.id}>
-              <TableCell onClick={() => openUserDetailsModal(appointment.user)}>
-                {appointment.user.username}
-              </TableCell>
-              <TableCell>
-                {moment(appointment.date).format("MM/DD/YYYY")}
-              </TableCell>
-              <TableCell>{dayTypeMap[appointment.day_type]}</TableCell>
-              <TableCell>{appointment.status_display}</TableCell>
-              <TableCell>
-                <Button
-                  onClick={() => handleStatusChange(appointment.id, "flagged")}
-                  disabled={appointment.status === "flagged"}
-                >
-                  Flag
-                </Button>
-                <Button
-                  onClick={() =>
-                    handleStatusChange(appointment.id, "to_completion")
-                  }
-                  disabled={appointment.status === "to_completion"}
-                >
-                  Mark as Completed
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+  Processed Requests
+</Typography>
+<Table style={{ tableLayout: "fixed" }}>
+  <TableHead>
+    <TableRow>
+      <TableCell style={{ width: "20%" }}>User</TableCell>
+      <TableCell style={{ width: "20%" }}>Date</TableCell>
+      <TableCell style={{ width: "20%" }}>Day Type</TableCell>
+      <TableCell style={{ width: "20%" }}>Status</TableCell>
+      <TableCell style={{ width: "20%" }}>Actions</TableCell>
+    </TableRow>
+  </TableHead>
+  <TableBody>
+    {processedRequests.map((appointment) => (
+      <TableRow key={appointment.id}>
+        <TableCell onClick={() => openUserDetailsModal(appointment.user)}>
+          {appointment.user.username}
+        </TableCell>
+        <TableCell>{moment(appointment.date).format("MM/DD/YYYY")}</TableCell>
+        <TableCell>{dayTypeMap[appointment.day_type]}</TableCell>
+        <TableCell>{appointment.status_display}</TableCell>
+        <TableCell>
+          <Button
+            onClick={() => handleOpenFlagModal(appointment.id)} // Updated here
+            disabled={appointment.status === "flagged"}
+          >
+            Flag
+          </Button>
+          <Button
+            onClick={() => handleStatusChange(appointment.id, "to_completion")}
+            disabled={appointment.status === "to_completion"}
+          >
+            Mark as Completed
+          </Button>
+        </TableCell>
+      </TableRow>
+    ))}
+  </TableBody>
+</Table>
 
+  
+  
       {/* Flagged Requests Section */}
       <Typography variant="h5" component="h2" gutterBottom>
         Flagged Requests
@@ -1017,6 +1078,32 @@ function AdminDashboard() {
         description={reasonModalContent}
         isConfirmVisible={false} // No confirm button needed
       />
+
+        {/* Flag Modal */}
+      <CustomModal
+  open={isFlagModalOpen}
+  onClose={handleCloseFlagModal}
+  title={modalStep === 1 ? "Confirm Flagging" : modalStep === 2 ? "Provide Reason" : "Flagged"}
+  description={
+    modalStep === 1
+      ? "Are you sure you want to flag this appointment?"
+      : modalStep === 2
+      ? "Please provide a reason for flagging this appointment."
+      : "Your appointment has been flagged successfully."
+  }
+  isConfirmVisible={modalStep !== 3} // Only show confirm button in step 1 and 2
+  confirmButtonText={modalStep === 1 ? "Confirm" : modalStep === 2 ? "Submit" : "Close"}
+  onConfirm={handleModalConfirm} // Move through the steps or submit flag
+  showTextInput={modalStep === 2} // Show input only on step 2
+  inputValue={flagReason}
+  handleInputChange={(e) => setFlagReason(e.target.value)} // Handle input change
+>
+  {modalStep === 3 && (
+    <Typography variant="body1">The appointment has been flagged successfully.</Typography>
+  )}
+</CustomModal>
+
+
     </Container>
   );
 }
