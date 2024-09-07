@@ -1,18 +1,21 @@
 import React from 'react';
-import { Modal, Button, Typography, Checkbox, FormControlLabel, FormGroup } from '@mui/material';
+import { Modal, Button, Typography, TextField, Checkbox, FormControlLabel, FormGroup } from '@mui/material';
 
-function CustomModal({ 
-  open, 
-  onClose, 
-  title, 
-  description, 
-  onConfirm, 
-  isConfirmVisible, 
-  confirmButtonText, 
-  dateList, 
-  selectedDates, 
-  handleDateSelection, 
-  children 
+function CustomModal({
+  open,
+  onClose,
+  title,
+  description,
+  onConfirm,
+  isConfirmVisible,
+  confirmButtonText,
+  dateList,
+  selectedDates,
+  handleDateSelection,
+  showTextInput, // New prop to conditionally show input field
+  inputValue,    // New prop for the input field value
+  handleInputChange, // New prop to handle input change
+  children,
 }) {
   const handleSelectAll = (event) => {
     if (event.target.checked) {
@@ -38,6 +41,7 @@ function CustomModal({
         <Typography variant="body1" id="custom-modal-description">
           {description}
         </Typography>
+        
         {dateList && dateList.length > 0 && (
           <FormGroup>
             <FormControlLabel
@@ -49,7 +53,7 @@ function CustomModal({
               }
               label="Select All"
             />
-            {dateList.map(date => (
+            {dateList.map((date) => (
               <FormControlLabel
                 key={date}
                 control={
@@ -63,7 +67,20 @@ function CustomModal({
             ))}
           </FormGroup>
         )}
+
+        {showTextInput && (
+          <TextField
+            label="Reason for flagging"
+            fullWidth
+            margin="normal"
+            value={inputValue}
+            onChange={handleInputChange}
+            placeholder="Enter your name, number, and reason"
+          />
+        )}
+
         {children}
+
         {isConfirmVisible && (
           <Button variant="contained" color="primary" onClick={onConfirm} style={{ marginRight: '10px' }}>
             {confirmButtonText}

@@ -59,6 +59,16 @@ function AdminDashboard() {
     tokens: 0,
   });
 
+  // Reason Modal states
+  const [reasonModalIsOpen, setReasonModalIsOpen] = useState(false);
+  const [reasonModalContent, setReasonModalContent] = useState("");
+
+  //Reason Modal handler
+  const openReasonModal = (reason) => {
+    setReasonModalContent(reason);
+    setReasonModalIsOpen(true);
+  };
+
   // Error Modal states
   const [errorModalIsOpen, setErrorModalIsOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -84,11 +94,17 @@ function AdminDashboard() {
         (a, b) => new Date(a.date) - new Date(b.date)
       );
       if (Array.isArray(sortedAppointments)) {
-        setIncomingRequests(sortedAppointments.filter((a) => a.status === "pending"));
-        setProcessedRequests(
-          sortedAppointments.filter((a) => a.status === "confirmed" || a.status === "denied")
+        setIncomingRequests(
+          sortedAppointments.filter((a) => a.status === "pending")
         );
-        setFlaggedRequests(sortedAppointments.filter((a) => a.status === "flagged"));
+        setProcessedRequests(
+          sortedAppointments.filter(
+            (a) => a.status === "confirmed" || a.status === "denied"
+          )
+        );
+        setFlaggedRequests(
+          sortedAppointments.filter((a) => a.status === "flagged")
+        );
         setToCompletionRequests(
           sortedAppointments.filter((a) => a.status === "to_completion")
         );
@@ -456,11 +472,11 @@ function AdminDashboard() {
     if (!searchUsername && !searchFirstName && !searchLastName) {
       return; // Do nothing if all search fields are empty
     }
-  
+
     try {
       const token = localStorage.getItem("token");
       let query = "";
-  
+
       // Construct the query string based on the provided search fields
       if (searchUsername) {
         query += `username=${searchUsername}`;
@@ -471,7 +487,7 @@ function AdminDashboard() {
       if (searchLastName) {
         query += `${query ? "&" : ""}last_name=${searchLastName}`;
       }
-  
+
       // Make the API call to search for the user
       const response = await axios.get(
         `http://localhost:8000/api/users/search/?${query}`,
@@ -481,10 +497,10 @@ function AdminDashboard() {
           },
         }
       );
-  
+
       if (response.data.length > 0) {
         const user = response.data[0]; // Get the first user object
-  
+
         // Format the user details and set the state
         const userWithDetails = {
           ...user,
@@ -493,7 +509,7 @@ function AdminDashboard() {
             : "N/A",
           tokens: user.profile?.tokens || 0,
         };
-  
+
         setSearchResult(userWithDetails);
         setSelectedUser(userWithDetails);
         setSelectedUserTokens(userWithDetails.tokens); // Set current token count
@@ -506,17 +522,17 @@ function AdminDashboard() {
       showErrorModal("Error searching for user.");
     }
   };
-  
+
   const handleTokenUpdate = async () => {
     try {
       const token = localStorage.getItem("token");
-  
+
       // Ensure selectedUserTokens is a valid number
       if (isNaN(selectedUserTokens) || selectedUserTokens < 0) {
         showErrorModal("Invalid token count. Please enter a valid number.");
         return;
       }
-  
+
       const response = await axios.post(
         `http://localhost:8000/api/admin-panel/update-tokens/${selectedUser.id}/`,
         { tokens: parseInt(selectedUserTokens) }, // Ensure it's an integer
@@ -526,7 +542,7 @@ function AdminDashboard() {
           },
         }
       );
-  
+
       if (response.status === 200) {
         showErrorModal("Tokens updated successfully.");
       }
@@ -535,10 +551,7 @@ function AdminDashboard() {
       showErrorModal("Error updating tokens. Please try again later.");
     }
   };
-  
-  
-  
-  
+
   const dayTypeMap = useMemo(
     () => ({
       tea_tasting: "Tea Tasting",
@@ -729,7 +742,7 @@ function AdminDashboard() {
             <TableCell style={{ width: "20%" }}>User</TableCell>
             <TableCell style={{ width: "20%" }}>Date</TableCell>
             <TableCell style={{ width: "20%" }}>Day Type</TableCell>
-            <TableCell style={{ width: "20%" }}>Status</TableCell>
+            <TableCell style={{ width: "20%" }}>Reason</TableCell>
             <TableCell style={{ width: "20%" }}>Actions</TableCell>
           </TableRow>
         </TableHead>
@@ -743,7 +756,15 @@ function AdminDashboard() {
                 {moment(appointment.date).format("MM/DD/YYYY")}
               </TableCell>
               <TableCell>{dayTypeMap[appointment.day_type]}</TableCell>
-              <TableCell>{appointment.status_display}</TableCell>
+              <TableCell>
+                <Button
+                  onClick={() => openReasonModal(appointment.reason)}
+                  variant="outlined"
+                >
+                  View Reason
+                </Button>
+              </TableCell>
+
               <TableCell>
                 <Button
                   onClick={() => handleStatusChange(appointment.id, "approve")}
@@ -986,6 +1007,15 @@ function AdminDashboard() {
         title="Error"
         description={errorMessage}
         isConfirmVisible={false} // No need for a confirm button
+      />
+
+      {/* Reason Modal */}
+      <CustomModal
+        open={reasonModalIsOpen}
+        onClose={() => setReasonModalIsOpen(false)}
+        title="Flagged Request Reason"
+        description={reasonModalContent}
+        isConfirmVisible={false} // No confirm button needed
       />
     </Container>
   );

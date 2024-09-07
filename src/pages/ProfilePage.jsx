@@ -9,6 +9,10 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import axios from "axios";
 import authService from "../services/authService";
@@ -21,6 +25,11 @@ function ProfilePage() {
   const [message, setMessage] = useState("");
   const [appointments, setAppointments] = useState([]);
   const [tokens, setTokens] = useState(0);
+
+  const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
+  const [flagReason, setFlagReason] = useState("");
+  const [modalStep, setModalStep] = useState(1); // Track the steps of the modal
 
   useEffect(() => {
     const currentUser = authService.getCurrentUser();
@@ -59,28 +68,57 @@ function ProfilePage() {
     fetchAppointments();
   }, []);
 
-  const flagAppointment = async (appointmentId) => {
+  // Open the flag modal with the first step (confirmation)
+  const handleOpenFlagModal = (appointmentId) => {
+    setSelectedAppointmentId(appointmentId);
+    setIsFlagModalOpen(true);
+    setModalStep(1); // Set the modal step to 1 (confirmation step)
+  };
+
+  const handleCloseFlagModal = () => {
+    setIsFlagModalOpen(false);
+    setSelectedAppointmentId(null);
+    setFlagReason("");
+    setModalStep(1); // Reset the modal to the first step
+  };
+
+  // Move to the next step of the modal (reason input)
+  const handleModalConfirm = () => {
+    if (modalStep === 1) {
+      setModalStep(2); // Move to step 2 to ask for reason
+    } else if (modalStep === 2 && flagReason.trim()) {
+      handleSubmitFlag(); // Submit flag if on the second step
+    } else {
+      setMessage("Please provide a reason for flagging.");
+    }
+  };
+
+  // Submit the flag reason to the backend
+  const handleSubmitFlag = async () => {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        `http://localhost:8000/api/appointments/${appointmentId}/flag/`,
-        {},
+        `http://localhost:8000/api/appointments/${selectedAppointmentId}/flagged/`,
+        { reason: flagReason },
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      setMessage("Your appointment has successfully been flagged.");
+      setMessage(""); // Clear any existing error messages
 
       // Update the local state to reflect the flagged appointment
       setAppointments((prevAppointments) =>
         prevAppointments.map((appointment) =>
-          appointment.id === appointmentId
-            ? { ...appointment, status: "flagged", status_display: "Flagged" } // Update the status of the flagged appointment
+          appointment.id === selectedAppointmentId
+            ? { ...appointment, status: "flagged", status_display: "Flagged" }
             : appointment
         )
       );
+
+      // Proceed to the success step
+      setModalStep(3);
     } catch (error) {
       console.error("Error flagging appointment:", error);
       setMessage("Error flagging appointment");
@@ -184,7 +222,7 @@ function ProfilePage() {
         </TableHead>
         <TableBody>
           {appointments
-            .filter((appointments) => appointments.status !== "to_completion")
+            .filter((appointment) => appointment.status !== "to_completion")
             .map((appointment) => (
               <TableRow key={appointment.id}>
                 <TableCell>
@@ -194,7 +232,7 @@ function ProfilePage() {
                 <TableCell>{appointment.status_display}</TableCell>
                 <TableCell>
                   <Button
-                    onClick={() => flagAppointment(appointment.id)}
+                    onClick={() => handleOpenFlagModal(appointment.id)}
                     disabled={appointment.status === "flagged"}
                   >
                     Flag
@@ -204,6 +242,44 @@ function ProfilePage() {
             ))}
         </TableBody>
       </Table>
+
+      {/* Flag Modal */}
+      <Dialog open={isFlagModalOpen} onClose={handleCloseFlagModal}>
+        <DialogTitle>
+          {modalStep === 1 ? "Confirm Flagging" : modalStep === 2 ? "Provide Reason for Flagging" : "Appointment Flagged"}
+        </DialogTitle>
+        <DialogContent>
+          {modalStep === 1 ? (
+            <Typography>Are you sure you want to flag this appointment?</Typography>
+          ) : modalStep === 2 ? (
+            <TextField
+              label="Reason for Flagging"
+              fullWidth
+              multiline
+              rows={4}
+              value={flagReason}
+              onChange={(e) => setFlagReason(e.target.value)}
+            />
+          ) : (
+            <Typography>Your appointment has been successfully flagged.</Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseFlagModal} color="primary">
+            {modalStep === 3 ? "Close" : "Cancel"}
+          </Button>
+          {modalStep === 1 && (
+            <Button onClick={handleModalConfirm} color="secondary">
+              Confirm
+            </Button>
+          )}
+          {modalStep === 2 && (
+            <Button onClick={handleModalConfirm} color="secondary">
+              Submit
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 }
