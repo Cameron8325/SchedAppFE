@@ -25,7 +25,7 @@ const ToCompletionRequests = ({
           {toCompletionRequests.map((appointment) => (
             <TableRow key={appointment.id}>
               <TableCell onClick={() => openUserDetailsModal(appointment.user)}>
-                {appointment.user.username}
+              {appointment.user.first_name} {appointment.user.last_name} 
               </TableCell>
               <TableCell>
                 {moment(appointment.date).format('MM/DD/YYYY')}

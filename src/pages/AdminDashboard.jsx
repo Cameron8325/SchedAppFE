@@ -685,7 +685,7 @@ const dayTypeMap = useMemo(
         onConfirm={handleConfirmChanges}
       />
 
-      User Details Modal
+      {/* User Details Modal */}
       <CustomModal
         open={userDetailsModalIsOpen}
         onClose={() => setUserDetailsModalIsOpen(false)}
