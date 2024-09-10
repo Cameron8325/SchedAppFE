@@ -1,0 +1,161 @@
+import React, { useState } from 'react';
+import { TextField, Button, Typography } from '@mui/material';
+import axios from 'axios';
+
+const UserSearch = ({ openUserDetailsModal, showErrorModal }) => {
+  const [searchUsername, setSearchUsername] = useState('');
+  const [searchFirstName, setSearchFirstName] = useState('');
+  const [searchLastName, setSearchLastName] = useState('');
+  const [searchResult, setSearchResult] = useState(null);
+  const [selectedUser, setSelectedUser] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone_number: '',
+    tokens: 0,
+  });
+  const [selectedUserTokens, setSelectedUserTokens] = useState(0);
+
+  const searchUser = async () => {
+    if (!searchUsername && !searchFirstName && !searchLastName) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      let query = '';
+      if (searchUsername) query += `username=${searchUsername}`;
+      if (searchFirstName) query += `${query ? '&' : ''}first_name=${searchFirstName}`;
+      if (searchLastName) query += `${query ? '&' : ''}last_name=${searchLastName}`;
+
+      const response = await axios.get(
+        `http://localhost:8000/api/users/search/?${query}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response.data.length > 0) {
+        const user = response.data[0];
+        const userWithDetails = {
+          ...user,
+          phone_number: user.profile?.phone_number || 'N/A',
+          tokens: user.profile?.tokens || 0,
+        };
+        setSearchResult(userWithDetails);
+        setSelectedUser(userWithDetails);
+        setSelectedUserTokens(userWithDetails.tokens);
+      } else {
+        setSearchResult(null);
+        showErrorModal('User not found.');
+      }
+    } catch (error) {
+      console.error('Error searching for user:', error);
+      showErrorModal('Error searching for user.');
+    }
+  };
+
+  const handleTokenUpdate = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (isNaN(selectedUserTokens) || selectedUserTokens < 0) {
+        showErrorModal('Invalid token count. Please enter a valid number.');
+        return;
+      }
+
+      const response = await axios.post(
+        `http://localhost:8000/api/admin-panel/update-ttokens/${selectedUser.id}/`,
+        { tokens: parseInt(selectedUserTokens) },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response.status === 200) {
+        showErrorModal('Tokens updated successfully.');
+      }
+    } catch (error) {
+      console.error('Error updating tokens:', error);
+      showErrorModal('Error updating tokens. Please try again later.');
+    }
+  };
+
+  return (
+    <>
+      {/* Search User Section */}
+      <TextField
+        label="Username"
+        variant="outlined"
+        fullWidth
+        margin="normal"
+        value={searchUsername}
+        onChange={(e) => setSearchUsername(e.target.value)}
+      />
+      <TextField
+        label="First Name"
+        variant="outlined"
+        fullWidth
+        margin="normal"
+        value={searchFirstName}
+        onChange={(e) => setSearchFirstName(e.target.value)}
+      />
+      <TextField
+        label="Last Name"
+        variant="outlined"
+        fullWidth
+        margin="normal"
+        value={searchLastName}
+        onChange={(e) => setSearchLastName(e.target.value)}
+      />
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={searchUser}
+        fullWidth
+      >
+        Search User
+      </Button>
+
+      {searchResult && (
+        <div>
+          <Typography variant="h6" component="h3" gutterBottom>
+            User Details
+          </Typography>
+          <Typography variant="body1">
+            <strong>Name:</strong> {selectedUser.first_name}{" "}
+            {selectedUser.last_name}
+          </Typography>
+          <Typography variant="body1">
+            <strong>Email:</strong> {selectedUser.email}
+          </Typography>
+          <Typography variant="body1">
+          <strong>Phone Number:</strong>{" "}
+          {selectedUser.phone_number
+            ? selectedUser.phone_number.replace(
+                /(\d{3})(\d{3})(\d{4})/,
+                "($1) $2-$3"
+              )
+            : "N/A"}
+        </Typography>
+          <TextField
+            label="Token Count"
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            type="number"
+            value={selectedUserTokens}
+            onChange={(e) => setSelectedUserTokens(e.target.value)}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleTokenUpdate}
+            fullWidth
+          >
+            Update Tokens
+          </Button>
+        </div>
+      )}
+    </>
+  );
+};
+
+export default UserSearch;
