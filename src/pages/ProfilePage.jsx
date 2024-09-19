@@ -5,7 +5,7 @@ import {
   Button,
   Typography,
   Card,
-  Grid,
+  Grid2,
   CardContent,
   IconButton,
   Snackbar,
@@ -171,8 +171,8 @@ function ProfilePage() {
       <Card sx={{ marginBottom: 4 }}>
         <CardContent>
           <Typography variant="h6">Account Details</Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
+          <Grid2 container spacing={2}>
+            <Grid2 item xs={12}>
               <TextField
                 label="Username"
                 variant="outlined"
@@ -181,8 +181,8 @@ function ProfilePage() {
                 onChange={(e) => setUsername(e.target.value)}
                 required
               />
-            </Grid>
-            <Grid item xs={12}>
+            </Grid2>
+            <Grid2 item xs={12}>
               <TextField
                 label="Email"
                 variant="outlined"
@@ -191,8 +191,8 @@ function ProfilePage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
-            </Grid>
-            <Grid item xs={6}>
+            </Grid2>
+            <Grid2 item xs={6}>
               <TextField
                 label="Password"
                 variant="outlined"
@@ -201,8 +201,8 @@ function ProfilePage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-            </Grid>
-            <Grid item xs={6}>
+            </Grid2>
+            <Grid2 item xs={6}>
               <TextField
                 label="Confirm Password"
                 variant="outlined"
@@ -211,8 +211,8 @@ function ProfilePage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
-            </Grid>
-            <Grid item xs={12}>
+            </Grid2>
+            <Grid2 item xs={12}>
               <Button
                 variant="contained"
                 color="primary"
@@ -221,8 +221,8 @@ function ProfilePage() {
               >
                 Update Profile
               </Button>
-            </Grid>
-            <Grid item xs={12}>
+            </Grid2>
+            <Grid2 item xs={12}>
               <Button
                 variant="contained"
                 color="secondary"
@@ -231,8 +231,8 @@ function ProfilePage() {
               >
                 Delete Account
               </Button>
-            </Grid>
-          </Grid>
+            </Grid2>
+          </Grid2>
         </CardContent>
       </Card>
 
@@ -249,9 +249,9 @@ function ProfilePage() {
       <Typography variant="h5" component="h2" gutterBottom>
         Your Appointments
       </Typography>
-      <Grid container spacing={2}>
+      <Grid2 container spacing={2}>
         {appointments.map((appointment) => (
-          <Grid item xs={12} key={appointment.id}>
+          <Grid2 item xs={12} key={appointment.id}>
             <Card>
               <CardContent>
                 <Typography variant="body1">
@@ -274,9 +274,9 @@ function ProfilePage() {
                 </Box>
               </CardContent>
             </Card>
-          </Grid>
+          </Grid2>
         ))}
-      </Grid>
+      </Grid2>
 
       {/* Snackbar for feedback */}
       <Snackbar

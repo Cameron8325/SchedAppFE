@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { TextField, Button, Typography } from '@mui/material';
+import { TextField, Button, Typography, Box, useMediaQuery } from '@mui/material';
 import axios from 'axios';
+import { useTheme } from '@mui/material/styles';
 
 const UserSearch = ({ openUserDetailsModal, showErrorModal }) => {
   const [searchUsername, setSearchUsername] = useState('');
@@ -15,6 +16,9 @@ const UserSearch = ({ openUserDetailsModal, showErrorModal }) => {
     tokens: 0,
   });
   const [selectedUserTokens, setSelectedUserTokens] = useState(0);
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md')); // Responsive hook for mobile screens
 
   const searchUser = async () => {
     if (!searchUsername && !searchFirstName && !searchLastName) return;
@@ -62,7 +66,7 @@ const UserSearch = ({ openUserDetailsModal, showErrorModal }) => {
       }
 
       const response = await axios.post(
-        `http://localhost:8000/api/admin-panel/update-ttokens/${selectedUser.id}/`,
+        `http://localhost:8000/api/admin-panel/update-tokens/${selectedUser.id}/`,
         { tokens: parseInt(selectedUserTokens) },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -79,7 +83,7 @@ const UserSearch = ({ openUserDetailsModal, showErrorModal }) => {
   };
 
   return (
-    <>
+    <Box sx={{ width: isMobile ? '100%' : '60%', margin: '0 auto' }}>
       {/* Search User Section */}
       <TextField
         label="Username"
@@ -88,6 +92,7 @@ const UserSearch = ({ openUserDetailsModal, showErrorModal }) => {
         margin="normal"
         value={searchUsername}
         onChange={(e) => setSearchUsername(e.target.value)}
+        sx={{ mb: 2 }}
       />
       <TextField
         label="First Name"
@@ -96,6 +101,7 @@ const UserSearch = ({ openUserDetailsModal, showErrorModal }) => {
         margin="normal"
         value={searchFirstName}
         onChange={(e) => setSearchFirstName(e.target.value)}
+        sx={{ mb: 2 }}
       />
       <TextField
         label="Last Name"
@@ -104,37 +110,29 @@ const UserSearch = ({ openUserDetailsModal, showErrorModal }) => {
         margin="normal"
         value={searchLastName}
         onChange={(e) => setSearchLastName(e.target.value)}
+        sx={{ mb: 3 }}
       />
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={searchUser}
-        fullWidth
-      >
+      <Button variant="contained" color="primary" onClick={searchUser} fullWidth sx={{ mb: 3 }}>
         Search User
       </Button>
 
       {searchResult && (
-        <div>
+        <Box sx={{ mt: 3 }}>
           <Typography variant="h6" component="h3" gutterBottom>
             User Details
           </Typography>
           <Typography variant="body1">
-            <strong>Name:</strong> {selectedUser.first_name}{" "}
-            {selectedUser.last_name}
+            <strong>Name:</strong> {selectedUser.first_name} {selectedUser.last_name}
           </Typography>
           <Typography variant="body1">
             <strong>Email:</strong> {selectedUser.email}
           </Typography>
           <Typography variant="body1">
-          <strong>Phone Number:</strong>{" "}
-          {selectedUser.phone_number
-            ? selectedUser.phone_number.replace(
-                /(\d{3})(\d{3})(\d{4})/,
-                "($1) $2-$3"
-              )
-            : "N/A"}
-        </Typography>
+            <strong>Phone Number:</strong>{' '}
+            {selectedUser.phone_number
+              ? selectedUser.phone_number.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3')
+              : 'N/A'}
+          </Typography>
           <TextField
             label="Token Count"
             variant="outlined"
@@ -143,18 +141,14 @@ const UserSearch = ({ openUserDetailsModal, showErrorModal }) => {
             type="number"
             value={selectedUserTokens}
             onChange={(e) => setSelectedUserTokens(e.target.value)}
+            sx={{ mb: 3 }}
           />
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleTokenUpdate}
-            fullWidth
-          >
+          <Button variant="contained" color="primary" onClick={handleTokenUpdate} fullWidth>
             Update Tokens
           </Button>
-        </div>
+        </Box>
       )}
-    </>
+    </Box>
   );
 };
 
