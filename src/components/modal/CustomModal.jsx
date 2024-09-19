@@ -1,5 +1,5 @@
-import React from 'react';
-import { Modal, Button, Typography, TextField, Checkbox, FormControlLabel, FormGroup } from '@mui/material';
+import React, { useEffect } from 'react';
+import { Modal, Button, Typography, TextField, Checkbox, FormControlLabel, FormGroup, Box } from '@mui/material';
 
 function CustomModal({
   open,
@@ -12,17 +12,31 @@ function CustomModal({
   dateList,
   selectedDates,
   handleDateSelection,
-  showTextInput, // New prop to conditionally show input field
-  inputValue,    // New prop for the input field value
-  handleInputChange, // New prop to handle input change
+  showTextInput, 
+  inputValue,    
+  handleInputChange, 
   children,
 }) {
+
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';  // Disable background scroll when modal is open
+      document.documentElement.style.overflow = 'hidden'; // Ensure no scroll on html
+    } else {
+      document.body.style.overflow = '';  // Re-enable scroll when modal is closed
+      document.documentElement.style.overflow = ''; // Ensure scroll back on html
+    }
+
+    return () => {
+      document.body.style.overflow = '';  // Clean up on unmount
+      document.documentElement.style.overflow = ''; // Ensure scroll back on html
+    };
+  }, [open]);
+
   const handleSelectAll = (event) => {
     if (event.target.checked) {
-      // Select all dates
       handleDateSelection(dateList);
     } else {
-      // Deselect all dates
       handleDateSelection([]);
     }
   };
@@ -33,22 +47,41 @@ function CustomModal({
       onClose={onClose}
       aria-labelledby="custom-modal-title"
       aria-describedby="custom-modal-description"
+      disableScrollLock={true} // Ensure scroll lock is managed manually
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
     >
-      <div style={{ margin: '20px', padding: '20px', backgroundColor: 'white', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 400 }}>
+      <Box
+        sx={{
+          bgcolor: 'background.paper',
+          boxShadow: 24,
+          p: 4,
+          width: '100%',
+          maxWidth: '500px',  // Limits the width of the modal
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          borderRadius: 2,
+          margin: '0 16px',  // Ensures some margin on small viewports
+          boxSizing: 'border-box',
+        }}
+      >
         <Typography variant="h6" id="custom-modal-title">
           {title}
         </Typography>
-        <Typography variant="body1" id="custom-modal-description">
+        <Typography variant="body1" id="custom-modal-description" gutterBottom>
           {description}
         </Typography>
-        
+
         {dateList && dateList.length > 0 && (
           <FormGroup>
             <FormControlLabel
               control={
                 <Checkbox 
                   onChange={handleSelectAll} 
-                  checked={selectedDates.length === dateList.length} // Checked if all dates are selected
+                  checked={selectedDates.length === dateList.length} 
                 />
               }
               label="Select All"
@@ -81,15 +114,22 @@ function CustomModal({
 
         {children}
 
-        {isConfirmVisible && (
-          <Button variant="contained" color="primary" onClick={onConfirm} style={{ marginRight: '10px' }}>
-            {confirmButtonText}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+          {isConfirmVisible && (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={onConfirm}
+              sx={{ mr: 2 }}
+            >
+              {confirmButtonText}
+            </Button>
+          )}
+          <Button variant="contained" color="secondary" onClick={onClose}>
+            Close
           </Button>
-        )}
-        <Button variant="contained" color="secondary" onClick={onClose}>
-          Close
-        </Button>
-      </div>
+        </Box>
+      </Box>
     </Modal>
   );
 }
