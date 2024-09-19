@@ -74,25 +74,32 @@ const IncomingRequests = ({ incomingRequests, dayTypeMap, openUserDetailsModal, 
                 <Typography variant="body2">
                   <strong>Status:</strong> {appointment.status_display}
                 </Typography>
-                <Box sx={{ mt: 2 }}>
+                <Box
+                  sx={{
+                    mt: 2,
+                    display: "flex",
+                    justifyContent: "space-between", // Evenly distribute buttons
+                    width: "100%",
+                  }}
+                >
                   <Button
                     onClick={() => handleStatusChange(appointment.id, 'approve')}
                     disabled={appointment.status === 'confirmed'}
-                    size="small"
+                    size="medium"
                   >
                     Approve
                   </Button>
                   <Button
                     onClick={() => handleStatusChange(appointment.id, 'deny')}
                     disabled={appointment.status === 'denied'}
-                    size="small"
+                    size="medium"
                   >
                     Deny
                   </Button>
                   <Button
                     onClick={() => handleOpenFlagModal(appointment.id)}
                     disabled={appointment.status === 'flagged'}
-                    size="small"
+                    size="medium"
                   >
                     Flag
                   </Button>

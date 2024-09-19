@@ -595,7 +595,7 @@ function AdminDashboard() {
           onChange={handleTabChange}
           aria-label="admin dashboard tabs"
           variant={isMobile ? "scrollable" : "standard"} // Conditionally use scrollable for mobile
-          scrollButtons={isMobile ? "auto" : "off"} // Enable scroll buttons on mobile
+          scrollButtons={isMobile ? "auto" : false } // Enable scroll buttons on mobile
           allowScrollButtonsMobile={isMobile} // Only enable scroll buttons for mobile
         >
           <Tab label="All" />

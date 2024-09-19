@@ -78,11 +78,18 @@ const ProcessedRequests = ({
                 <Typography variant="body2">
                   <strong>Status:</strong> {appointment.status_display}
                 </Typography>
-                <Box sx={{ mt: 2 }}>
+                <Box
+                  sx={{
+                    mt: 2,
+                    display: "flex",
+                    justifyContent: "space-between", // Evenly distribute buttons
+                    width: "100%",
+                  }}
+                >
                   <Button
                     onClick={() => handleOpenFlagModal(appointment.id)}
                     disabled={appointment.status === 'flagged'}
-                    size="small"
+                    size="medium"
                   >
                     Flag
                   </Button>
@@ -91,7 +98,7 @@ const ProcessedRequests = ({
                       handleStatusChange(appointment.id, 'to_completion')
                     }
                     disabled={appointment.status === 'to_completion'}
-                    size="small"
+                    size="medium"
                   >
                     Mark as Completed
                   </Button>

@@ -125,11 +125,18 @@ const AvailabilitySection = ({
                   <strong>Day Type: </strong>
                   {dayTypeMap[group[0].type]}
                 </Typography>
-                <Box sx={{ mt: 2 }}>
+                <Box
+                  sx={{
+                    mt: 2,
+                    display: "flex",
+                    justifyContent: "space-between", // Evenly distribute buttons
+                    width: "100%",
+                  }}
+                >
                   <Button
                     variant="contained"
                     color="primary"
-                    size="small"
+                    size="mediuam"
                     onClick={() => openEditDayTypesModal(group)}
                     sx={{ mr: 2 }}
                   >
@@ -137,8 +144,8 @@ const AvailabilitySection = ({
                   </Button>
                   <Button
                     variant="contained"
-                    color="secondary"
-                    size="small"
+                    color="error"
+                    size="mediuam"
                     onClick={() => openRemoveAvailabilityModal(group)}
                   >
                     Remove Available
