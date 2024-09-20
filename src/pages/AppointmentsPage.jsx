@@ -252,14 +252,14 @@ function AppointmentsPage() {
       <Calendar
         localizer={localizer}
         events={filteredEvents}
-        // views={['month']}
+        views={['month']}
         startAccessor="start"
         endAccessor="end"
         selectable
         onSelectSlot={handleSelectSlot}
         style={{ height: 500 }}
         eventPropGetter={eventPropGetter}
-        longPressThreshold={2}
+        longPressThreshold={1}
         components={{
           toolbar: (props) => (
             <CustomToolbar

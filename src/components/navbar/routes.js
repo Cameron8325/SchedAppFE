@@ -1,14 +1,14 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import HomePage from './pages/HomePage';
-import AboutPage from './pages/AboutPage';
-import AppointmentsPage from './pages/AppointmentsPage';
-import ProfilePage from './pages/ProfilePage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import AdminDashboard from './pages/AdminDashboard';
-import CatalogPage from './pages/CatalogPage'; // Import the CatalogPage
-import NavBar from './components/navbar/navbar';
+import HomePage from '../../pages/HomePage';
+import AboutPage from '../../pages/AboutPage';
+import AppointmentsPage from '../../pages/AppointmentsPage';
+import ProfilePage from '../../pages/ProfilePage';
+import LoginPage from '../../pages/LoginPage';
+import RegisterPage from '../../pages/RegisterPage';
+import AdminDashboard from '../../pages/AdminDashboard';
+import CatalogPage from '../../pages/CatalogPage'; // Import the CatalogPage
+import NavBar from './navbar';
 
 function AppRoutes() {
     return (
