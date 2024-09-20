@@ -256,6 +256,7 @@ function AppointmentsPage() {
         onSelectSlot={handleSelectSlot}
         style={{ height: 500 }}
         eventPropGetter={eventPropGetter}
+        longPressThreshold={2}
       />
       <CustomModal
         open={modalIsOpen}
