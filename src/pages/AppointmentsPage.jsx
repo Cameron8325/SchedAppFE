@@ -3,11 +3,12 @@ import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import 'moment-timezone';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { Container, Typography, ButtonGroup, Button } from '@mui/material';
+import { Container, Typography } from '@mui/material';
 import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
 import authService from '../services/authService';
 import CustomModal from '../components/modal/CustomModal';
+import CustomToolbar from '../components/calendar/customToolbar';
 
 const localizer = momentLocalizer(moment);
 
@@ -233,23 +234,25 @@ function AppointmentsPage() {
     navigate(`/appointments?dayType=${type}`);
   };
 
+
   return (
     <Container>
       <Typography variant="h4" component="h1" gutterBottom>
         Schedule an Appointment
       </Typography>
 
-      {/* Day Type Filter Buttons */}
+      {/* Day Type Filter Buttons
       <ButtonGroup variant="contained" color="primary" style={{ marginBottom: '1rem' }}>
         <Button onClick={() => handleDayTypeChange('all')}>All</Button>
         <Button onClick={() => handleDayTypeChange('tea_tasting')}>Tea Tasting</Button>
         <Button onClick={() => handleDayTypeChange('intro_gongfu')}>Intro to Gongfu</Button>
         <Button onClick={() => handleDayTypeChange('guided_meditation')}>Guided Meditation</Button>
-      </ButtonGroup>
+      </ButtonGroup> */}
 
       <Calendar
         localizer={localizer}
         events={filteredEvents}
+        // views={['month']}
         startAccessor="start"
         endAccessor="end"
         selectable
@@ -257,6 +260,14 @@ function AppointmentsPage() {
         style={{ height: 500 }}
         eventPropGetter={eventPropGetter}
         longPressThreshold={2}
+        components={{
+          toolbar: (props) => (
+            <CustomToolbar
+              {...props}
+              handleDayTypeChange={handleDayTypeChange}
+            />
+          ),
+        }}
       />
       <CustomModal
         open={modalIsOpen}
