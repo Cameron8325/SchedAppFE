@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import HomePage from '../../pages/HomePage';
 import AboutPage from '../../pages/AboutPage';
-import AppointmentsPage from '../../pages/AppointmentsPage';
+import AppointmentsPage from '../../pages/appts/AppointmentsPage';
 import ProfilePage from '../../pages/ProfilePage';
 import LoginPage from '../../pages/LoginPage';
 import RegisterPage from '../../pages/RegisterPage';
@@ -17,7 +17,7 @@ function AppRoutes() {
             <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/about" element={<AboutPage />} />
-                <Route path="/catalog" element={<CatalogPage />} /> {/* Catalog Route */}
+                <Route path="/catalog" element={<CatalogPage />} />
                 <Route path="/appointments" element={<AppointmentsPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/login" element={<LoginPage />} />

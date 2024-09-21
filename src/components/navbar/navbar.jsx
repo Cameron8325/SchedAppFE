@@ -66,17 +66,17 @@ function NavBar() {
                                 style={{ width: 250 }}
                             >
                                 <List>
-                                    <ListItem button={true} component={RouterLink} to="/">
+                                    <ListItem button={"true"} component={RouterLink} to="/">
                                         <ListItemText primary="Home" />
                                     </ListItem>
-                                    <ListItem button={true} component={RouterLink} to="/about">
+                                    <ListItem button={"true"} component={RouterLink} to="/about">
                                         <ListItemText primary="About" />
                                     </ListItem>
-                                    <ListItem button={true} component={RouterLink} to="/catalog">
+                                    <ListItem button={"true"} component={RouterLink} to="/catalog">
                                         <ListItemText primary="Catalog" />
                                     </ListItem>
                                     {isLoggedIn && (
-                                        <ListItem button={true} component={RouterLink} to="/appointments">
+                                        <ListItem button={"true"} component={RouterLink} to="/appointments">
                                             <ListItemText primary="Appointments" />
                                         </ListItem>
                                     )}
@@ -84,23 +84,23 @@ function NavBar() {
                                     {isLoggedIn ? (
                                         <>
                                             {isSuperUser && (
-                                                <ListItem button={true} component={RouterLink} to="/admin">
+                                                <ListItem button={"true"} component={RouterLink} to="/admin">
                                                     <ListItemText primary="Admin Dashboard" />
                                                 </ListItem>
                                             )}
-                                            <ListItem button={true} component={RouterLink} to="/profile">
+                                            <ListItem button={"true"} component={RouterLink} to="/profile">
                                                 <ListItemText primary="Profile" />
                                             </ListItem>
-                                            <ListItem button={true} onClick={handleLogout}>
+                                            <ListItem button={"true"} onClick={handleLogout}>
                                                 <ListItemText primary="Logout" />
                                             </ListItem>
                                         </>
                                     ) : (
                                         <>
-                                            <ListItem button={true} component={RouterLink} to="/login">
+                                            <ListItem button={"true"} component={RouterLink} to="/login">
                                                 <ListItemText primary="Login" />
                                             </ListItem>
-                                            <ListItem button={true} component={RouterLink} to="/register">
+                                            <ListItem button={"true"} component={RouterLink} to="/register">
                                                 <ListItemText primary="Register" />
                                             </ListItem>
                                         </>

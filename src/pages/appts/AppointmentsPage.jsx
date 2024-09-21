@@ -6,9 +6,10 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { Container, Typography } from '@mui/material';
 import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
-import authService from '../services/authService';
-import CustomModal from '../components/modal/CustomModal';
-import CustomToolbar from '../components/calendar/customToolbar';
+import authService from '../../services/authService';
+import CustomModal from '../../components/modal/CustomModal';
+import CustomToolbar from '../../components/calendar/customToolbar';
+import './AppointmentsPage.css';
 
 const localizer = momentLocalizer(moment);
 
@@ -85,7 +86,7 @@ function AppointmentsPage() {
             end: moment(day.date).toDate(),
             title: spotsLeft === 0 ? 'Fully Booked' : `${spotsLeft} spots left`, // Event for booking status
             allDay: true,
-            backgroundColor: spotsLeft === 0 ? '#ff9800' : '#3174ad',
+            backgroundColor: spotsLeft === 0 ? '#546E7A' : '#3174ad',
             type: null // This event is purely for status
           }
         ];
@@ -145,15 +146,18 @@ function AppointmentsPage() {
   const getBackgroundColor = (type) => {
     switch (type) {
       case 'tea_tasting':
-        return '#af4c91';
+        return '#6D1B7B';  // Dark plum
       case 'intro_gongfu':
-        return '#4caf50';
+        return '#4CAF50';  // Jade green
       case 'guided_meditation':
-        return '#3f51b5';
+        return '#283593';  // Dark indigo
       default:
-        return '#3174ad';
+        return '#3174ad';  // Default blue
     }
   };
+  
+  
+  
 
   const handleSelectSlot = ({ start }) => {
     const today = moment().startOf('day');

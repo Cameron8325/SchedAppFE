@@ -1,5 +1,6 @@
 import React from "react";
 import { ButtonGroup, Button } from "@mui/material";
+import './customToolbar.css'
 
 const CustomToolbar = ({ label, onNavigate, handleDayTypeChange }) => {
   return (
