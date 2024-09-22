@@ -245,14 +245,6 @@ function AppointmentsPage() {
         Schedule an Appointment
       </Typography>
 
-      {/* Day Type Filter Buttons
-      <ButtonGroup variant="contained" color="primary" style={{ marginBottom: '1rem' }}>
-        <Button onClick={() => handleDayTypeChange('all')}>All</Button>
-        <Button onClick={() => handleDayTypeChange('tea_tasting')}>Tea Tasting</Button>
-        <Button onClick={() => handleDayTypeChange('intro_gongfu')}>Intro to Gongfu</Button>
-        <Button onClick={() => handleDayTypeChange('guided_meditation')}>Guided Meditation</Button>
-      </ButtonGroup> */}
-
       <Calendar
         localizer={localizer}
         events={filteredEvents}
@@ -261,6 +253,7 @@ function AppointmentsPage() {
         endAccessor="end"
         selectable
         onSelectSlot={handleSelectSlot}
+        onSelectEvent={handleSelectSlot}
         style={{ height: 500 }}
         eventPropGetter={eventPropGetter}
         longPressThreshold={1}
