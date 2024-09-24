@@ -5,13 +5,15 @@ import {
   Button,
   Typography,
   Card,
-  Grid2,
+  Grid,
   CardContent,
   IconButton,
   Snackbar,
   Alert,
   Box,
   Tooltip,
+  Avatar,
+  Stack,
 } from "@mui/material";
 import { Save, Delete, Flag, Token } from "@mui/icons-material";
 import axios from "axios";
@@ -167,12 +169,22 @@ function ProfilePage() {
         Your Profile
       </Typography>
 
+      {/* Avatar and Username Section */}
+      <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 4 }}>
+        <Avatar
+          alt={username}
+          src="/path-to-avatar-image.jpg" // Replace with actual path or use a generated avatar
+          sx={{ width: 100, height: 100 }}
+        />
+        <Typography variant="h5">{username}</Typography>
+      </Stack>
+
       {/* Account Details Section */}
       <Card sx={{ marginBottom: 4 }}>
         <CardContent>
           <Typography variant="h6">Account Details</Typography>
-          <Grid2 container spacing={2}>
-            <Grid2 item xs={12}>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
               <TextField
                 label="Username"
                 variant="outlined"
@@ -181,8 +193,8 @@ function ProfilePage() {
                 onChange={(e) => setUsername(e.target.value)}
                 required
               />
-            </Grid2>
-            <Grid2 item xs={12}>
+            </Grid>
+            <Grid item xs={12}>
               <TextField
                 label="Email"
                 variant="outlined"
@@ -191,8 +203,8 @@ function ProfilePage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
-            </Grid2>
-            <Grid2 item xs={6}>
+            </Grid>
+            <Grid item xs={6}>
               <TextField
                 label="Password"
                 variant="outlined"
@@ -201,8 +213,8 @@ function ProfilePage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-            </Grid2>
-            <Grid2 item xs={6}>
+            </Grid>
+            <Grid item xs={6}>
               <TextField
                 label="Confirm Password"
                 variant="outlined"
@@ -211,8 +223,8 @@ function ProfilePage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
-            </Grid2>
-            <Grid2 item xs={12}>
+            </Grid>
+            <Grid item={true} xs={6}>
               <Button
                 variant="contained"
                 color="primary"
@@ -221,8 +233,8 @@ function ProfilePage() {
               >
                 Update Profile
               </Button>
-            </Grid2>
-            <Grid2 item xs={12}>
+            </Grid>
+            <Grid item={true} xs={6}>
               <Button
                 variant="contained"
                 color="secondary"
@@ -231,8 +243,8 @@ function ProfilePage() {
               >
                 Delete Account
               </Button>
-            </Grid2>
-          </Grid2>
+            </Grid>
+          </Grid>
         </CardContent>
       </Card>
 
@@ -249,9 +261,9 @@ function ProfilePage() {
       <Typography variant="h5" component="h2" gutterBottom>
         Your Appointments
       </Typography>
-      <Grid2 container spacing={2}>
+      <Grid container spacing={2}>
         {appointments.map((appointment) => (
-          <Grid2 item xs={12} key={appointment.id}>
+          <Grid item xs={12} key={appointment.id}>
             <Card>
               <CardContent>
                 <Typography variant="body1">
@@ -274,9 +286,9 @@ function ProfilePage() {
                 </Box>
               </CardContent>
             </Card>
-          </Grid2>
+          </Grid>
         ))}
-      </Grid2>
+      </Grid>
 
       {/* Snackbar for feedback */}
       <Snackbar
