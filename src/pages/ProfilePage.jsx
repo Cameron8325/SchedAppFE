@@ -58,7 +58,11 @@ function ProfilePage() {
             },
           }
         );
-        const sortedAppointments = response.data.sort(
+        // Filter appointments with only 'pending', 'confirmed', and 'denied' statuses
+        const filteredAppointments = response.data.filter((appointment) =>
+          ["pending", "confirmed", "flagged"].includes(appointment.status)
+        );
+        const sortedAppointments = filteredAppointments.sort(
           (a, b) => new Date(a.date) - new Date(b.date)
         );
         setAppointments(sortedAppointments);
@@ -68,6 +72,7 @@ function ProfilePage() {
     };
     fetchAppointments();
   }, []);
+  
 
   const handleUpdate = () => {
     if (password !== confirmPassword) {
@@ -264,7 +269,7 @@ function ProfilePage() {
       <Grid container spacing={2}>
         {appointments.map((appointment) => (
           <Grid item xs={12} key={appointment.id}>
-            <Card>
+            <Card sx={{ marginBottom: 4, paddingBottom: 2 }}>
               <CardContent>
                 <Typography variant="body1">
                   {new Date(appointment.date).toLocaleDateString()} -{" "}
