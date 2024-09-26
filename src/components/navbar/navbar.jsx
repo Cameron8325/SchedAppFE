@@ -88,9 +88,10 @@ function NavBar() {
                                                     <ListItemText primary="Admin Dashboard" sx={{ color: '#4A4A48' }} />
                                                 </ListItem>
                                             )}
+                                            {!isSuperUser && (
                                             <ListItem  component={RouterLink} to="/profile">
                                                 <ListItemText primary="Profile" sx={{ color: '#4A4A48' }} />
-                                            </ListItem>
+                                            </ListItem>)}
                                             <ListItem  onClick={handleLogout}>
                                                 <ListItemText primary="Logout" sx={{ color: '#4A4A48' }} />
                                             </ListItem>
