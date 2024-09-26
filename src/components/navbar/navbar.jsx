@@ -47,9 +47,9 @@ function NavBar() {
     };
 
     return (
-        <AppBar position="static">
+        <AppBar position="static" sx={{ backgroundColor: '#4A4A48' }}>
             <Toolbar>
-                <Typography variant="h6" sx={{ flexGrow: 1 }}>
+                <Typography variant="h6" sx={{ flexGrow: 1, color: '#F0E5D8' }}>
                     Gong Fu Tea Scheduler
                 </Typography>
 
@@ -66,42 +66,42 @@ function NavBar() {
                                 style={{ width: 250 }}
                             >
                                 <List>
-                                    <ListItem button={"true"} component={RouterLink} to="/">
-                                        <ListItemText primary="Home" />
+                                    <ListItem  component={RouterLink} to="/">
+                                        <ListItemText primary="Home" sx={{ color: '#4A4A48' }} />
                                     </ListItem>
-                                    <ListItem button={"true"} component={RouterLink} to="/about">
-                                        <ListItemText primary="About" />
+                                    <ListItem  component={RouterLink} to="/about">
+                                        <ListItemText primary="About" sx={{ color: '#4A4A48' }} />
                                     </ListItem>
-                                    <ListItem button={"true"} component={RouterLink} to="/catalog">
-                                        <ListItemText primary="Catalog" />
+                                    <ListItem  component={RouterLink} to="/catalog">
+                                        <ListItemText primary="Catalog" sx={{ color: '#4A4A48' }} />
                                     </ListItem>
                                     {isLoggedIn && (
-                                        <ListItem button={"true"} component={RouterLink} to="/appointments">
-                                            <ListItemText primary="Appointments" />
+                                        <ListItem  component={RouterLink} to="/appointments">
+                                            <ListItemText primary="Appointments" sx={{ color: '#4A4A48' }} />
                                         </ListItem>
                                     )}
                                     <Divider />
                                     {isLoggedIn ? (
                                         <>
                                             {isSuperUser && (
-                                                <ListItem button={"true"} component={RouterLink} to="/admin">
-                                                    <ListItemText primary="Admin Dashboard" />
+                                                <ListItem  component={RouterLink} to="/admin">
+                                                    <ListItemText primary="Admin Dashboard" sx={{ color: '#4A4A48' }} />
                                                 </ListItem>
                                             )}
-                                            <ListItem button={"true"} component={RouterLink} to="/profile">
-                                                <ListItemText primary="Profile" />
+                                            <ListItem  component={RouterLink} to="/profile">
+                                                <ListItemText primary="Profile" sx={{ color: '#4A4A48' }} />
                                             </ListItem>
-                                            <ListItem button={"true"} onClick={handleLogout}>
-                                                <ListItemText primary="Logout" />
+                                            <ListItem  onClick={handleLogout}>
+                                                <ListItemText primary="Logout" sx={{ color: '#4A4A48' }} />
                                             </ListItem>
                                         </>
                                     ) : (
                                         <>
-                                            <ListItem button={"true"} component={RouterLink} to="/login">
-                                                <ListItemText primary="Login" />
+                                            <ListItem  component={RouterLink} to="/login">
+                                                <ListItemText primary="Login" sx={{ color: '#4A4A48' }} />
                                             </ListItem>
-                                            <ListItem button={"true"} component={RouterLink} to="/register">
-                                                <ListItemText primary="Register" />
+                                            <ListItem  component={RouterLink} to="/register">
+                                                <ListItemText primary="Register" sx={{ color: '#4A4A48' }} />
                                             </ListItem>
                                         </>
                                     )}
@@ -111,41 +111,41 @@ function NavBar() {
                     </>
                 ) : (
                     <>
-                        <Button color="inherit" component={RouterLink} to="/">
+                        <Button sx={{ color: '#F0E5D8' }} component={RouterLink} to="/">
                             Home
                         </Button>
-                        <Button color="inherit" component={RouterLink} to="/about">
+                        <Button sx={{ color: '#F0E5D8' }} component={RouterLink} to="/about">
                             About
                         </Button>
-                        <Button color="inherit" component={RouterLink} to="/catalog">
+                        <Button sx={{ color: '#F0E5D8' }} component={RouterLink} to="/catalog">
                             Catalog
                         </Button>
                         {isLoggedIn && (
-                            <Button color="inherit" component={RouterLink} to="/appointments">
+                            <Button sx={{ color: '#F0E5D8' }} component={RouterLink} to="/appointments">
                                 Appointments
                             </Button>
                         )}
                         {isLoggedIn ? (
                             <>
                                 {isSuperUser ? (
-                                    <Button color="inherit" component={RouterLink} to="/admin">
+                                    <Button sx={{ color: '#F0E5D8' }} component={RouterLink} to="/admin">
                                         Admin Dashboard
                                     </Button>
                                 ) : (
-                                    <Button color="inherit" component={RouterLink} to="/profile">
+                                    <Button sx={{ color: '#F0E5D8' }} component={RouterLink} to="/profile">
                                         Profile
                                     </Button>
                                 )}
-                                <Button color="inherit" onClick={handleLogout}>
+                                <Button sx={{ color: '#F0E5D8' }} onClick={handleLogout}>
                                     Logout
                                 </Button>
                             </>
                         ) : (
                             <>
-                                <Button color="inherit" component={RouterLink} to="/login">
+                                <Button sx={{ color: '#F0E5D8' }} component={RouterLink} to="/login">
                                     Login
                                 </Button>
-                                <Button color="inherit" component={RouterLink} to="/register">
+                                <Button sx={{ color: '#F0E5D8' }} component={RouterLink} to="/register">
                                     Register
                                 </Button>
                             </>

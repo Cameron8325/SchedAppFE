@@ -15,43 +15,54 @@ const ProcessedRequests = ({
 
   return (
     <div>
-      <Typography variant="h5" component="h2" gutterBottom>
+      <Typography variant="h5" component="h2" gutterBottom sx={{ color: '#4A4A48' }}>
         Processed Requests
       </Typography>
       {!isMobile ? (
         <Table style={{ tableLayout: 'fixed' }}>
           <TableHead>
             <TableRow>
-              <TableCell style={{ width: '20%' }}>User</TableCell>
-              <TableCell style={{ width: '20%' }}>Date</TableCell>
-              <TableCell style={{ width: '20%' }}>Day Type</TableCell>
-              <TableCell style={{ width: '20%' }}>Status</TableCell>
-              <TableCell style={{ width: '20%' }}>Actions</TableCell>
+              <TableCell sx={{ color: '#4A4A48', backgroundColor: '#F0E5D8', fontWeight: 'bold' }} style={{ width: '20%' }}>User</TableCell>
+              <TableCell sx={{ color: '#4A4A48', backgroundColor: '#F0E5D8', fontWeight: 'bold' }} style={{ width: '20%' }}>Date</TableCell>
+              <TableCell sx={{ color: '#4A4A48', backgroundColor: '#F0E5D8', fontWeight: 'bold' }} style={{ width: '20%' }}>Day Type</TableCell>
+              <TableCell sx={{ color: '#4A4A48', backgroundColor: '#F0E5D8', fontWeight: 'bold' }} style={{ width: '20%' }}>Status</TableCell>
+              <TableCell sx={{ color: '#4A4A48', backgroundColor: '#F0E5D8', fontWeight: 'bold' }} style={{ width: '20%' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {processedRequests.map((appointment) => (
-              <TableRow key={appointment.id}>
-                <TableCell onClick={() => openUserDetailsModal(appointment.user)}>
-                  {appointment.user.first_name} {appointment.user.last_name} 
+            {processedRequests.map((appointment, index) => (
+              <TableRow key={appointment.id} style={{ backgroundColor: index % 2 === 0 ? '#FAF8F6' : '#fff' }}>
+                <TableCell onClick={() => openUserDetailsModal(appointment.user)} sx={{ color: '#4A4A48' }}>
+                  {appointment.user.first_name} {appointment.user.last_name}
                 </TableCell>
-                <TableCell>
-                  {moment(appointment.date).format('MM/DD/YYYY')}
-                </TableCell>
-                <TableCell>{dayTypeMap[appointment.day_type]}</TableCell>
-                <TableCell>{appointment.status_display}</TableCell>
+                <TableCell sx={{ color: '#4A4A48' }}>{moment(appointment.date).format('MM/DD/YYYY')}</TableCell>
+                <TableCell sx={{ color: '#4A4A48' }}>{dayTypeMap[appointment.day_type]}</TableCell>
+                <TableCell sx={{ color: '#4A4A48' }}>{appointment.status_display}</TableCell>
                 <TableCell>
                   <Button
                     onClick={() => handleOpenFlagModal(appointment.id)}
                     disabled={appointment.status === 'flagged'}
+                    sx={{
+                      backgroundColor: 'inherit',
+                      color: '#4A4A48',
+                      '&:hover': {
+                        backgroundColor: '#E0E0E0',
+                      },
+                      mr: 1,
+                    }}
                   >
                     Flag
                   </Button>
                   <Button
-                    onClick={() =>
-                      handleStatusChange(appointment.id, 'to_completion')
-                    }
+                    onClick={() => handleStatusChange(appointment.id, 'to_completion')}
                     disabled={appointment.status === 'to_completion'}
+                    sx={{
+                      backgroundColor: 'inherit',
+                      color: '#4A4A48',
+                      '&:hover': {
+                        backgroundColor: '#E0E0E0',
+                      },
+                    }}
                   >
                     Mark as Completed
                   </Button>
@@ -64,7 +75,7 @@ const ProcessedRequests = ({
         // Mobile View
         <Box>
           {processedRequests.map((appointment) => (
-            <Card key={appointment.id} variant="outlined" sx={{ mb: 2 }}>
+            <Card key={appointment.id} variant="outlined" sx={{ mb: 2, backgroundColor: '#F0E5D8', color: '#4A4A48' }}>
               <CardContent>
                 <Typography variant="h6">
                   {appointment.user.first_name} {appointment.user.last_name}
@@ -89,16 +100,26 @@ const ProcessedRequests = ({
                   <Button
                     onClick={() => handleOpenFlagModal(appointment.id)}
                     disabled={appointment.status === 'flagged'}
-                    size="medium"
+                    sx={{
+                      backgroundColor: 'inherit',
+                      color: '#4A4A48',
+                      '&:hover': {
+                        backgroundColor: '#E0E0E0',
+                      },
+                    }}
                   >
                     Flag
                   </Button>
                   <Button
-                    onClick={() =>
-                      handleStatusChange(appointment.id, 'to_completion')
-                    }
+                    onClick={() => handleStatusChange(appointment.id, 'to_completion')}
                     disabled={appointment.status === 'to_completion'}
-                    size="medium"
+                    sx={{
+                      backgroundColor: 'inherit',
+                      color: '#4A4A48',
+                      '&:hover': {
+                        backgroundColor: '#E0E0E0',
+                      },
+                    }}
                   >
                     Mark as Completed
                   </Button>

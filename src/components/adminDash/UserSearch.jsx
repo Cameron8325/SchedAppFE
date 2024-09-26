@@ -83,7 +83,17 @@ const UserSearch = ({ openUserDetailsModal, showErrorModal }) => {
   };
 
   return (
-    <Box sx={{ width: isMobile ? '100%' : '60%', margin: '0 auto' }}>
+    <Box
+      sx={{
+        width: isMobile ? '100%' : '60%',
+        maxWidth: '600px',  // Limits the maximum width for smaller viewports
+        margin: '0 auto',
+        padding: isMobile ? '1rem' : '2rem',
+        backgroundColor: '#F0E5D8',
+        borderRadius: '8px',
+        boxSizing: 'border-box',
+      }}
+    >
       {/* Search User Section */}
       <TextField
         label="Username"
@@ -92,6 +102,8 @@ const UserSearch = ({ openUserDetailsModal, showErrorModal }) => {
         margin="normal"
         value={searchUsername}
         onChange={(e) => setSearchUsername(e.target.value)}
+        InputLabelProps={{ style: { color: '#4A4A48' } }}  // Deep Charcoal for label
+        InputProps={{ style: { backgroundColor: '#fff', color: '#4A4A48' } }}  // Input text color and background
         sx={{ mb: 2 }}
       />
       <TextField
@@ -101,6 +113,8 @@ const UserSearch = ({ openUserDetailsModal, showErrorModal }) => {
         margin="normal"
         value={searchFirstName}
         onChange={(e) => setSearchFirstName(e.target.value)}
+        InputLabelProps={{ style: { color: '#4A4A48' } }}
+        InputProps={{ style: { backgroundColor: '#fff', color: '#4A4A48' } }}
         sx={{ mb: 2 }}
       />
       <TextField
@@ -110,24 +124,38 @@ const UserSearch = ({ openUserDetailsModal, showErrorModal }) => {
         margin="normal"
         value={searchLastName}
         onChange={(e) => setSearchLastName(e.target.value)}
+        InputLabelProps={{ style: { color: '#4A4A48' } }}
+        InputProps={{ style: { backgroundColor: '#fff', color: '#4A4A48' } }}
         sx={{ mb: 3 }}
       />
-      <Button variant="contained" color="primary" onClick={searchUser} fullWidth sx={{ mb: 3 }}>
+      <Button
+        variant="contained"
+        fullWidth
+        sx={{
+          backgroundColor: '#8B5E3C',  // Earthy Brown
+          color: '#F0E5D8',  // Warm Cream
+          '&:hover': {
+            backgroundColor: '#C2A773',  // Muted Gold on hover
+          },
+          mb: 3
+        }}
+        onClick={searchUser}
+      >
         Search User
       </Button>
 
       {searchResult && (
         <Box sx={{ mt: 3 }}>
-          <Typography variant="h6" component="h3" gutterBottom>
+          <Typography variant="h6" component="h3" gutterBottom sx={{ color: '#4A4A48' }}>
             User Details
           </Typography>
-          <Typography variant="body1">
+          <Typography variant="body1" sx={{ color: '#4A4A48' }}>
             <strong>Name:</strong> {selectedUser.first_name} {selectedUser.last_name}
           </Typography>
-          <Typography variant="body1">
+          <Typography variant="body1" sx={{ color: '#4A4A48' }}>
             <strong>Email:</strong> {selectedUser.email}
           </Typography>
-          <Typography variant="body1">
+          <Typography variant="body1" sx={{ color: '#4A4A48' }}>
             <strong>Phone Number:</strong>{' '}
             {selectedUser.phone_number
               ? selectedUser.phone_number.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3')
@@ -141,9 +169,22 @@ const UserSearch = ({ openUserDetailsModal, showErrorModal }) => {
             type="number"
             value={selectedUserTokens}
             onChange={(e) => setSelectedUserTokens(e.target.value)}
+            InputLabelProps={{ style: { color: '#4A4A48' } }}
+            InputProps={{ style: { backgroundColor: '#fff', color: '#4A4A48' } }}
             sx={{ mb: 3 }}
           />
-          <Button variant="contained" color="primary" onClick={handleTokenUpdate} fullWidth>
+          <Button
+            variant="contained"
+            fullWidth
+            sx={{
+              backgroundColor: '#8B5E3C',  // Earthy Brown
+              color: '#F0E5D8',  // Warm Cream
+              '&:hover': {
+                backgroundColor: '#C2A773',  // Muted Gold on hover
+              }
+            }}
+            onClick={handleTokenUpdate}
+          >
             Update Tokens
           </Button>
         </Box>

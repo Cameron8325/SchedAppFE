@@ -9,7 +9,7 @@ import {
   Tabs,
   Box,
   Badge,
-  useMediaQuery
+  useMediaQuery,
 } from "@mui/material";
 import axios from "axios";
 import moment from "moment";
@@ -20,7 +20,7 @@ import ProcessedRequests from "../components/adminDash/ProcessedRequests";
 import FlaggedRequests from "../components/adminDash/FlaggedRequests";
 import ToCompletionRequests from "../components/adminDash/ToCompletionRequests";
 import AvailabilitySection from "../components/adminDash/AvailabilitySection";
-import { useTheme } from '@mui/material/styles';
+import { useTheme } from "@mui/material/styles";
 
 function AdminDashboard() {
   // Tab-related states
@@ -581,82 +581,173 @@ function AdminDashboard() {
   );
 
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('lg')); // Adjust for mobile screens
+  const isMobile = useMediaQuery(theme.breakpoints.down("lg")); // Adjust for mobile screens
 
   return (
-    <Container>
+    <Container sx={{marginTop: '2vh' }}>
       <Typography variant="h4" component="h1" gutterBottom>
         Admin Dashboard
       </Typography>
 
-      <Box mt={2}>
+      {/* Tabs Section */}
+      <Box mt={2} mb={3}>
         <Tabs
           value={selectedTab}
           onChange={handleTabChange}
           aria-label="admin dashboard tabs"
           variant={isMobile ? "scrollable" : "standard"} // Conditionally use scrollable for mobile
-          scrollButtons={isMobile ? "auto" : false } // Enable scroll buttons on mobile
+          scrollButtons={isMobile ? "auto" : false} // Enable scroll buttons on mobile
           allowScrollButtonsMobile={isMobile} // Only enable scroll buttons for mobile
+          sx={{
+            ".MuiTabs-indicator": {
+              backgroundColor: "#8B5E3C", // Custom indicator color (earthy brown)
+            },
+          }}
         >
-          <Tab label="All" />
-          <Tab label="User Search" />
+          <Tab
+            label="All"
+            sx={{
+              color: selectedTab === 0 ? "#8B5E3C" : "#4A4A48",
+              "&.Mui-selected": {
+                color: "#8B5E3C",
+              },
+            }}
+          />
+          <Tab
+            label="User Search"
+            sx={{
+              color: selectedTab === 1 ? "#8B5E3C" : "#4A4A48",
+              "&.Mui-selected": {
+                color: "#8B5E3C",
+              },
+            }}
+          />
           <Tab
             label={
               <Badge
-                className="requestBadge"
-                color="primary"
+                sx={{
+                  "& .MuiBadge-badge": {
+                    backgroundColor: "#8B5E3C", // Earthy brown for the badge background
+                    color: "#F0E5D8", // Warm cream for the text
+                  },
+                }}
                 badgeContent={incomingRequests.length}
               >
                 <span style={{ paddingRight: "10px" }}>Incoming Requests</span>
               </Badge>
             }
+            sx={{
+              color: selectedTab === 2 ? "#8B5E3C" : "#4A4A48",
+              "&.Mui-selected": {
+                color: "#8B5E3C",
+              },
+            }}
           />
-          <Tab label="Processed Requests" />
+          <Tab
+            label="Processed Requests"
+            sx={{
+              color: selectedTab === 3 ? "#8B5E3C" : "#4A4A48",
+              "&.Mui-selected": {
+                color: "#8B5E3C",
+              },
+            }}
+          />
           <Tab
             label={
-              <Badge color="primary" badgeContent={flaggedRequests.length}>
+              <Badge
+                sx={{
+                  "& .MuiBadge-badge": {
+                    backgroundColor: "#8B5E3C", // Earthy brown for the badge background
+                    color: "#F0E5D8", // Warm cream for the text
+                  },
+                }}
+                badgeContent={flaggedRequests.length}
+              >
                 <span style={{ paddingRight: "10px" }}>Flagged Requests</span>
               </Badge>
             }
+            sx={{
+              color: selectedTab === 4 ? "#8B5E3C" : "#4A4A48",
+              "&.Mui-selected": {
+                color: "#8B5E3C",
+              },
+            }}
           />
-          <Tab label="To Completion" />
-          <Tab label="Availability" />
+          <Tab
+            label="To Completion"
+            sx={{
+              color: selectedTab === 5 ? "#8B5E3C" : "#4A4A48",
+              "&.Mui-selected": {
+                color: "#8B5E3C",
+              },
+            }}
+          />
+          <Tab
+            label="Availability"
+            sx={{
+              color: selectedTab === 6 ? "#8B5E3C" : "#4A4A48",
+              "&.Mui-selected": {
+                color: "#8B5E3C",
+              },
+            }}
+          />
         </Tabs>
       </Box>
 
+      {/* Content Section */}
       <Box p={3}>
         {selectedTab === 0 && (
           <>
-            <UserSearch
-              openUserDetailsModal={openUserDetailsModal}
-              showErrorModal={showErrorModal}
-            />
-            <IncomingRequests
-              incomingRequests={incomingRequests}
-              dayTypeMap={dayTypeMap}
-              openUserDetailsModal={openUserDetailsModal}
-              handleStatusChange={handleStatusChange}
-              handleOpenFlagModal={handleOpenFlagModal}
-            />
-            <ProcessedRequests
-              processedRequests={processedRequests}
-              dayTypeMap={dayTypeMap}
-              openUserDetailsModal={openUserDetailsModal}
-              handleOpenFlagModal={handleOpenFlagModal}
-              handleStatusChange={handleStatusChange}
-            />
-            <FlaggedRequests
-              flaggedRequests={flaggedRequests}
-              dayTypeMap={dayTypeMap}
-              openUserDetailsModal={openUserDetailsModal}
-              openReasonModal={openReasonModal}
-              handleStatusChange={handleStatusChange}
-            />
-            <ToCompletionRequests
-              toCompletionRequests={toCompletionRequests}
-              dayTypeMap={dayTypeMap}
-              openUserDetailsModal={openUserDetailsModal}
-            />
+            <Box mb={3}>
+              {" "}
+              {/* Add margin bottom */}
+              <UserSearch
+                openUserDetailsModal={openUserDetailsModal}
+                showErrorModal={showErrorModal}
+              />
+            </Box>
+            <Box mb={3}>
+              {" "}
+              {/* Add margin bottom */}
+              <IncomingRequests
+                incomingRequests={incomingRequests}
+                dayTypeMap={dayTypeMap}
+                openUserDetailsModal={openUserDetailsModal}
+                handleStatusChange={handleStatusChange}
+                handleOpenFlagModal={handleOpenFlagModal}
+              />
+            </Box>
+            <Box mb={3}>
+              {" "}
+              {/* Add margin bottom */}
+              <ProcessedRequests
+                processedRequests={processedRequests}
+                dayTypeMap={dayTypeMap}
+                openUserDetailsModal={openUserDetailsModal}
+                handleOpenFlagModal={handleOpenFlagModal}
+                handleStatusChange={handleStatusChange}
+              />
+            </Box>
+            <Box mb={3}>
+              {" "}
+              {/* Add margin bottom */}
+              <FlaggedRequests
+                flaggedRequests={flaggedRequests}
+                dayTypeMap={dayTypeMap}
+                openUserDetailsModal={openUserDetailsModal}
+                openReasonModal={openReasonModal}
+                handleStatusChange={handleStatusChange}
+              />
+            </Box>
+            <Box mb={3}>
+              {" "}
+              {/* Add margin bottom */}
+              <ToCompletionRequests
+                toCompletionRequests={toCompletionRequests}
+                dayTypeMap={dayTypeMap}
+                openUserDetailsModal={openUserDetailsModal}
+              />
+            </Box>
             <AvailabilitySection
               startDate={startDate}
               setStartDate={setStartDate}
@@ -673,44 +764,64 @@ function AdminDashboard() {
           </>
         )}
         {selectedTab === 1 && (
-          <UserSearch
-            openUserDetailsModal={openUserDetailsModal}
-            showErrorModal={showErrorModal}
-          />
+          <Box mb={3}>
+            {" "}
+            {/* Add margin bottom */}
+            <UserSearch
+              openUserDetailsModal={openUserDetailsModal}
+              showErrorModal={showErrorModal}
+            />
+          </Box>
         )}
         {selectedTab === 2 && (
-          <IncomingRequests
-            incomingRequests={incomingRequests}
-            dayTypeMap={dayTypeMap}
-            openUserDetailsModal={openUserDetailsModal}
-            handleStatusChange={handleStatusChange}
-            handleOpenFlagModal={handleOpenFlagModal}
-          />
+          <Box mb={3}>
+            {" "}
+            {/* Add margin bottom */}
+            <IncomingRequests
+              incomingRequests={incomingRequests}
+              dayTypeMap={dayTypeMap}
+              openUserDetailsModal={openUserDetailsModal}
+              handleStatusChange={handleStatusChange}
+              handleOpenFlagModal={handleOpenFlagModal}
+            />
+          </Box>
         )}
         {selectedTab === 3 && (
-          <ProcessedRequests
-            processedRequests={processedRequests}
-            dayTypeMap={dayTypeMap}
-            openUserDetailsModal={openUserDetailsModal}
-            handleOpenFlagModal={handleOpenFlagModal}
-            handleStatusChange={handleStatusChange}
-          />
+          <Box mb={3}>
+            {" "}
+            {/* Add margin bottom */}
+            <ProcessedRequests
+              processedRequests={processedRequests}
+              dayTypeMap={dayTypeMap}
+              openUserDetailsModal={openUserDetailsModal}
+              handleOpenFlagModal={handleOpenFlagModal}
+              handleStatusChange={handleStatusChange}
+            />
+          </Box>
         )}
         {selectedTab === 4 && (
-          <FlaggedRequests
-            flaggedRequests={flaggedRequests}
-            dayTypeMap={dayTypeMap}
-            openUserDetailsModal={openUserDetailsModal}
-            openReasonModal={openReasonModal}
-            handleStatusChange={handleStatusChange}
-          />
+          <Box mb={3}>
+            {" "}
+            {/* Add margin bottom */}
+            <FlaggedRequests
+              flaggedRequests={flaggedRequests}
+              dayTypeMap={dayTypeMap}
+              openUserDetailsModal={openUserDetailsModal}
+              openReasonModal={openReasonModal}
+              handleStatusChange={handleStatusChange}
+            />
+          </Box>
         )}
         {selectedTab === 5 && (
-          <ToCompletionRequests
-            toCompletionRequests={toCompletionRequests}
-            dayTypeMap={dayTypeMap}
-            openUserDetailsModal={openUserDetailsModal}
-          />
+          <Box mb={3}>
+            {" "}
+            {/* Add margin bottom */}
+            <ToCompletionRequests
+              toCompletionRequests={toCompletionRequests}
+              dayTypeMap={dayTypeMap}
+              openUserDetailsModal={openUserDetailsModal}
+            />
+          </Box>
         )}
         {selectedTab === 6 && (
           <AvailabilitySection

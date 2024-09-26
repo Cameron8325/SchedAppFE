@@ -9,45 +9,68 @@ const IncomingRequests = ({ incomingRequests, dayTypeMap, openUserDetailsModal, 
 
   return (
     <>
-      <Typography variant="h5" component="h2" gutterBottom>
+      <Typography variant="h5" component="h2" gutterBottom sx={{ color: '#4A4A48' }}>
         Incoming Requests
       </Typography>
       {!isMobile ? (
         <Table style={{ tableLayout: 'fixed' }}>
           <TableHead>
             <TableRow>
-              <TableCell style={{ width: '20%' }}>User</TableCell>
-              <TableCell style={{ width: '20%' }}>Date</TableCell>
-              <TableCell style={{ width: '20%' }}>Day Type</TableCell>
-              <TableCell style={{ width: '20%' }}>Status</TableCell>
-              <TableCell style={{ width: '20%' }}>Actions</TableCell>
+              <TableCell style={{ width: '20%', backgroundColor: '#F0E5D8', color: '#4A4A48', fontWeight: 'bold' }}>User</TableCell>
+              <TableCell style={{ width: '20%', backgroundColor: '#F0E5D8', color: '#4A4A48', fontWeight: 'bold' }}>Date</TableCell>
+              <TableCell style={{ width: '20%', backgroundColor: '#F0E5D8', color: '#4A4A48', fontWeight: 'bold' }}>Day Type</TableCell>
+              <TableCell style={{ width: '20%', backgroundColor: '#F0E5D8', color: '#4A4A48', fontWeight: 'bold' }}>Status</TableCell>
+              <TableCell style={{ width: '20%', backgroundColor: '#F0E5D8', color: '#4A4A48', fontWeight: 'bold' }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {incomingRequests.map((appointment) => (
-              <TableRow key={appointment.id}>
-                <TableCell onClick={() => openUserDetailsModal(appointment.user)}>
+            {incomingRequests.map((appointment, index) => (
+              <TableRow key={appointment.id} style={{ backgroundColor: index % 2 === 0 ? '#FAF8F6' : '#fff' }}>
+                <TableCell onClick={() => openUserDetailsModal(appointment.user)} style={{ color: '#4A4A48' }}>
                   {appointment.user.first_name} {appointment.user.last_name}
                 </TableCell>
-                <TableCell>{moment(appointment.date).format('MM/DD/YYYY')}</TableCell>
-                <TableCell>{dayTypeMap[appointment.day_type]}</TableCell>
-                <TableCell>{appointment.status_display}</TableCell>
+                <TableCell style={{ color: '#4A4A48' }}>{moment(appointment.date).format('MM/DD/YYYY')}</TableCell>
+                <TableCell style={{ color: '#4A4A48' }}>{dayTypeMap[appointment.day_type]}</TableCell>
+                <TableCell style={{ color: '#4A4A48' }}>{appointment.status_display}</TableCell>
                 <TableCell>
                   <Button
                     onClick={() => handleStatusChange(appointment.id, 'approve')}
                     disabled={appointment.status === 'confirmed'}
+                    sx={{
+                      backgroundColor: 'inherit',
+                      color: '#4A4A48',
+                      '&:hover': {
+                        backgroundColor: '#E0E0E0',  // Light hover effect
+                      },
+                      mr: 1,
+                    }}
                   >
                     Approve
                   </Button>
                   <Button
                     onClick={() => handleStatusChange(appointment.id, 'deny')}
                     disabled={appointment.status === 'denied'}
+                    sx={{
+                      backgroundColor: 'inherit',
+                      color: '#4A4A48',
+                      '&:hover': {
+                        backgroundColor: '#E0E0E0',
+                      },
+                      mr: 1,
+                    }}
                   >
                     Deny
                   </Button>
                   <Button
                     onClick={() => handleOpenFlagModal(appointment.id)}
                     disabled={appointment.status === 'flagged'}
+                    sx={{
+                      backgroundColor: 'inherit',
+                      color: '#4A4A48',
+                      '&:hover': {
+                        backgroundColor: '#E0E0E0',
+                      },
+                    }}
                   >
                     Flag
                   </Button>
@@ -60,7 +83,7 @@ const IncomingRequests = ({ incomingRequests, dayTypeMap, openUserDetailsModal, 
         // Mobile View
         <Box>
           {incomingRequests.map((appointment) => (
-            <Card key={appointment.id} variant="outlined" sx={{ mb: 2 }}>
+            <Card key={appointment.id} variant="outlined" sx={{ mb: 2, backgroundColor: '#F0E5D8', color: '#4A4A48' }}>
               <CardContent>
                 <Typography variant="h6">
                   {appointment.user.first_name} {appointment.user.last_name}
@@ -85,21 +108,39 @@ const IncomingRequests = ({ incomingRequests, dayTypeMap, openUserDetailsModal, 
                   <Button
                     onClick={() => handleStatusChange(appointment.id, 'approve')}
                     disabled={appointment.status === 'confirmed'}
-                    size="medium"
+                    sx={{
+                      backgroundColor: 'inherit',
+                      color: '#4A4A48',
+                      '&:hover': {
+                        backgroundColor: '#E0E0E0',
+                      },
+                    }}
                   >
                     Approve
                   </Button>
                   <Button
                     onClick={() => handleStatusChange(appointment.id, 'deny')}
                     disabled={appointment.status === 'denied'}
-                    size="medium"
+                    sx={{
+                      backgroundColor: 'inherit',
+                      color: '#4A4A48',
+                      '&:hover': {
+                        backgroundColor: '#E0E0E0',
+                      },
+                    }}
                   >
                     Deny
                   </Button>
                   <Button
                     onClick={() => handleOpenFlagModal(appointment.id)}
                     disabled={appointment.status === 'flagged'}
-                    size="medium"
+                    sx={{
+                      backgroundColor: 'inherit',
+                      color: '#4A4A48',
+                      '&:hover': {
+                        backgroundColor: '#E0E0E0',
+                      },
+                    }}
                   >
                     Flag
                   </Button>

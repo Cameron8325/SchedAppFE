@@ -11,7 +11,7 @@ function CatalogPage() {
 
   return (
     <Container>
-      <Typography variant="h4" component="h1" gutterBottom>
+      <Typography variant="h4" component="h1" gutterBottom sx={{marginTop: '2vh' }}>
         Explore Our Appointments
       </Typography>
 
@@ -26,9 +26,15 @@ function CatalogPage() {
           </Typography>
         </CardContent>
         <CardActions>
-          <Button 
-            variant="contained" 
-            color="primary" 
+          <Button
+            variant="contained"
+            sx={{
+              backgroundColor: '#8B5E3C',  // Earthy Brown
+              color: '#F0E5D8',  // Warm Cream
+              '&:hover': {
+                backgroundColor: '#C2A773'  // Muted Gold hover
+              }
+            }}
             onClick={() => handleRedirect('tea_tasting')}
           >
             Schedule a Tea Tasting
@@ -47,9 +53,15 @@ function CatalogPage() {
           </Typography>
         </CardContent>
         <CardActions>
-          <Button 
-            variant="contained" 
-            color="primary" 
+          <Button
+            variant="contained"
+            sx={{
+              backgroundColor: '#8B5E3C',  // Earthy Brown
+              color: '#F0E5D8',  // Warm Cream
+              '&:hover': {
+                backgroundColor: '#C2A773'  // Muted Gold hover
+              }
+            }}
             onClick={() => handleRedirect('intro_gongfu')}
           >
             Schedule an Intro to Gongfu
@@ -68,9 +80,15 @@ function CatalogPage() {
           </Typography>
         </CardContent>
         <CardActions>
-          <Button 
-            variant="contained" 
-            color="primary" 
+          <Button
+            variant="contained"
+            sx={{
+              backgroundColor: '#8B5E3C',  // Earthy Brown
+              color: '#F0E5D8',  // Warm Cream
+              '&:hover': {
+                backgroundColor: '#C2A773'  // Muted Gold hover
+              }
+            }}
             onClick={() => handleRedirect('guided_meditation')}
           >
             Schedule a Guided Meditation

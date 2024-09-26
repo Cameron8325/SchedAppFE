@@ -27,52 +27,71 @@ const FlaggedRequests = ({
 
   return (
     <div>
-      <Typography variant="h5" component="h2" gutterBottom>
+      <Typography variant="h5" component="h2" gutterBottom sx={{ color: '#4A4A48' }}>
         Flagged Requests
       </Typography>
       {!isMobile ? (
         <Table style={{ tableLayout: "fixed" }}>
           <TableHead>
             <TableRow>
-              <TableCell style={{ width: "20%" }}>User</TableCell>
-              <TableCell style={{ width: "20%" }}>Date</TableCell>
-              <TableCell style={{ width: "20%" }}>Day Type</TableCell>
-              <TableCell style={{ width: "20%" }}>Reason</TableCell>
-              <TableCell style={{ width: "20%" }}>Actions</TableCell>
+              <TableCell sx={{ color: '#4A4A48', backgroundColor: '#F0E5D8', fontWeight: 'bold' }} style={{ width: "20%" }}>User</TableCell>
+              <TableCell sx={{ color: '#4A4A48', backgroundColor: '#F0E5D8', fontWeight: 'bold' }} style={{ width: "20%" }}>Date</TableCell>
+              <TableCell sx={{ color: '#4A4A48', backgroundColor: '#F0E5D8', fontWeight: 'bold' }} style={{ width: "20%" }}>Day Type</TableCell>
+              <TableCell sx={{ color: '#4A4A48', backgroundColor: '#F0E5D8', fontWeight: 'bold' }} style={{ width: "20%" }}>Reason</TableCell>
+              <TableCell sx={{ color: '#4A4A48', backgroundColor: '#F0E5D8', fontWeight: 'bold' }} style={{ width: "20%" }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {flaggedRequests.map((appointment) => (
-              <TableRow key={appointment.id}>
-                <TableCell
-                  onClick={() => openUserDetailsModal(appointment.user)}
-                >
+            {flaggedRequests.map((appointment, index) => (
+              <TableRow key={appointment.id} style={{ backgroundColor: index % 2 === 0 ? '#FAF8F6' : '#fff' }}>
+                <TableCell onClick={() => openUserDetailsModal(appointment.user)} sx={{ color: '#4A4A48' }}>
                   {appointment.user.first_name} {appointment.user.last_name}
                 </TableCell>
-                <TableCell>
+                <TableCell sx={{ color: '#4A4A48' }}>
                   {moment(appointment.date).format("MM/DD/YYYY")}
                 </TableCell>
-                <TableCell>{dayTypeMap[appointment.day_type]}</TableCell>
+                <TableCell sx={{ color: '#4A4A48' }}>{dayTypeMap[appointment.day_type]}</TableCell>
                 <TableCell>
                   <Button
                     onClick={() => openReasonModal(appointment.reason)}
                     variant="outlined"
+                    sx={{
+                      borderColor: '#4A4A48',
+                      color: '#4A4A48',
+                      '&:hover': {
+                        borderColor: '#C2A773',
+                        color: '#C2A773',
+                      },
+                    }}
                   >
                     View Reason
                   </Button>
                 </TableCell>
                 <TableCell>
                   <Button
-                    onClick={() =>
-                      handleStatusChange(appointment.id, "approve")
-                    }
+                    onClick={() => handleStatusChange(appointment.id, "approve")}
                     disabled={appointment.status === "confirmed"}
+                    sx={{
+                      backgroundColor: 'inherit',
+                      color: '#4A4A48',
+                      '&:hover': {
+                        backgroundColor: '#E0E0E0',
+                      },
+                      mr: 1,
+                    }}
                   >
                     Approve
                   </Button>
                   <Button
                     onClick={() => handleStatusChange(appointment.id, "deny")}
                     disabled={appointment.status === "denied"}
+                    sx={{
+                      backgroundColor: 'inherit',
+                      color: '#4A4A48',
+                      '&:hover': {
+                        backgroundColor: '#E0E0E0',
+                      },
+                    }}
                   >
                     Deny
                   </Button>
@@ -85,7 +104,7 @@ const FlaggedRequests = ({
         // Mobile View
         <Box>
           {flaggedRequests.map((appointment) => (
-            <Card key={appointment.id} variant="outlined" sx={{ mb: 2 }}>
+            <Card key={appointment.id} variant="outlined" sx={{ mb: 2, backgroundColor: '#F0E5D8', color: '#4A4A48' }}>
               <CardContent>
                 <Typography variant="h6">
                   {appointment.user.first_name} {appointment.user.last_name}
@@ -107,24 +126,40 @@ const FlaggedRequests = ({
                 >
                   <Button
                     onClick={() => openReasonModal(appointment.reason)}
-                    size="medium"
+                    sx={{
+                      backgroundColor: 'inherit',
+                      color: '#4A4A48',
+                      '&:hover': {
+                        backgroundColor: '#E0E0E0',
+                      },
+                    }}
                   >
                     View Reason
                   </Button>
 
                   <Button
-                    onClick={() =>
-                      handleStatusChange(appointment.id, "approve")
-                    }
+                    onClick={() => handleStatusChange(appointment.id, "approve")}
                     disabled={appointment.status === "confirmed"}
-                    size="medium"
+                    sx={{
+                      backgroundColor: 'inherit',
+                      color: '#4A4A48',
+                      '&:hover': {
+                        backgroundColor: '#E0E0E0',
+                      },
+                    }}
                   >
                     Approve
                   </Button>
                   <Button
                     onClick={() => handleStatusChange(appointment.id, "deny")}
                     disabled={appointment.status === "denied"}
-                    size="medium"
+                    sx={{
+                      backgroundColor: 'inherit',
+                      color: '#4A4A48',
+                      '&:hover': {
+                        backgroundColor: '#E0E0E0',
+                      },
+                    }}
                   >
                     Deny
                   </Button>

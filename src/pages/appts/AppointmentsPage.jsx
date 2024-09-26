@@ -146,13 +146,13 @@ function AppointmentsPage() {
   const getBackgroundColor = (type) => {
     switch (type) {
       case 'tea_tasting':
-        return '#6D1B7B';  // Dark plum
+        return '#5B3758';  // Muted plum
       case 'intro_gongfu':
-        return '#4CAF50';  // Jade green
+        return '#A04E2E  ';  // Sage green
       case 'guided_meditation':
-        return '#283593';  // Dark indigo
+        return '#495C8D';  // Subdued indigo
       default:
-        return '#3174ad';  // Default blue
+        return '#4A6A8F';  // Desaturated blue
     }
   };
   
@@ -241,7 +241,7 @@ function AppointmentsPage() {
 
   return (
     <Container>
-      <Typography variant="h4" component="h1" gutterBottom>
+      <Typography variant="h4" component="h1" gutterBottom sx={{marginTop: '2vh' }}>
         Schedule an Appointment
       </Typography>
 

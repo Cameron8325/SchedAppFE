@@ -1,38 +1,33 @@
 .rbc-toolbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    padding: 8px 16px;
-    background-color: #f5f5f5;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .rbc-toolbar .rbc-btn-group {
-    display: flex;
-  }
-  
-  .rbc-toolbar .rbc-btn-group button {
-    background-color: #3f51b5;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    cursor: pointer;
-    margin: 0 5px;
-    border-radius: 4px;
-    transition: background-color 0.3s ease;
-  }
-  
-  .rbc-toolbar .rbc-btn-group button:hover {
-    background-color: #303f9f;
-  }
-  
-  .rbc-toolbar .MuiButtonGroup-root {
-    background-color: white;
-  }
-  
-  .rbc-toolbar .MuiButton-root {
-    text-transform: none;
-  }
-  
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 8px 16px;
+  background-color: #F0E5D8;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.rbc-toolbar .rbc-btn-group {
+  display: flex;
+}
+
+.rbc-toolbar .rbc-btn-group button {
+  background-color: #8B5E3C;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  cursor: pointer;
+  margin: 0 5px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.rbc-toolbar .rbc-btn-group button:hover {
+  background-color: #303f9f;
+}
+
+.rbc-toolbar .MuiButton-root {
+  text-transform: none;
+}

@@ -24,8 +24,8 @@ function RegisterPage() {
     };
 
     return (
-        <Container maxWidth="sm">
-            <Typography variant="h4" component="h1" gutterBottom>
+        <Container maxWidth="sm" sx={{ backgroundColor: '#F0E5D8', padding: '2rem', borderRadius: '8px', marginTop: '10vh' }}>
+            <Typography variant="h4" component="h1" gutterBottom sx={{ color: '#4A4A48' }}>
                 Register
             </Typography>
             <form onSubmit={handleRegister}>
@@ -37,6 +37,10 @@ function RegisterPage() {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
+                    InputLabelProps={{ style: { color: '#4A4A48' } }}  // Label color
+                    InputProps={{
+                        style: { backgroundColor: '#fff', color: '#4A4A48' },  // Input text color
+                    }}
                 />
                 <TextField
                     label="First Name"
@@ -46,6 +50,10 @@ function RegisterPage() {
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     required
+                    InputLabelProps={{ style: { color: '#4A4A48' } }}
+                    InputProps={{
+                        style: { backgroundColor: '#fff', color: '#4A4A48' },
+                    }}
                 />
                 <TextField
                     label="Last Name"
@@ -55,6 +63,10 @@ function RegisterPage() {
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
                     required
+                    InputLabelProps={{ style: { color: '#4A4A48' } }}
+                    InputProps={{
+                        style: { backgroundColor: '#fff', color: '#4A4A48' },
+                    }}
                 />
                 <TextField
                     label="Email"
@@ -65,6 +77,10 @@ function RegisterPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    InputLabelProps={{ style: { color: '#4A4A48' } }}
+                    InputProps={{
+                        style: { backgroundColor: '#fff', color: '#4A4A48' },
+                    }}
                 />
                 <TextField
                     label="Password"
@@ -75,6 +91,10 @@ function RegisterPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    InputLabelProps={{ style: { color: '#4A4A48' } }}
+                    InputProps={{
+                        style: { backgroundColor: '#fff', color: '#4A4A48' },
+                    }}
                 />
                 <TextField
                     label="Confirm Password"
@@ -85,12 +105,31 @@ function RegisterPage() {
                     value={passwordConfirm}
                     onChange={(e) => setPasswordConfirm(e.target.value)}
                     required
+                    InputLabelProps={{ style: { color: '#4A4A48' } }}
+                    InputProps={{
+                        style: { backgroundColor: '#fff', color: '#4A4A48' },
+                    }}
                 />
-                <Button variant="contained" color="primary" type="submit" fullWidth>
+                <Button
+                    variant="contained"
+                    fullWidth
+                    sx={{
+                        backgroundColor: '#8B5E3C',  // Earthy Brown
+                        color: '#F0E5D8',  // Warm Cream
+                        '&:hover': {
+                            backgroundColor: '#C2A773',  // Muted Gold
+                        },
+                    }}
+                    type="submit"
+                >
                     Register
                 </Button>
             </form>
-            {message && <Typography color="error">{message}</Typography>}
+            {message && (
+                <Typography color="error" sx={{ marginTop: '1rem' }}>
+                    {message}
+                </Typography>
+            )}
         </Container>
     );
 }

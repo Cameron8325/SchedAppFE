@@ -56,7 +56,7 @@ function CustomModal({
     >
       <Box
         sx={{
-          bgcolor: 'background.paper',
+          bgcolor: '#F0E5D8',  // Warm Cream for background
           boxShadow: 24,
           p: 4,
           width: '100%',
@@ -66,12 +66,13 @@ function CustomModal({
           borderRadius: 2,
           margin: '0 16px',  // Ensures some margin on small viewports
           boxSizing: 'border-box',
+          borderColor: '#8B5E3C',  // Earthy Brown for the border
         }}
       >
-        <Typography variant="h6" id="custom-modal-title">
+        <Typography variant="h6" id="custom-modal-title" sx={{ color: '#4A4A48' }}>
           {title}
         </Typography>
-        <Typography variant="body1" id="custom-modal-description" gutterBottom>
+        <Typography variant="body1" id="custom-modal-description" gutterBottom sx={{ color: '#4A4A48' }}>
           {description}
         </Typography>
 
@@ -82,9 +83,11 @@ function CustomModal({
                 <Checkbox 
                   onChange={handleSelectAll} 
                   checked={selectedDates.length === dateList.length} 
+                  sx={{ color: '#8B5E3C' }}  // Earthy Brown for checkbox
                 />
               }
               label="Select All"
+              sx={{ color: '#4A4A48' }}  // Deep Charcoal for text
             />
             {dateList.map((date) => (
               <FormControlLabel
@@ -93,9 +96,11 @@ function CustomModal({
                   <Checkbox 
                     checked={selectedDates.includes(date)}
                     onChange={() => handleDateSelection(date)}
+                    sx={{ color: '#8B5E3C' }}  // Earthy Brown for checkbox
                   />
                 }
                 label={date}
+                sx={{ color: '#4A4A48' }}  // Deep Charcoal for text
               />
             ))}
           </FormGroup>
@@ -109,6 +114,10 @@ function CustomModal({
             value={inputValue}
             onChange={handleInputChange}
             placeholder="Enter your name, number, and reason"
+            InputLabelProps={{ style: { color: '#4A4A48' } }}  // Label color
+            InputProps={{
+              style: { backgroundColor: '#fff', color: '#4A4A48' },  // Input text and background
+            }}
           />
         )}
 
@@ -118,14 +127,30 @@ function CustomModal({
           {isConfirmVisible && (
             <Button
               variant="contained"
-              color="primary"
               onClick={onConfirm}
-              sx={{ mr: 2 }}
+              sx={{
+                backgroundColor: '#8B5E3C',  // Earthy Brown
+                color: '#F0E5D8',  // Warm Cream
+                '&:hover': {
+                  backgroundColor: '#C2A773',  // Muted Gold hover effect
+                },
+                mr: 2,
+              }}
             >
               {confirmButtonText}
             </Button>
           )}
-          <Button variant="contained" color="secondary" onClick={onClose}>
+          <Button 
+            variant="contained" 
+            onClick={onClose}
+            sx={{
+              backgroundColor: '#4A4A48',  // Deep Charcoal for secondary action
+              color: '#F0E5D8',  // Warm Cream for text
+              '&:hover': {
+                backgroundColor: '#C2A773',  // Muted Gold hover effect
+              },
+            }}
+          >
             Close
           </Button>
         </Box>

@@ -189,7 +189,7 @@ function ProfilePage() {
         <CardContent>
           <Typography variant="h6">Account Details</Typography>
           <Grid container spacing={2}>
-            <Grid item xs={12}>
+            <Grid item={true} xs={12}>
               <TextField
                 label="Username"
                 variant="outlined"
@@ -199,7 +199,7 @@ function ProfilePage() {
                 required
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid item={true} xs={12}>
               <TextField
                 label="Email"
                 variant="outlined"
@@ -209,7 +209,7 @@ function ProfilePage() {
                 required
               />
             </Grid>
-            <Grid item xs={6}>
+            <Grid item={true} xs={6}>
               <TextField
                 label="Password"
                 variant="outlined"
@@ -219,7 +219,7 @@ function ProfilePage() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </Grid>
-            <Grid item xs={6}>
+            <Grid item={true} xs={6}>
               <TextField
                 label="Confirm Password"
                 variant="outlined"
