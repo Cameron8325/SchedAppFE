@@ -121,11 +121,9 @@ function NavBar() {
                         <Button sx={{ color: '#F0E5D8' }} component={RouterLink} to="/catalog">
                             Catalog
                         </Button>
-                        {isLoggedIn && (
                             <Button sx={{ color: '#F0E5D8' }} component={RouterLink} to="/appointments">
                                 Appointments
                             </Button>
-                        )}
                         {isLoggedIn ? (
                             <>
                                 {isSuperUser ? (
