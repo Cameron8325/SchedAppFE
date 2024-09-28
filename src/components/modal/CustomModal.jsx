@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
 import { Modal, Button, Typography, TextField, Checkbox, FormControlLabel, FormGroup, Box } from '@mui/material';
+import { useNavigate } from 'react-router-dom';  // Import the useNavigate hook
+import authService from '../../services/authService';  // Import authService to check user authentication
 
 function CustomModal({
   open,
@@ -17,6 +19,8 @@ function CustomModal({
   handleInputChange, 
   children,
 }) {
+  const navigate = useNavigate();  // Initialize the navigate hook
+  const user = authService.getCurrentUser();  // Check if user is logged in
 
   useEffect(() => {
     if (open) {
@@ -123,36 +127,71 @@ function CustomModal({
 
         {children}
 
+        {/* Conditionally render buttons based on whether the user is logged in */}
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-          {isConfirmVisible && (
-            <Button
-              variant="contained"
-              onClick={onConfirm}
-              sx={{
-                backgroundColor: '#8B5E3C',  // Earthy Brown
-                color: '#F0E5D8',  // Warm Cream
-                '&:hover': {
-                  backgroundColor: '#C2A773',  // Muted Gold hover effect
-                },
-                mr: 2,
-              }}
-            >
-              {confirmButtonText}
-            </Button>
+          {user ? (
+            <>
+              {isConfirmVisible && (
+                <Button
+                  variant="contained"
+                  onClick={onConfirm}  // Confirm button for logged-in users
+                  sx={{
+                    backgroundColor: '#8B5E3C',  // Earthy Brown
+                    color: '#F0E5D8',  // Warm Cream
+                    '&:hover': {
+                      backgroundColor: '#C2A773',  // Muted Gold hover effect
+                    },
+                    mr: 2,
+                  }}
+                >
+                  {confirmButtonText || 'Confirm'}
+                </Button>
+              )}
+              <Button 
+                variant="contained" 
+                onClick={onClose}  // Close button for logged-in users
+                sx={{
+                  backgroundColor: '#4A4A48',  // Deep Charcoal for secondary action
+                  color: '#F0E5D8',  // Warm Cream for text
+                  '&:hover': {
+                    backgroundColor: '#C2A773',  // Muted Gold hover effect
+                  },
+                }}
+              >
+                Close
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="contained"
+                onClick={() => navigate('/login')}  // Redirect to login page for unauthenticated users
+                sx={{
+                  backgroundColor: '#8B5E3C',  // Earthy Brown
+                  color: '#F0E5D8',  // Warm Cream
+                  '&:hover': {
+                    backgroundColor: '#C2A773',  // Muted Gold hover effect
+                  },
+                  mr: 2,
+                }}
+              >
+                Sign In
+              </Button>
+              <Button
+                variant="contained"
+                onClick={() => navigate('/register')}  // Redirect to register page for unauthenticated users
+                sx={{
+                  backgroundColor: '#8B5E3C',  // Earthy Brown
+                  color: '#F0E5D8',  // Warm Cream
+                  '&:hover': {
+                    backgroundColor: '#C2A773',  // Muted Gold hover effect
+                  },
+                }}
+              >
+                Register
+              </Button>
+            </>
           )}
-          <Button 
-            variant="contained" 
-            onClick={onClose}
-            sx={{
-              backgroundColor: '#4A4A48',  // Deep Charcoal for secondary action
-              color: '#F0E5D8',  // Warm Cream for text
-              '&:hover': {
-                backgroundColor: '#C2A773',  // Muted Gold hover effect
-              },
-            }}
-          >
-            Close
-          </Button>
         </Box>
       </Box>
     </Modal>

@@ -41,20 +41,15 @@ function AppointmentsPage() {
     try {
       const token = localStorage.getItem('token');
   
-      // Fetch appointments
-      const appointmentsResponse = await axios.get('http://localhost:8000/api/appointments/', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      // Conditionally add the Authorization header only if the token exists
+      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+  
+      // Fetch appointments (unauthorized users should still be able to view this)
+      const appointmentsResponse = await axios.get('http://localhost:8000/api/appointments/', { headers });
       const appointmentsData = appointmentsResponse.data;
   
-      // Fetch available days
-      const availableDaysResponse = await axios.get('http://localhost:8000/api/available-days/', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      // Fetch available days (unauthorized users should still be able to view this)
+      const availableDaysResponse = await axios.get('http://localhost:8000/api/available-days/', { headers });
       const availableDaysData = availableDaysResponse.data;
   
       // Group appointments by date and calculate spots left
@@ -92,6 +87,7 @@ function AppointmentsPage() {
         ];
       });
   
+      // Sort and set events
       const sortedEvents = sortEvents(eventsData); // Apply sorting on initial load
       setEvents(sortedEvents);
       setFilteredEvents(sortedEvents); // Initially show all events
@@ -99,6 +95,8 @@ function AppointmentsPage() {
       console.error('Error fetching data:', error);
     }
   }, [dayTypeMap]);
+  
+  
   
 
   const sortEvents = (events) => {
@@ -157,21 +155,30 @@ function AppointmentsPage() {
   };
   
   
-  
-
   const handleSelectSlot = ({ start }) => {
     const today = moment().startOf('day');
     const selected = moment(start).startOf('day');
-  
-    // Check if the selected date is fully booked
+    const user = authService.getCurrentUser(); // Check if user is logged in
+    
+    if (!user || !user.id) {
+      // Show modal to sign in or register if not logged in
+      setModalTitle('Please Sign In to Continue');
+      setModalMessage("To reserve an appointment, you need to sign in or create an account.");
+      setIsConfirmVisible(true);  // Show confirm button
+      setConfirmButtonText('Sign In'); // You can also dynamically set button text here if needed
+      setModalIsOpen(true);
+      return;
+    }
+    
+
     const isFullyBooked = filteredEvents.some(event => 
       moment(event.start).isSame(start, 'day') && event.title === 'Fully Booked'
     );
-  
+    
     const isAvailable = filteredEvents.some(event => 
       moment(event.start).isSame(start, 'day') && event.title !== 'Fully Booked'
     );
-  
+    
     if (selected.isBefore(today)) {
       setModalTitle('Invalid Selection');
       setModalMessage("You cannot select today or past dates for appointments.");
@@ -196,6 +203,7 @@ function AppointmentsPage() {
       setModalIsOpen(true);
     }
   };
+  
   
 
   const handleReserve = () => {
