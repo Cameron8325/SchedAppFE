@@ -5,8 +5,8 @@ import {
   Button,
   Typography,
   Card,
-  Grid,
   CardContent,
+  Grid,
   IconButton,
   Snackbar,
   Alert,
@@ -14,27 +14,35 @@ import {
   Tooltip,
   Avatar,
   Stack,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  useMediaQuery,
 } from "@mui/material";
-import { Save, Delete, Flag, Token } from "@mui/icons-material";
+import { Save, Delete, Flag, Token, ExpandMore } from "@mui/icons-material";
+import { useTheme } from "@mui/material/styles";
 import axios from "axios";
 import CustomModal from "../components/modal/CustomModal";
 import authService from "../services/authService";
 
 function ProfilePage() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
   const [user, setUser] = useState({});
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState(""); // Add confirm password
+  const [confirmPassword, setConfirmPassword] = useState(""); 
   const [appointments, setAppointments] = useState([]);
   const [tokens, setTokens] = useState(0);
-  const [snackbarOpen, setSnackbarOpen] = useState(false); // Snackbar for feedback
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
   const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
   const [flagReason, setFlagReason] = useState("");
-  const [modalStep, setModalStep] = useState(1); // Track modal steps
+  const [modalStep, setModalStep] = useState(1);
 
   useEffect(() => {
     const currentUser = authService.getCurrentUser();
@@ -58,7 +66,6 @@ function ProfilePage() {
             },
           }
         );
-        // Filter appointments with only 'pending', 'confirmed', and 'denied' statuses
         const filteredAppointments = response.data.filter((appointment) =>
           ["pending", "confirmed", "flagged"].includes(appointment.status)
         );
@@ -72,7 +79,6 @@ function ProfilePage() {
     };
     fetchAppointments();
   }, []);
-  
 
   const handleUpdate = () => {
     if (password !== confirmPassword) {
@@ -115,19 +121,19 @@ function ProfilePage() {
   const handleOpenFlagModal = (appointmentId) => {
     setSelectedAppointmentId(appointmentId);
     setIsFlagModalOpen(true);
-    setModalStep(1); // Start modal at confirmation step
+    setModalStep(1);
   };
 
   const handleCloseFlagModal = () => {
     setIsFlagModalOpen(false);
     setSelectedAppointmentId(null);
     setFlagReason("");
-    setModalStep(1); // Reset modal to first step
+    setModalStep(1);
   };
 
   const handleModalConfirm = () => {
     if (modalStep === 1) {
-      setModalStep(2); // Move to input reason step
+      setModalStep(2);
     } else if (modalStep === 2 && flagReason.trim()) {
       handleSubmitFlag();
     } else {
@@ -178,80 +184,156 @@ function ProfilePage() {
       <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 4 }}>
         <Avatar
           alt={username}
-          src="/path-to-avatar-image.jpg" // Replace with actual path or use a generated avatar
+          src="/path-to-avatar-image.jpg" 
           sx={{ width: 100, height: 100 }}
         />
         <Typography variant="h5">{username}</Typography>
       </Stack>
 
       {/* Account Details Section */}
-      <Card sx={{ marginBottom: 4 }}>
-        <CardContent>
-          <Typography variant="h6">Account Details</Typography>
-          <Grid container spacing={2}>
-            <Grid item={true} xs={12}>
-              <TextField
-                label="Username"
-                variant="outlined"
-                fullWidth
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-              />
+      {isMobile ? (
+        <Accordion>
+          <AccordionSummary
+            expandIcon={<ExpandMore />}
+            aria-controls="account-details-content"
+            id="account-details-header"
+          >
+            <Typography variant="h6">Account Details</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  label="Username"
+                  variant="outlined"
+                  fullWidth
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="Email"
+                  variant="outlined"
+                  fullWidth
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  label="Password"
+                  variant="outlined"
+                  type="password"
+                  fullWidth
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  label="Confirm Password"
+                  variant="outlined"
+                  type="password"
+                  fullWidth
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<Save />}
+                  onClick={handleUpdate}
+                >
+                  Update Profile
+                </Button>
+              </Grid>
+              <Grid item xs={6}>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  startIcon={<Delete />}
+                  onClick={handleDelete}
+                >
+                  Delete Account
+                </Button>
+              </Grid>
             </Grid>
-            <Grid item={true} xs={12}>
-              <TextField
-                label="Email"
-                variant="outlined"
-                fullWidth
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+          </AccordionDetails>
+        </Accordion>
+      ) : (
+        <Card sx={{ marginBottom: 4 }}>
+          <CardContent>
+            <Typography variant="h6">Account Details</Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <TextField
+                  label="Username"
+                  variant="outlined"
+                  fullWidth
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="Email"
+                  variant="outlined"
+                  fullWidth
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  label="Password"
+                  variant="outlined"
+                  type="password"
+                  fullWidth
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  label="Confirm Password"
+                  variant="outlined"
+                  type="password"
+                  fullWidth
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<Save />}
+                  onClick={handleUpdate}
+                >
+                  Update Profile
+                </Button>
+              </Grid>
+              <Grid item xs={6}>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  startIcon={<Delete />}
+                  onClick={handleDelete}
+                >
+                  Delete Account
+                </Button>
+              </Grid>
             </Grid>
-            <Grid item={true} xs={6}>
-              <TextField
-                label="Password"
-                variant="outlined"
-                type="password"
-                fullWidth
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </Grid>
-            <Grid item={true} xs={6}>
-              <TextField
-                label="Confirm Password"
-                variant="outlined"
-                type="password"
-                fullWidth
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-            </Grid>
-            <Grid item={true} xs={6}>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<Save />}
-                onClick={handleUpdate}
-              >
-                Update Profile
-              </Button>
-            </Grid>
-            <Grid item={true} xs={6}>
-              <Button
-                variant="contained"
-                color="secondary"
-                startIcon={<Delete />}
-                onClick={handleDelete}
-              >
-                Delete Account
-              </Button>
-            </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Tokens Section */}
       <Card sx={{ marginBottom: 4 }}>
@@ -263,37 +345,81 @@ function ProfilePage() {
       </Card>
 
       {/* Appointments Section */}
-      <Typography variant="h5" component="h2" gutterBottom>
-        Your Appointments
-      </Typography>
-      <Grid container spacing={2}>
-        {appointments.map((appointment) => (
-          <Grid item xs={12} key={appointment.id}>
-            <Card sx={{ marginBottom: 4, paddingBottom: 2 }}>
-              <CardContent>
-                <Typography variant="body1">
-                  {new Date(appointment.date).toLocaleDateString()} -{" "}
-                  {appointment.day_type_display}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Status: {appointment.status_display}
-                </Typography>
-                <Box display="flex" justifyContent="flex-end">
-                  {appointment.status !== "flagged" && (
-                    <Tooltip title="Flag this appointment">
-                      <IconButton
-                        onClick={() => handleOpenFlagModal(appointment.id)}
-                      >
-                        <Flag />
-                      </IconButton>
-                    </Tooltip>
-                  )}
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+      {isMobile ? (
+        <Accordion>
+          <AccordionSummary
+            expandIcon={<ExpandMore />}
+            aria-controls="appointments-content"
+            id="appointments-header"
+          >
+            <Typography variant="h6">Your Appointments</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Grid container spacing={2}>
+              {appointments.map((appointment) => (
+                <Grid item xs={12} key={appointment.id}>
+                  <Card sx={{ marginBottom: 4, paddingBottom: 2 }}>
+                    <CardContent>
+                      <Typography variant="body1">
+                        {new Date(appointment.date).toLocaleDateString()} -{" "}
+                        {appointment.day_type_display}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Status: {appointment.status_display}
+                      </Typography>
+                      <Box display="flex" justifyContent="flex-end">
+                        {appointment.status !== "flagged" && (
+                          <Tooltip title="Flag this appointment">
+                            <IconButton
+                              onClick={() => handleOpenFlagModal(appointment.id)}
+                            >
+                              <Flag />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          </AccordionDetails>
+        </Accordion>
+      ) : (
+        <Card sx={{ marginBottom: 4 }}>
+          <CardContent>
+            <Typography variant="h6">Your Appointments</Typography>
+            <Grid container spacing={2}>
+              {appointments.map((appointment) => (
+                <Grid item xs={12} key={appointment.id}>
+                  <Card sx={{ marginBottom: 4, paddingBottom: 2 }}>
+                    <CardContent>
+                      <Typography variant="body1">
+                        {new Date(appointment.date).toLocaleDateString()} -{" "}
+                        {appointment.day_type_display}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Status: {appointment.status_display}
+                      </Typography>
+                      <Box display="flex" justifyContent="flex-end">
+                        {appointment.status !== "flagged" && (
+                          <Tooltip title="Flag this appointment">
+                            <IconButton
+                              onClick={() => handleOpenFlagModal(appointment.id)}
+                            >
+                              <Flag />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Snackbar for feedback */}
       <Snackbar
@@ -328,14 +454,14 @@ function ProfilePage() {
             ? "Please provide a reason for flagging this appointment."
             : "Your appointment has been flagged successfully."
         }
-        isConfirmVisible={modalStep !== 3} // Show confirm button in steps 1 and 2
+        isConfirmVisible={modalStep !== 3}
         confirmButtonText={
           modalStep === 1 ? "Confirm" : modalStep === 2 ? "Submit" : "Close"
         }
         onConfirm={handleModalConfirm}
-        showTextInput={modalStep === 2} // Show input only on step 2
+        showTextInput={modalStep === 2}
         inputValue={flagReason}
-        handleInputChange={(e) => setFlagReason(e.target.value)} // Handle input change
+        handleInputChange={(e) => setFlagReason(e.target.value)}
       />
     </Container>
   );
