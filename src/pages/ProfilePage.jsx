@@ -19,7 +19,8 @@ import {
   AccordionDetails,
   useMediaQuery,
 } from "@mui/material";
-import { Save, Delete, Flag, Token, ExpandMore } from "@mui/icons-material";
+import { Save, Delete, Flag, ExpandMore } from "@mui/icons-material";
+import TempleBuddhistIcon from "@mui/icons-material/TempleBuddhist";
 import { useTheme } from "@mui/material/styles";
 import axios from "axios";
 import CustomModal from "../components/modal/CustomModal";
@@ -33,7 +34,7 @@ function ProfilePage() {
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState(""); 
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [appointments, setAppointments] = useState([]);
   const [tokens, setTokens] = useState(0);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -181,14 +182,30 @@ function ProfilePage() {
       </Typography>
 
       {/* Avatar and Username Section */}
-      <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 4 }}>
-        <Avatar
-          alt={username}
-          src="/path-to-avatar-image.jpg" 
-          sx={{ width: 100, height: 100 }}
-        />
-        <Typography variant="h5">{username}</Typography>
-      </Stack>
+      <Card
+        style={{ display: "flex", justifyContent: "space-between" }}
+        sx={{ marginBottom: 4 }}
+      >
+        <CardContent>
+          <Avatar
+            alt={username}
+            src="/path-to-avatar-image.jpg"
+            sx={{ width: 100, height: 100 }}
+          />
+          <Typography variant="h5">{username}</Typography>
+        </CardContent>
+
+        <CardContent
+          style={{ display: "flex", justifyContent: "space-between", alignItems: 'center' }}
+        >
+          <Typography variant="h4" mr={1}>
+            Tokens: {tokens}
+          </Typography>
+            <TempleBuddhistIcon
+              fontSize="large"
+            />
+        </CardContent>
+      </Card>
 
       {/* Account Details Section */}
       {isMobile ? (
@@ -339,7 +356,11 @@ function ProfilePage() {
       <Card sx={{ marginBottom: 4 }}>
         <CardContent>
           <Typography variant="h6">
-            Tokens: {tokens} <Token sx={{ verticalAlign: "middle" }} />
+            Tokens: {tokens}{" "}
+            <TempleBuddhistIcon
+              fontSize="large"
+              sx={{ verticalAlign: "middle" }}
+            />
           </Typography>
         </CardContent>
       </Card>
@@ -371,7 +392,9 @@ function ProfilePage() {
                         {appointment.status !== "flagged" && (
                           <Tooltip title="Flag this appointment">
                             <IconButton
-                              onClick={() => handleOpenFlagModal(appointment.id)}
+                              onClick={() =>
+                                handleOpenFlagModal(appointment.id)
+                              }
                             >
                               <Flag />
                             </IconButton>
@@ -405,7 +428,9 @@ function ProfilePage() {
                         {appointment.status !== "flagged" && (
                           <Tooltip title="Flag this appointment">
                             <IconButton
-                              onClick={() => handleOpenFlagModal(appointment.id)}
+                              onClick={() =>
+                                handleOpenFlagModal(appointment.id)
+                              }
                             >
                               <Flag />
                             </IconButton>
