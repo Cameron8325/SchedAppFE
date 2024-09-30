@@ -8,6 +8,7 @@ import LoginPage from '../../pages/LoginPage';
 import RegisterPage from '../../pages/RegisterPage';
 import AdminDashboard from '../../pages/AdminDashboard';
 import CatalogPage from '../../pages/CatalogPage'; // Import the CatalogPage
+import PasswordResetPage from '../../pages/PasswordResetPage.jsx'; // Import the PasswordResetPage
 import NavBar from './navbar';
 
 function AppRoutes() {
@@ -23,6 +24,7 @@ function AppRoutes() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/reset/:uidb64/:token" element={<PasswordResetPage />} />
             </Routes>
         </Router>
     );

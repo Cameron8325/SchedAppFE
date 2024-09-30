@@ -9,16 +9,17 @@ function RegisterPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [passwordConfirm, setPasswordConfirm] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');  // Add phone number state
     const [message, setMessage] = useState('');
 
     const handleRegister = (e) => {
         e.preventDefault();
-        authService.register(username, firstName, lastName, email, password, passwordConfirm).then(
+        authService.register(username, firstName, lastName, email, password, passwordConfirm, phoneNumber).then(
             () => {
                 window.location.href = '/login';
             },
             (error) => {
-                setMessage('Registration failed');
+                setMessage('Registration failed: ' + JSON.stringify(error.response.data));  // Capture the error message
             }
         );
     };
@@ -28,9 +29,9 @@ function RegisterPage() {
             <Box 
                 sx={{ 
                     backgroundColor: '#F0E5D8', 
-                    padding: { xs: '1.5rem', sm: '2rem' },  // Responsive padding
+                    padding: { xs: '1.5rem', sm: '2rem' },
                     borderRadius: '8px', 
-                    boxShadow: 3,  // Adds a subtle shadow for better focus on the form
+                    boxShadow: 3,  
                 }}
             >
                 <Typography variant="h4" component="h1" gutterBottom sx={{ color: '#4A4A48' }}>
@@ -48,9 +49,9 @@ function RegisterPage() {
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
                                 required
-                                InputLabelProps={{ style: { color: '#4A4A48' } }}  // Label color
+                                InputLabelProps={{ style: { color: '#4A4A48' } }}
                                 InputProps={{
-                                    style: { backgroundColor: '#fff', color: '#4A4A48' },  // Input text color
+                                    style: { backgroundColor: '#fff', color: '#4A4A48' },
                                 }}
                             />
                         </Grid>
@@ -64,9 +65,9 @@ function RegisterPage() {
                                 value={firstName}
                                 onChange={(e) => setFirstName(e.target.value)}
                                 required
-                                InputLabelProps={{ style: { color: '#4A4A48' } }}  // Label color
+                                InputLabelProps={{ style: { color: '#4A4A48' } }}
                                 InputProps={{
-                                    style: { backgroundColor: '#fff', color: '#4A4A48' },  // Input text color
+                                    style: { backgroundColor: '#fff', color: '#4A4A48' },
                                 }}
                             />
                         </Grid>
@@ -80,9 +81,9 @@ function RegisterPage() {
                                 value={lastName}
                                 onChange={(e) => setLastName(e.target.value)}
                                 required
-                                InputLabelProps={{ style: { color: '#4A4A48' } }}  // Label color
+                                InputLabelProps={{ style: { color: '#4A4A48' } }}
                                 InputProps={{
-                                    style: { backgroundColor: '#fff', color: '#4A4A48' },  // Input text color
+                                    style: { backgroundColor: '#fff', color: '#4A4A48' },
                                 }}
                             />
                         </Grid>
@@ -97,9 +98,25 @@ function RegisterPage() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
-                                InputLabelProps={{ style: { color: '#4A4A48' } }}  // Label color
+                                InputLabelProps={{ style: { color: '#4A4A48' } }}
                                 InputProps={{
-                                    style: { backgroundColor: '#fff', color: '#4A4A48' },  // Input text color
+                                    style: { backgroundColor: '#fff', color: '#4A4A48' },
+                                }}
+                            />
+                        </Grid>
+
+                        {/* Phone Number Field */}
+                        <Grid item xs={12}>
+                            <TextField
+                                label="Phone Number"
+                                variant="outlined"
+                                fullWidth
+                                value={phoneNumber}
+                                onChange={(e) => setPhoneNumber(e.target.value)}
+                                required  // Mark as required
+                                InputLabelProps={{ style: { color: '#4A4A48' } }}
+                                InputProps={{
+                                    style: { backgroundColor: '#fff', color: '#4A4A48' },
                                 }}
                             />
                         </Grid>
@@ -114,9 +131,9 @@ function RegisterPage() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
-                                InputLabelProps={{ style: { color: '#4A4A48' } }}  // Label color
+                                InputLabelProps={{ style: { color: '#4A4A48' } }}
                                 InputProps={{
-                                    style: { backgroundColor: '#fff', color: '#4A4A48' },  // Input text color
+                                    style: { backgroundColor: '#fff', color: '#4A4A48' },
                                 }}
                             />
                         </Grid>
@@ -131,9 +148,9 @@ function RegisterPage() {
                                 value={passwordConfirm}
                                 onChange={(e) => setPasswordConfirm(e.target.value)}
                                 required
-                                InputLabelProps={{ style: { color: '#4A4A48' } }}  // Label color
+                                InputLabelProps={{ style: { color: '#4A4A48' } }}
                                 InputProps={{
-                                    style: { backgroundColor: '#fff', color: '#4A4A48' },  // Input text color
+                                    style: { backgroundColor: '#fff', color: '#4A4A48' },
                                 }}
                             />
                         </Grid>
@@ -144,10 +161,10 @@ function RegisterPage() {
                                 variant="contained"
                                 fullWidth
                                 sx={{
-                                    backgroundColor: '#8B5E3C',  // Earthy Brown
-                                    color: '#F0E5D8',  // Warm Cream
+                                    backgroundColor: '#8B5E3C',
+                                    color: '#F0E5D8',
                                     '&:hover': {
-                                        backgroundColor: '#C2A773',  // Muted Gold
+                                        backgroundColor: '#C2A773',
                                     },
                                 }}
                                 type="submit"
