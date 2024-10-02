@@ -117,7 +117,6 @@ function CustomModal({
             margin="normal"
             value={inputValue}
             onChange={handleInputChange}
-            placeholder="Enter your name, number, and reason"
             InputLabelProps={{ style: { color: '#4A4A48' } }}  // Label color
             InputProps={{
               style: { backgroundColor: '#fff', color: '#4A4A48' },  // Input text and background
