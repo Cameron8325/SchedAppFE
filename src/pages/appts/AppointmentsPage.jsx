@@ -43,6 +43,7 @@ function AppointmentsPage() {
         const appointmentsResponse = await axios.get('http://localhost:8000/api/appointments/', {
             withCredentials: true  // Ensures cookies are sent automatically
         });
+        console.log('Appointments Data:', appointmentsResponse.data);
         const appointmentsData = appointmentsResponse.data;
 
         // Fetch available days (unauthorized users should still be able to view this)

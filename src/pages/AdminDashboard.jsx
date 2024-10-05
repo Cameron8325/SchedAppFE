@@ -315,7 +315,7 @@ function AdminDashboard() {
         setModalIsOpen(true);
       } else {
         await axios.post(
-          "http://localhost:8000/api/set-availability/",
+          "http://localhost:8000/api/admin-panel/set-availability/",
           {
             start_date: startDate,
             end_date: endDate || startDate,
@@ -353,7 +353,7 @@ function AdminDashboard() {
           "YYYY-MM-DD"
         );
         await axios.delete(
-          `http://localhost:8000/api/remove-availability/?start_date=${apiFormattedDate}&end_date=${apiFormattedDate}`,
+          `http://localhost:8000/api/admin-panel/remove-availability/?start_date=${apiFormattedDate}&end_date=${apiFormattedDate}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -366,7 +366,7 @@ function AdminDashboard() {
             "YYYY-MM-DD"
           );
           await axios.delete(
-            `http://localhost:8000/api/remove-availability/?start_date=${apiFormattedDate}&end_date=${apiFormattedDate}`,
+            `http://localhost:8000/api/admin-panel/remove-availability/?start_date=${apiFormattedDate}&end_date=${apiFormattedDate}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -499,7 +499,7 @@ function AdminDashboard() {
             "YYYY-MM-DD"
           );
           await axios.post(
-            `http://localhost:8000/api/set-availability/`,
+            `http://localhost:8000/api/admin-panel/set-availability/`,
             {
               start_date: apiFormattedDate,
               end_date: apiFormattedDate,

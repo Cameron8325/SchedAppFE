@@ -31,7 +31,7 @@ const UserSearch = ({ openUserDetailsModal, showErrorModal }) => {
       if (searchLastName) query += `${query ? '&' : ''}last_name=${searchLastName}`;
 
       const response = await axios.get(
-        `http://localhost:8000/api/users/search/?${query}`,
+        `http://localhost:8000/api/admin-panel/search/?${query}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
