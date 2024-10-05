@@ -29,15 +29,20 @@ function NavBar() {
         if (user) {
             setIsLoggedIn(true);
             authService.isSuperUser().then(setIsSuperUser);
+        } else {
+            setIsLoggedIn(false); // Ensure isLoggedIn is correctly updated
+            setIsSuperUser(false); // Reset superuser status when logged out
         }
     }, []);
+      
 
     const handleLogout = () => {
-        authService.logout();
+        authService.logout();  // No need for .then() since logout is not asynchronous
         setIsLoggedIn(false);
-        setIsSuperUser(false);
-        window.location.href = '/';
+        setIsSuperUser(false);  // Ensure this is reset on logout
+        window.location.href = '/';  // Redirect to the home page
     };
+    
 
     const toggleDrawer = (open) => (event) => {
         if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {

@@ -39,62 +39,63 @@ function AppointmentsPage() {
 
   const fetchAppointmentsAndAvailableDays = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token');
-  
-      // Conditionally add the Authorization header only if the token exists
-      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-  
-      // Fetch appointments (unauthorized users should still be able to view this)
-      const appointmentsResponse = await axios.get('http://localhost:8000/api/appointments/', { headers });
-      const appointmentsData = appointmentsResponse.data;
-  
-      // Fetch available days (unauthorized users should still be able to view this)
-      const availableDaysResponse = await axios.get('http://localhost:8000/api/available-days/', { headers });
-      const availableDaysData = availableDaysResponse.data;
-  
-      // Group appointments by date and calculate spots left
-      const groupedAppointments = appointmentsData.reduce((acc, appointment) => {
-        const date = moment(appointment.date).startOf('day').format('YYYY-MM-DD');
-        if (!acc[date]) acc[date] = [];
-        acc[date].push(appointment);
-        return acc;
-      }, {});
-  
-      // Create events combining appointments and available days
-      const eventsData = availableDaysData.flatMap(day => {
-        const date = moment(day.date).startOf('day').format('YYYY-MM-DD');
-        const appointments = groupedAppointments[date] || [];
-        const spotsLeft = 4 - appointments.length;
-        const dayType = dayTypeMap[day.type]; // Get day type from available days
-  
-        return [
-          {
-            start: moment(day.date).toDate(),
-            end: moment(day.date).toDate(),
-            title: dayType, // Event for day type
-            allDay: true,
-            backgroundColor: getBackgroundColor(day.type),
-            type: day.type
-          },
-          {
-            start: moment(day.date).toDate(),
-            end: moment(day.date).toDate(),
-            title: spotsLeft === 0 ? 'Fully Booked' : `${spotsLeft} spots left`, // Event for booking status
-            allDay: true,
-            backgroundColor: spotsLeft === 0 ? '#546E7A' : '#3174ad',
-            type: null // This event is purely for status
-          }
-        ];
-      });
-  
-      // Sort and set events
-      const sortedEvents = sortEvents(eventsData); // Apply sorting on initial load
-      setEvents(sortedEvents);
-      setFilteredEvents(sortedEvents); // Initially show all events
+        // Fetch appointments (unauthorized users should still be able to view this)
+        const appointmentsResponse = await axios.get('http://localhost:8000/api/appointments/', {
+            withCredentials: true  // Ensures cookies are sent automatically
+        });
+        const appointmentsData = appointmentsResponse.data;
+
+        // Fetch available days (unauthorized users should still be able to view this)
+        const availableDaysResponse = await axios.get('http://localhost:8000/api/available-days/', {
+            withCredentials: true  // Ensures cookies are sent automatically
+        });
+        const availableDaysData = availableDaysResponse.data;
+
+        // Group appointments by date and calculate spots left
+        const groupedAppointments = appointmentsData.reduce((acc, appointment) => {
+            const date = moment(appointment.date).startOf('day').format('YYYY-MM-DD');
+            if (!acc[date]) acc[date] = [];
+            acc[date].push(appointment);
+            return acc;
+        }, {});
+
+        // Create events combining appointments and available days
+        const eventsData = availableDaysData.flatMap(day => {
+            const date = moment(day.date).startOf('day').format('YYYY-MM-DD');
+            const appointments = groupedAppointments[date] || [];
+            const spotsLeft = 4 - appointments.length;
+            const dayType = dayTypeMap[day.type]; // Get day type from available days
+
+            return [
+                {
+                    start: moment(day.date).toDate(),
+                    end: moment(day.date).toDate(),
+                    title: dayType, // Event for day type
+                    allDay: true,
+                    backgroundColor: getBackgroundColor(day.type),
+                    type: day.type
+                },
+                {
+                    start: moment(day.date).toDate(),
+                    end: moment(day.date).toDate(),
+                    title: spotsLeft === 0 ? 'Fully Booked' : `${spotsLeft} spots left`, // Event for booking status
+                    allDay: true,
+                    backgroundColor: spotsLeft === 0 ? '#546E7A' : '#3174ad',
+                    type: null // This event is purely for status
+                }
+            ];
+        });
+
+        // Sort and set events
+        const sortedEvents = sortEvents(eventsData); // Apply sorting on initial load
+        setEvents(sortedEvents);
+        setFilteredEvents(sortedEvents); // Initially show all events
+
     } catch (error) {
-      console.error('Error fetching data:', error);
+        console.error('Error fetching data:', error);
     }
-  }, [dayTypeMap]);
+}, [dayTypeMap]);  // Using dayTypeMap as a dependency ensures it's re-created only when needed
+
   
   
   

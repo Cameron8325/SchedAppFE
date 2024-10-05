@@ -21,12 +21,14 @@ const login = (username_email, password) => {
         password
     }).then(response => {
         if (response.data.access) {
-            localStorage.setItem('user', JSON.stringify(response.data.user));
-            localStorage.setItem('token', response.data.access);
+            localStorage.setItem('user', JSON.stringify(response.data.user));  // Store user data
+            localStorage.setItem('token', response.data.access);  // Store the access token
+            localStorage.setItem('refresh_token', response.data.refresh);  // Store the refresh token if needed
         }
         return response.data;
     });
 };
+
 
 const logout = () => {
     localStorage.removeItem('user');
@@ -43,7 +45,7 @@ const isSuperUser = async () => {
         return false;
     }
     try {
-        const response = await axios.get('http://localhost:8000/api/check-superuser/', {
+        const response = await axios.get(API_URL + 'check-superuser/', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
