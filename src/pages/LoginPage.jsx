@@ -1,22 +1,35 @@
-import React, { useState } from 'react';
-import { Container, TextField, Button, Typography, Box, Grid } from '@mui/material';
-import authService from '../services/authService';
+// src/pages/LoginPage.js
+
+import React, { useState, useContext } from 'react';
+import { Container, TextField, Button, Typography, Box, Grid, CircularProgress, Alert } from '@mui/material';
+import { AuthContext } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 function LoginPage() {
     const [usernameEmail, setUsernameEmail] = useState('');
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    const handleLogin = (e) => {
+    const { login } = useContext(AuthContext);
+    const navigate = useNavigate();
+
+    const handleLogin = async (e) => {
         e.preventDefault();
-        authService.login(usernameEmail, password).then(
-            (data) => {
-                window.location.href = '/appointments';
-            },
-            (error) => {
-                setMessage('Invalid credentials');
+        setLoading(true);
+        setMessage('');
+        try {
+            await login(usernameEmail, password);
+            navigate('/appointments'); // Redirect to appointments page after successful login
+        } catch (error) {
+            if (error.response && error.response.data && error.response.data.error) {
+                setMessage(error.response.data.error);
+            } else {
+                setMessage('Invalid credentials or server error');
             }
-        );
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -74,6 +87,7 @@ function LoginPage() {
                                 variant="contained"
                                 type="submit"
                                 fullWidth
+                                disabled={loading}
                                 sx={{
                                     backgroundColor: '#8B5E3C',  // Earthy Brown
                                     color: '#F0E5D8',  // Warm Cream
@@ -82,7 +96,7 @@ function LoginPage() {
                                     },
                                 }}
                             >
-                                Login
+                                {loading ? <CircularProgress size={24} color="inherit" /> : 'Login'}
                             </Button>
                         </Grid>
                     </Grid>
@@ -90,9 +104,9 @@ function LoginPage() {
 
                 {/* Error Message */}
                 {message && (
-                    <Typography color="error" sx={{ marginTop: '1rem' }}>
+                    <Alert severity="error" sx={{ marginTop: '1rem' }}>
                         {message}
-                    </Typography>
+                    </Alert>
                 )}
             </Box>
         </Container>

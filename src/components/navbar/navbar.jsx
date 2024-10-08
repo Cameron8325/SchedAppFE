@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+// src/components/navbar/NavBar.js
+
+import React, { useState, useContext } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import {
     AppBar,
@@ -10,39 +12,29 @@ import {
     List,
     ListItem,
     ListItemText,
-    Divider
+    Divider,
+    Box,
 } from '@mui/material';
 import { Menu as MenuIcon } from '@mui/icons-material';
 import { useTheme, useMediaQuery } from '@mui/material';
-import authService from '../../services/authService';
+import { AuthContext } from '../../context/AuthContext';
 
 function NavBar() {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [isSuperUser, setIsSuperUser] = useState(false);
+    const { user, isSuperUser, logout } = useContext(AuthContext);
     const [drawerOpen, setDrawerOpen] = useState(false);
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md')); // Detect if screen is md or smaller
 
-    useEffect(() => {
-        const user = authService.getCurrentUser();
-        if (user) {
-            setIsLoggedIn(true);
-            authService.isSuperUser().then(setIsSuperUser);
-        } else {
-            setIsLoggedIn(false); // Ensure isLoggedIn is correctly updated
-            setIsSuperUser(false); // Reset superuser status when logged out
+    const handleLogout = async () => {
+        try {
+            await logout();
+            window.location.href = '/'; // Redirect to home after logout
+        } catch (error) {
+            console.error('Logout failed:', error);
+            // Optionally, display an error message to the user
         }
-    }, []);
-      
-
-    const handleLogout = () => {
-        authService.logout();  // No need for .then() since logout is not asynchronous
-        setIsLoggedIn(false);
-        setIsSuperUser(false);  // Ensure this is reset on logout
-        window.location.href = '/';  // Redirect to the home page
     };
-    
 
     const toggleDrawer = (open) => (event) => {
         if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
@@ -50,6 +42,49 @@ function NavBar() {
         }
         setDrawerOpen(open);
     };
+
+    const navLinks = (
+        <>
+            <ListItem component={RouterLink} to="/">
+                <ListItemText primary="Home" sx={{ color: '#4A4A48' }} />
+            </ListItem>
+            <ListItem component={RouterLink} to="/about">
+                <ListItemText primary="About" sx={{ color: '#4A4A48' }} />
+            </ListItem>
+            <ListItem component={RouterLink} to="/catalog">
+                <ListItemText primary="Catalog" sx={{ color: '#4A4A48' }} />
+            </ListItem>
+            <ListItem component={RouterLink} to="/appointments">
+                <ListItemText primary="Appointments" sx={{ color: '#4A4A48' }} />
+            </ListItem>
+            <Divider />
+            {user ? (
+                <>
+                    {isSuperUser ? (
+                        <ListItem component={RouterLink} to="/admin">
+                            <ListItemText primary="Admin Dashboard" sx={{ color: '#4A4A48' }} />
+                        </ListItem>
+                    ) : (
+                        <ListItem component={RouterLink} to="/profile">
+                            <ListItemText primary="Profile" sx={{ color: '#4A4A48' }} />
+                        </ListItem>
+                    )}
+                    <ListItem onClick={handleLogout}>
+                        <ListItemText primary="Logout" sx={{ color: '#4A4A48' }} />
+                    </ListItem>
+                </>
+            ) : (
+                <>
+                    <ListItem component={RouterLink} to="/login">
+                        <ListItemText primary="Login" sx={{ color: '#4A4A48' }} />
+                    </ListItem>
+                    <ListItem component={RouterLink} to="/register">
+                        <ListItemText primary="Register" sx={{ color: '#4A4A48' }} />
+                    </ListItem>
+                </>
+            )}
+        </>
+    );
 
     return (
         <AppBar position="static" sx={{ backgroundColor: '#4A4A48' }}>
@@ -64,55 +99,14 @@ function NavBar() {
                             <MenuIcon />
                         </IconButton>
                         <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer(false)}>
-                            <div
+                            <Box
                                 role="presentation"
                                 onClick={toggleDrawer(false)}
                                 onKeyDown={toggleDrawer(false)}
-                                style={{ width: 250 }}
+                                sx={{ width: 250 }}
                             >
-                                <List>
-                                    <ListItem  component={RouterLink} to="/">
-                                        <ListItemText primary="Home" sx={{ color: '#4A4A48' }} />
-                                    </ListItem>
-                                    <ListItem  component={RouterLink} to="/about">
-                                        <ListItemText primary="About" sx={{ color: '#4A4A48' }} />
-                                    </ListItem>
-                                    <ListItem  component={RouterLink} to="/catalog">
-                                        <ListItemText primary="Catalog" sx={{ color: '#4A4A48' }} />
-                                    </ListItem>
-                                    {isLoggedIn && (
-                                        <ListItem  component={RouterLink} to="/appointments">
-                                            <ListItemText primary="Appointments" sx={{ color: '#4A4A48' }} />
-                                        </ListItem>
-                                    )}
-                                    <Divider />
-                                    {isLoggedIn ? (
-                                        <>
-                                            {isSuperUser && (
-                                                <ListItem  component={RouterLink} to="/admin">
-                                                    <ListItemText primary="Admin Dashboard" sx={{ color: '#4A4A48' }} />
-                                                </ListItem>
-                                            )}
-                                            {!isSuperUser && (
-                                            <ListItem  component={RouterLink} to="/profile">
-                                                <ListItemText primary="Profile" sx={{ color: '#4A4A48' }} />
-                                            </ListItem>)}
-                                            <ListItem  onClick={handleLogout}>
-                                                <ListItemText primary="Logout" sx={{ color: '#4A4A48' }} />
-                                            </ListItem>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <ListItem  component={RouterLink} to="/login">
-                                                <ListItemText primary="Login" sx={{ color: '#4A4A48' }} />
-                                            </ListItem>
-                                            <ListItem  component={RouterLink} to="/register">
-                                                <ListItemText primary="Register" sx={{ color: '#4A4A48' }} />
-                                            </ListItem>
-                                        </>
-                                    )}
-                                </List>
-                            </div>
+                                <List>{navLinks}</List>
+                            </Box>
                         </Drawer>
                     </>
                 ) : (
@@ -126,10 +120,10 @@ function NavBar() {
                         <Button sx={{ color: '#F0E5D8' }} component={RouterLink} to="/catalog">
                             Catalog
                         </Button>
-                            <Button sx={{ color: '#F0E5D8' }} component={RouterLink} to="/appointments">
-                                Appointments
-                            </Button>
-                        {isLoggedIn ? (
+                        <Button sx={{ color: '#F0E5D8' }} component={RouterLink} to="/appointments">
+                            Appointments
+                        </Button>
+                        {user ? (
                             <>
                                 {isSuperUser ? (
                                     <Button sx={{ color: '#F0E5D8' }} component={RouterLink} to="/admin">

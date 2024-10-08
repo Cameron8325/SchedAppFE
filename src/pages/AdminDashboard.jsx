@@ -104,15 +104,7 @@ function AdminDashboard() {
   // Fetch appointments and filter based on status
   const fetchAppointments = useCallback(async () => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(
-        "http://localhost:8000/api/appointments/",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axios.get("http://localhost:8000/api/appointments/");
       const sortedAppointments = response.data.sort(
         (a, b) => new Date(a.date) - new Date(b.date)
       );
@@ -168,15 +160,9 @@ function AdminDashboard() {
 
   const handleSubmitFlag = async () => {
     try {
-      const token = localStorage.getItem("token");
       await axios.post(
         `http://localhost:8000/api/appointments/${selectedAppointmentId}/flagged/`,
-        { reason: flagReason },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { reason: flagReason }
       );
 
       // Update flagged requests in the dashboard state
@@ -199,15 +185,7 @@ function AdminDashboard() {
   // Fetch available days and group by consecutive dates
   const fetchAvailableDays = useCallback(async () => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(
-        "http://localhost:8000/api/available-days/",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axios.get("http://localhost:8000/api/available-days/");
       const data = response.data;
       const sortedData = data.sort((a, b) =>
         moment(a.date).diff(moment(b.date))
@@ -251,16 +229,7 @@ function AdminDashboard() {
   // Handle status change of appointments
   const handleStatusChange = async (id, status) => {
     try {
-      const token = localStorage.getItem("token");
-      await axios.post(
-        `http://localhost:8000/api/appointments/${id}/${status}/`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      await axios.post(`http://localhost:8000/api/appointments/${id}/${status}/`);
       fetchAppointments(); // Refresh appointments
     } catch (error) {
       showErrorModal(
@@ -273,8 +242,6 @@ function AdminDashboard() {
   // Handle marking days as available
   const markAvailable = async () => {
     try {
-      const token = localStorage.getItem("token");
-
       const start = moment(startDate);
       const end = endDate ? moment(endDate) : start;
       const today = moment().startOf("day");
@@ -286,14 +253,7 @@ function AdminDashboard() {
         return;
       }
 
-      const response = await axios.get(
-        "http://localhost:8000/api/available-days/",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axios.get("http://localhost:8000/api/available-days/");
 
       const existingDays = response.data;
       const conflictingDays = existingDays.filter((day) => {
@@ -320,11 +280,6 @@ function AdminDashboard() {
             start_date: startDate,
             end_date: endDate || startDate,
             type: dayType,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
           }
         );
         setModalTitle("Availability");
@@ -346,19 +301,12 @@ function AdminDashboard() {
   // Handle removal of availability
   const handleRemoveAvailable = async () => {
     try {
-      const token = localStorage.getItem("token");
-
       if (selectedDates.length === 1) {
         const apiFormattedDate = moment(selectedDates[0], "MM/DD/YYYY").format(
           "YYYY-MM-DD"
         );
         await axios.delete(
-          `http://localhost:8000/api/admin-panel/remove-availability/?start_date=${apiFormattedDate}&end_date=${apiFormattedDate}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          `http://localhost:8000/api/admin-panel/remove-availability/?start_date=${apiFormattedDate}&end_date=${apiFormattedDate}`
         );
       } else {
         for (let date of selectedDates) {
@@ -366,12 +314,7 @@ function AdminDashboard() {
             "YYYY-MM-DD"
           );
           await axios.delete(
-            `http://localhost:8000/api/admin-panel/remove-availability/?start_date=${apiFormattedDate}&end_date=${apiFormattedDate}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
+            `http://localhost:8000/api/admin-panel/remove-availability/?start_date=${apiFormattedDate}&end_date=${apiFormattedDate}`
           );
         }
       }
@@ -491,8 +434,6 @@ function AdminDashboard() {
   // Handle confirmation of day type changes
   const handleConfirmChanges = async () => {
     try {
-      const token = localStorage.getItem("token");
-
       for (let item of editDayTypesData) {
         if (item.oldType !== item.newType) {
           const apiFormattedDate = moment(item.date, "MM/DD/YYYY").format(
@@ -504,11 +445,6 @@ function AdminDashboard() {
               start_date: apiFormattedDate,
               end_date: apiFormattedDate,
               type: item.newType,
-            },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
             }
           );
         }
@@ -543,8 +479,6 @@ function AdminDashboard() {
   // Handle token update for a user
   const handleTokenUpdate = async () => {
     try {
-      const token = localStorage.getItem("token");
-
       // Ensure selectedUserTokens is a valid number
       if (isNaN(selectedUserTokens) || selectedUserTokens < 0) {
         showErrorModal("Invalid token count. Please enter a valid number.");
@@ -553,12 +487,7 @@ function AdminDashboard() {
 
       const response = await axios.post(
         `http://localhost:8000/api/admin-panel/update-tokens/${selectedUser.id}/`,
-        { tokens: parseInt(selectedUserTokens) }, // Ensure it's an integer
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { tokens: parseInt(selectedUserTokens) } // Ensure it's an integer
       );
 
       if (response.status === 200) {
@@ -584,7 +513,7 @@ function AdminDashboard() {
   const isMobile = useMediaQuery(theme.breakpoints.down("lg")); // Adjust for mobile screens
 
   return (
-    <Container sx={{marginTop: '2vh' }}>
+    <Container sx={{ marginTop: '2vh' }}>
       <Typography variant="h4" component="h1" gutterBottom>
         Admin Dashboard
       </Typography>

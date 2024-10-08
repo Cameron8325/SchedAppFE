@@ -1,6 +1,10 @@
-import React, { useState } from 'react';
-import { Container, TextField, Button, Typography, Box, Grid } from '@mui/material';
-import authService from '../services/authService';
+// src/pages/RegisterPage.jsx
+
+import React, { useState, useContext } from 'react';
+import { Container, TextField, Button, Typography, Box, Grid, CircularProgress, Alert } from '@mui/material';
+import { AuthContext } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import authService from '../services/authService'; // Added import
 
 function RegisterPage() {
     const [username, setUsername] = useState('');
@@ -9,19 +13,40 @@ function RegisterPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [passwordConfirm, setPasswordConfirm] = useState('');
-    const [phoneNumber, setPhoneNumber] = useState('');  // Add phone number state
+    const [phoneNumber, setPhoneNumber] = useState('');
     const [message, setMessage] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    const handleRegister = (e) => {
+    const navigate = useNavigate();
+    const { login } = useContext(AuthContext); // Optionally, log in the user after registration
+
+    const handleRegister = async (e) => {
         e.preventDefault();
-        authService.register(username, firstName, lastName, email, password, passwordConfirm, phoneNumber).then(
-            () => {
-                window.location.href = '/login';
-            },
-            (error) => {
-                setMessage('Registration failed: ' + JSON.stringify(error.response.data));  // Capture the error message
+        setLoading(true);
+        setMessage('');
+        try {
+            await authService.register(username, firstName, lastName, email, password, passwordConfirm, phoneNumber);
+            // Optionally, log in the user automatically after registration
+            await login(email, password); // Assuming email is used for login
+            navigate('/appointments'); // Redirect to appointments page after successful registration
+        } catch (error) {
+            if (error.response && error.response.data) {
+                // Extract error messages from response data
+                let errorMessages = [];
+                for (const key in error.response.data) {
+                    if (Array.isArray(error.response.data[key])) {
+                        errorMessages = errorMessages.concat(error.response.data[key]);
+                    } else {
+                        errorMessages.push(error.response.data[key]);
+                    }
+                }
+                setMessage(errorMessages.join(' '));
+            } else {
+                setMessage('Registration failed. Please try again.');
             }
-        );
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -29,9 +54,9 @@ function RegisterPage() {
             <Box 
                 sx={{ 
                     backgroundColor: '#F0E5D8', 
-                    padding: { xs: '1.5rem', sm: '2rem' },
+                    padding: { xs: '1.5rem', sm: '2rem' }, // Responsive padding
                     borderRadius: '8px', 
-                    boxShadow: 3,  
+                    boxShadow: 3, // Adds a subtle shadow for better focus on the form
                 }}
             >
                 <Typography variant="h4" component="h1" gutterBottom sx={{ color: '#4A4A48' }}>
@@ -113,7 +138,7 @@ function RegisterPage() {
                                 fullWidth
                                 value={phoneNumber}
                                 onChange={(e) => setPhoneNumber(e.target.value)}
-                                required  // Mark as required
+                                required
                                 InputLabelProps={{ style: { color: '#4A4A48' } }}
                                 InputProps={{
                                     style: { backgroundColor: '#fff', color: '#4A4A48' },
@@ -159,7 +184,9 @@ function RegisterPage() {
                         <Grid item xs={12}>
                             <Button
                                 variant="contained"
+                                type="submit"
                                 fullWidth
+                                disabled={loading}
                                 sx={{
                                     backgroundColor: '#8B5E3C',
                                     color: '#F0E5D8',
@@ -167,9 +194,8 @@ function RegisterPage() {
                                         backgroundColor: '#C2A773',
                                     },
                                 }}
-                                type="submit"
                             >
-                                Register
+                                {loading ? <CircularProgress size={24} color="inherit" /> : 'Register'}
                             </Button>
                         </Grid>
                     </Grid>
@@ -177,9 +203,9 @@ function RegisterPage() {
 
                 {/* Error Message */}
                 {message && (
-                    <Typography color="error" sx={{ marginTop: '1rem' }}>
+                    <Alert severity="error" sx={{ marginTop: '1rem' }}>
                         {message}
-                    </Typography>
+                    </Alert>
                 )}
             </Box>
         </Container>

@@ -1,3 +1,5 @@
+// src/components/navbar/routes.js
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import HomePage from '../../pages/HomePage';
@@ -7,9 +9,10 @@ import ProfilePage from '../../pages/ProfilePage';
 import LoginPage from '../../pages/LoginPage';
 import RegisterPage from '../../pages/RegisterPage';
 import AdminDashboard from '../../pages/AdminDashboard';
-import CatalogPage from '../../pages/CatalogPage'; // Import the CatalogPage
-import PasswordResetPage from '../../pages/PasswordResetPage.jsx'; // Import the PasswordResetPage
-import NavBar from './navbar';
+import CatalogPage from '../../pages/CatalogPage';
+import PasswordResetPage from '../../pages/PasswordResetPage.jsx';
+import NavBar from './navbar.jsx'
+import ProtectedRoute from './ProtectedRoute';
 
 function AppRoutes() {
     return (
@@ -19,11 +22,25 @@ function AppRoutes() {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/catalog" element={<CatalogPage />} />
-                <Route path="/appointments" element={<AppointmentsPage />} />
-                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/appointments" element={<AppointmentsPage />} /> {/* Public Route */}
+                <Route
+                    path="/profile"
+                    element={
+                        <ProtectedRoute>
+                            <ProfilePage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/admin"
+                    element={
+                        <ProtectedRoute>
+                            <AdminDashboard />
+                        </ProtectedRoute>
+                    }
+                />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
-                <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/reset/:uidb64/:token" element={<PasswordResetPage />} />
             </Routes>
         </Router>

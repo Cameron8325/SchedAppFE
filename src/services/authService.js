@@ -1,68 +1,186 @@
+// src/services/authService.js
+
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8000/api/users/';
-
-const register = (username, firstName, lastName, email, password, passwordConfirm, phoneNumber) => {
-    return axios.post(API_URL + 'register/', {
-        username,
-        first_name: firstName,
-        last_name: lastName,
-        email,
-        password,
-        password_confirm: passwordConfirm,
-        phone_number: phoneNumber,  // Include the phone number in the request
-    });
-};
-
-
-const login = (username_email, password) => {
-    return axios.post(API_URL + 'login/', {
-        username_email,
-        password
-    }).then(response => {
-        if (response.data.access) {
-            localStorage.setItem('user', JSON.stringify(response.data.user));  // Store user data
-            localStorage.setItem('token', response.data.access);  // Store the access token
-            localStorage.setItem('refresh_token', response.data.refresh);  // Store the refresh token if needed
-        }
-        return response.data;
-    });
-};
-
-
-const logout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-};
-
-const getCurrentUser = () => {
-    return JSON.parse(localStorage.getItem('user'));
-};
-
-const isSuperUser = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        return false;
-    }
-    try {
-        const response = await axios.get(API_URL + 'check-superuser/', {
-            headers: {
-                'Authorization': `Bearer ${token}`
+// Helper function to get the CSRF token from the cookie
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
             }
+        }
+    }
+    return cookieValue;
+}
+
+// Ensure axios sends cookies with requests
+axios.defaults.withCredentials = true;
+
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/users/';
+
+// Initialize CSRF token by hitting the set-csrf endpoint
+const initializeCsrf = async () => {
+    try {
+        await axios.get(`${API_URL}set-csrf/`);
+    } catch (error) {
+        console.error('Failed to initialize CSRF token:', error);
+    }
+};
+
+// Call initializeCsrf when the app starts
+initializeCsrf();
+
+// Register function
+const register = async (username, firstName, lastName, email, password, passwordConfirm, phoneNumber) => {
+    const csrfToken = getCookie('csrftoken');
+    try {
+        const response = await axios.post(`${API_URL}register/`, {
+            username,
+            first_name: firstName,
+            last_name: lastName,
+            email,
+            password,
+            password_confirm: passwordConfirm,
+            phone_number: phoneNumber,
+        }, {
+            headers: {
+                'X-CSRFToken': csrfToken
+            },
+            withCredentials: true
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Registration error:', error);
+        throw error;
+    }
+};
+
+// Login function
+const login = async (username_email, password) => {
+    const csrfToken = getCookie('csrftoken');
+    try {
+        const response = await axios.post(`${API_URL}login/`, {
+            username_email,
+            password
+        }, {
+            headers: {
+                'X-CSRFToken': csrfToken
+            },
+            withCredentials: true
+        });
+        // Initialize CSRF token after login
+        await initializeCsrf();
+        return response.data;
+    } catch (error) {
+        console.error('Login error:', error);
+        throw error;
+    }
+};
+
+// Logout function
+const logout = async () => {
+    const csrfToken = getCookie('csrftoken');
+    try {
+        const response = await axios.post(`${API_URL}logout/`, {}, {
+            headers: {
+                'X-CSRFToken': csrfToken
+            },
+            withCredentials: true
+        });
+        // Initialize CSRF token after logout
+        await initializeCsrf();
+        return response.data;
+    } catch (error) {
+        console.error('Logout error:', error);
+        throw error;
+    }
+};
+
+// Get current user
+const getCurrentUser = async () => {
+    try {
+        const response = await axios.get(`${API_URL}check-user/`, {
+            withCredentials: true
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching user profile:', error);
+        if (error.response && error.response.status === 401) {
+            // User is not authenticated
+            return null;
+        }
+        throw error;
+    }
+};
+
+// Check if the user is a superuser
+const isSuperUser = async () => {
+    try {
+        const response = await axios.get(`${API_URL}check-superuser/`, {
+            withCredentials: true
         });
         return response.data.is_superuser;
     } catch (error) {
         console.error('Error checking superuser status:', error);
-        return false;
+        if (error.response && error.response.status === 401) {
+            // User is not authenticated
+            return false;
+        }
+        throw error;
     }
 };
+
+// Refresh token function to handle 401 responses
+const refreshToken = async () => {
+    const csrfToken = getCookie('csrftoken');
+    try {
+        const response = await axios.post(`${API_URL}token/refresh/`, {}, {
+            headers: {
+                'X-CSRFToken': csrfToken
+            },
+            withCredentials: true
+        });
+        await initializeCsrf(); // Reinitialize CSRF token after refresh
+        return response.data;
+    } catch (error) {
+        console.error('Token refresh error:', error);
+        throw error;
+    }
+};
+
+axios.interceptors.response.use(
+    response => response,
+    async error => {
+      const originalRequest = error.config;
+  
+      if (error.response && error.response.status === 401 && !originalRequest._retry) {
+        originalRequest._retry = true; // Set the retry flag
+        try {
+          await refreshToken(); // Try to refresh the token
+  
+          // Retry the original request with the updated config
+          return axios(originalRequest);
+        } catch (refreshError) {
+          // If token refresh fails, logout the user or handle accordingly
+          return Promise.reject(refreshError);
+        }
+      }
+      return Promise.reject(error);
+    }
+  );
 
 const authService = {
     register,
     login,
     logout,
     getCurrentUser,
-    isSuperUser
+    isSuperUser,
+    refreshToken,
 };
 
 export default authService;

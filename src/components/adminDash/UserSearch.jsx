@@ -18,24 +18,18 @@ const UserSearch = ({ openUserDetailsModal, showErrorModal }) => {
   const [selectedUserTokens, setSelectedUserTokens] = useState(0);
 
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md')); // Responsive hook for mobile screens
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const searchUser = async () => {
     if (!searchUsername && !searchFirstName && !searchLastName) return;
 
     try {
-      const token = localStorage.getItem('token');
       let query = '';
       if (searchUsername) query += `username=${searchUsername}`;
       if (searchFirstName) query += `${query ? '&' : ''}first_name=${searchFirstName}`;
       if (searchLastName) query += `${query ? '&' : ''}last_name=${searchLastName}`;
 
-      const response = await axios.get(
-        `http://localhost:8000/api/admin-panel/search/?${query}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await axios.get(`http://localhost:8000/api/admin-panel/search/?${query}`);
 
       if (response.data.length > 0) {
         const user = response.data[0];
@@ -59,7 +53,6 @@ const UserSearch = ({ openUserDetailsModal, showErrorModal }) => {
 
   const handleTokenUpdate = async () => {
     try {
-      const token = localStorage.getItem('token');
       if (isNaN(selectedUserTokens) || selectedUserTokens < 0) {
         showErrorModal('Invalid token count. Please enter a valid number.');
         return;
@@ -67,10 +60,7 @@ const UserSearch = ({ openUserDetailsModal, showErrorModal }) => {
 
       const response = await axios.post(
         `http://localhost:8000/api/admin-panel/update-tokens/${selectedUser.id}/`,
-        { tokens: parseInt(selectedUserTokens) },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { tokens: parseInt(selectedUserTokens) }
       );
 
       if (response.status === 200) {
@@ -86,7 +76,7 @@ const UserSearch = ({ openUserDetailsModal, showErrorModal }) => {
     <Box
       sx={{
         width: isMobile ? '100%' : '60%',
-        maxWidth: '600px',  // Limits the maximum width for smaller viewports
+        maxWidth: '600px',
         margin: '0 auto',
         padding: isMobile ? '1rem' : '2rem',
         backgroundColor: '#F0E5D8',
@@ -102,8 +92,8 @@ const UserSearch = ({ openUserDetailsModal, showErrorModal }) => {
         margin="normal"
         value={searchUsername}
         onChange={(e) => setSearchUsername(e.target.value)}
-        InputLabelProps={{ style: { color: '#4A4A48' } }}  // Deep Charcoal for label
-        InputProps={{ style: { backgroundColor: '#fff', color: '#4A4A48' } }}  // Input text color and background
+        InputLabelProps={{ style: { color: '#4A4A48' } }}
+        InputProps={{ style: { backgroundColor: '#fff', color: '#4A4A48' } }}
         sx={{ mb: 2 }}
       />
       <TextField
@@ -132,12 +122,12 @@ const UserSearch = ({ openUserDetailsModal, showErrorModal }) => {
         variant="contained"
         fullWidth
         sx={{
-          backgroundColor: '#8B5E3C',  // Earthy Brown
-          color: '#F0E5D8',  // Warm Cream
+          backgroundColor: '#8B5E3C',
+          color: '#F0E5D8',
           '&:hover': {
-            backgroundColor: '#C2A773',  // Muted Gold on hover
+            backgroundColor: '#C2A773',
           },
-          mb: 3
+          mb: 3,
         }}
         onClick={searchUser}
       >
@@ -177,11 +167,11 @@ const UserSearch = ({ openUserDetailsModal, showErrorModal }) => {
             variant="contained"
             fullWidth
             sx={{
-              backgroundColor: '#8B5E3C',  // Earthy Brown
-              color: '#F0E5D8',  // Warm Cream
+              backgroundColor: '#8B5E3C',
+              color: '#F0E5D8',
               '&:hover': {
-                backgroundColor: '#C2A773',  // Muted Gold on hover
-              }
+                backgroundColor: '#C2A773',
+              },
             }}
             onClick={handleTokenUpdate}
           >
