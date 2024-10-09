@@ -1,5 +1,3 @@
-// src/pages/appts/AppointmentsPage.jsx
-
 import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
@@ -42,20 +40,14 @@ function AppointmentsPage() {
 
     const fetchAppointmentsAndAvailableDays = useCallback(async () => {
         try {
-            // Fetch appointments
-            const appointmentsResponse = await axios.get('http://localhost:8000/api/appointments/', {
-                withCredentials: true  // Ensures cookies are sent automatically
-            });
-            console.log('Appointments Data:', appointmentsResponse.data);
+            // Fetch appointments and available days without authentication
+            const appointmentsResponse = await axios.get('http://localhost:8000/api/appointments/');
+            const availableDaysResponse = await axios.get('http://localhost:8000/api/available-days/');
+            
             const appointmentsData = appointmentsResponse.data;
-
-            // Fetch available days
-            const availableDaysResponse = await axios.get('http://localhost:8000/api/available-days/', {
-                withCredentials: true  // Ensures cookies are sent automatically
-            });
             const availableDaysData = availableDaysResponse.data;
 
-            // Group appointments by date and calculate spots left
+            // Process and combine appointments and available days
             const groupedAppointments = appointmentsData.reduce((acc, appointment) => {
                 const date = moment(appointment.date).startOf('day').format('YYYY-MM-DD');
                 if (!acc[date]) acc[date] = [];
@@ -63,18 +55,17 @@ function AppointmentsPage() {
                 return acc;
             }, {});
 
-            // Create events combining appointments and available days
             const eventsData = availableDaysData.flatMap(day => {
                 const date = moment(day.date).startOf('day').format('YYYY-MM-DD');
                 const appointments = groupedAppointments[date] || [];
                 const spotsLeft = 4 - appointments.length;
-                const dayType = dayTypeMap[day.type]; // Get day type from available days
+                const dayType = dayTypeMap[day.type];
 
                 return [
                     {
                         start: moment(day.date).toDate(),
                         end: moment(day.date).toDate(),
-                        title: dayType, // Event for day type
+                        title: dayType,
                         allDay: true,
                         backgroundColor: getBackgroundColor(day.type),
                         type: day.type
@@ -82,31 +73,21 @@ function AppointmentsPage() {
                     {
                         start: moment(day.date).toDate(),
                         end: moment(day.date).toDate(),
-                        title: spotsLeft === 0 ? 'Fully Booked' : `${spotsLeft} spots left`, // Event for booking status
+                        title: spotsLeft === 0 ? 'Fully Booked' : `${spotsLeft} spots left`,
                         allDay: true,
                         backgroundColor: spotsLeft === 0 ? '#546E7A' : '#3174ad',
-                        type: null // This event is purely for status
+                        type: null
                     }
                 ];
             });
 
-            // Sort and set events
-            const sortedEvents = sortEvents(eventsData); // Apply sorting on initial load
-            setEvents(sortedEvents);
-            setFilteredEvents(sortedEvents); // Initially show all events
+            setEvents(eventsData);
+            setFilteredEvents(eventsData);
 
         } catch (error) {
             console.error('Error fetching data:', error);
         }
     }, [dayTypeMap]);
-
-    const sortEvents = (events) => {
-        return events.sort((a, b) => {
-            if (a.type && !b.type) return -1;
-            if (!a.type && b.type) return 1;
-            return 0;
-        });
-    };
 
     useEffect(() => {
         fetchAppointmentsAndAvailableDays();
@@ -114,30 +95,20 @@ function AppointmentsPage() {
 
     useEffect(() => {
         const dayTypeQuery = query.get('dayType');
-        if (dayTypeQuery) {
-            setSelectedDayType(dayTypeQuery);
-        } else {
-            setSelectedDayType('all');
-        }
+        setSelectedDayType(dayTypeQuery || 'all');
     }, [query]);
 
     useEffect(() => {
         if (selectedDayType === 'all') {
-            const sortedEvents = sortEvents(events); // Re-apply sorting when showing all events
-            setFilteredEvents(sortedEvents);
+            setFilteredEvents(events);
         } else {
-            // Filter for day type events
             const dayTypeEvents = events.filter(event => event.type === selectedDayType);
-    
-            // Filter for booking status events and ensure they are for the same days as the day type events
             const spotsLeftEvents = events.filter(event =>
                 event.title.includes('spots left') || event.title === 'Fully Booked'
             ).filter(event =>
                 dayTypeEvents.some(dayEvent => moment(dayEvent.start).isSame(event.start, 'day'))
             );
-    
-            const combinedEvents = sortEvents([...dayTypeEvents, ...spotsLeftEvents]);
-            setFilteredEvents(combinedEvents);
+            setFilteredEvents([...dayTypeEvents, ...spotsLeftEvents]);
         }
     }, [selectedDayType, events]);
 
@@ -155,40 +126,22 @@ function AppointmentsPage() {
     };
 
     const handleSelectSlot = ({ start }) => {
-        const today = moment().startOf('day');
-        const selected = moment(start).startOf('day');
-
         if (!user) {
-            // Show modal to sign in or register if not logged in
+            // Non-logged-in users can see the appointments but can't book them
             setModalTitle('Please Sign In to Continue');
             setModalMessage("To reserve an appointment, you need to sign in or create an account.");
-            setIsConfirmVisible(true);  // Show confirm button
-            setConfirmButtonText('Sign In'); // You can also dynamically set button text here if needed
+            setIsConfirmVisible(true);
+            setConfirmButtonText('Sign In');
             setModalIsOpen(true);
             return;
         }
 
-        const isFullyBooked = filteredEvents.some(event => 
-            moment(event.start).isSame(start, 'day') && event.title === 'Fully Booked'
-        );
-        
-        const isAvailable = filteredEvents.some(event => 
-            moment(event.start).isSame(start, 'day') && event.title !== 'Fully Booked'
-        );
-        
+        const today = moment().startOf('day');
+        const selected = moment(start).startOf('day');
+
         if (selected.isBefore(today)) {
             setModalTitle('Invalid Selection');
             setModalMessage("You cannot select today or past dates for appointments.");
-            setIsConfirmVisible(false);
-            setModalIsOpen(true);
-        } else if (isFullyBooked) {
-            setModalTitle('Fully Booked');
-            setModalMessage("We're sorry, this date is fully booked.");
-            setIsConfirmVisible(false);
-            setModalIsOpen(true);
-        } else if (!isAvailable) {
-            setModalTitle('Unavailable');
-            setModalMessage("We're sorry, this date is currently unavailable.");
             setIsConfirmVisible(false);
             setModalIsOpen(true);
         } else {
@@ -216,10 +169,8 @@ function AppointmentsPage() {
         };
 
         try {
-            await axios.post('http://localhost:8000/api/appointments/', newEvent, {
-                withCredentials: true, // Ensure cookies are sent
-            });
-            await fetchAppointmentsAndAvailableDays(); // Refresh events
+            await axios.post('http://localhost:8000/api/appointments/', newEvent, { withCredentials: true });
+            await fetchAppointmentsAndAvailableDays(); // Refresh events after booking
             setModalTitle('Appointment Confirmed');
             setModalMessage("Your appointment has been confirmed! We've sent a reminder to your email.");
             setIsConfirmVisible(false);
@@ -229,15 +180,6 @@ function AppointmentsPage() {
             setModalMessage("Something went wrong. Please try to reserve your appointment again.");
             setIsConfirmVisible(false);
         }
-    };
-
-    const eventPropGetter = (event) => {
-        return { style: { backgroundColor: event.backgroundColor } };
-    };
-
-    const handleDayTypeChange = (type) => {
-        setSelectedDayType(type);
-        navigate(`/appointments?dayType=${type}`);
     };
 
     return (
@@ -256,17 +198,18 @@ function AppointmentsPage() {
                 onSelectSlot={handleSelectSlot}
                 onSelectEvent={handleSelectSlot}
                 style={{ height: 500 }}
-                eventPropGetter={eventPropGetter}
+                eventPropGetter={(event) => ({ style: { backgroundColor: event.backgroundColor } })}
                 longPressThreshold={1}
                 components={{
                     toolbar: (props) => (
                         <CustomToolbar
                             {...props}
-                            handleDayTypeChange={handleDayTypeChange}
+                            handleDayTypeChange={(type) => navigate(`/appointments?dayType=${type}`)}
                         />
                     ),
                 }}
             />
+
             <CustomModal
                 open={modalIsOpen}
                 onClose={() => setModalIsOpen(false)}

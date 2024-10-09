@@ -1,7 +1,9 @@
-import React, { useEffect } from 'react';
+// src/components/CustomModal.js
+
+import React, { useEffect, useContext } from 'react';
 import { Modal, Button, Typography, TextField, Checkbox, FormControlLabel, FormGroup, Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';  // Import the useNavigate hook
-import authService from '../../services/authService';  // Import authService to check user authentication
+import { AuthContext } from '../../context/AuthContext'  // Import AuthContext to check user authentication
 
 function CustomModal({
   open,
@@ -20,7 +22,7 @@ function CustomModal({
   children,
 }) {
   const navigate = useNavigate();  // Initialize the navigate hook
-  const user = authService.getCurrentUser();  // Check if user is logged in
+  const { user } = useContext(AuthContext);  // Get user from AuthContext
 
   useEffect(() => {
     if (open) {

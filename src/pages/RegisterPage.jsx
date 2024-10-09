@@ -2,9 +2,9 @@
 
 import React, { useState, useContext } from 'react';
 import { Container, TextField, Button, Typography, Box, Grid, CircularProgress, Alert } from '@mui/material';
-import { AuthContext } from '../context/AuthContext';
+import { AuthContext } from "../context/AuthContext"; // Updated import
+
 import { useNavigate } from 'react-router-dom';
-import authService from '../services/authService'; // Added import
 
 function RegisterPage() {
     const [username, setUsername] = useState('');
@@ -18,14 +18,14 @@ function RegisterPage() {
     const [loading, setLoading] = useState(false);
 
     const navigate = useNavigate();
-    const { login } = useContext(AuthContext); // Optionally, log in the user after registration
+    const { register, login } = useContext(AuthContext); // Access register and login from AuthContext
 
     const handleRegister = async (e) => {
         e.preventDefault();
         setLoading(true);
         setMessage('');
         try {
-            await authService.register(username, firstName, lastName, email, password, passwordConfirm, phoneNumber);
+            await register(username, firstName, lastName, email, password, passwordConfirm, phoneNumber);
             // Optionally, log in the user automatically after registration
             await login(email, password); // Assuming email is used for login
             navigate('/appointments'); // Redirect to appointments page after successful registration

@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+// src/pages/ProfilePage.jsx
+
+import React, { useState, useEffect, useContext } from "react";
 import {
   Container,
   TextField,
@@ -25,7 +27,8 @@ import { useTheme } from "@mui/material/styles";
 import { useMediaQuery } from "@mui/material";
 import axios from "axios";
 import CustomModal from "../components/modal/CustomModal";
-import authService from "../services/authService";
+import { AuthContext } from "../context/AuthContext"; // Updated import
+import { useNavigate } from "react-router-dom";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -45,6 +48,7 @@ function TabPanel(props) {
 function ProfilePage() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const navigate = useNavigate();
 
   const [tabIndex, setTabIndex] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
@@ -53,13 +57,14 @@ function ProfilePage() {
     setTabIndex(newValue);
   };
 
-  const [user, setUser] = useState({});
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [username, setUsername] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [tokens, setTokens] = useState(0);
+  const { user, logout } = useContext(AuthContext); // Access user and logout from AuthContext
+
+  const [firstName, setFirstName] = useState(user?.first_name || "");
+  const [lastName, setLastName] = useState(user?.last_name || "");
+  const [email, setEmail] = useState(user?.email || "");
+  const [username, setUsername] = useState(user?.username || "");
+  const [phoneNumber, setPhoneNumber] = useState(user?.profile?.phone_number || "");
+  const [tokens, setTokens] = useState(user?.profile?.tokens || 0);
   const [appointments, setAppointments] = useState([]);
 
   const [modalStep, setModalStep] = useState(1);
@@ -72,28 +77,17 @@ function ProfilePage() {
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
 
   useEffect(() => {
-    const currentUser = authService.getCurrentUser();
-    if (currentUser) {
-      setUser(currentUser);
-      setFirstName(currentUser.first_name || "");
-      setLastName(currentUser.last_name || "");
-      setEmail(currentUser.email);
-      setUsername(currentUser.username);
-      setPhoneNumber(currentUser.profile.phone_number || "");
-      setTokens(currentUser.profile.tokens || 0);
+    if (!user) {
+      // If user is not authenticated, redirect to login page
+      navigate("/login");
+      return;
     }
 
     const fetchAppointments = async () => {
-      const token = localStorage.getItem("token");
       try {
-        const response = await axios.get(
-          `http://localhost:8000/api/appointments/`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await axios.get(`http://localhost:8000/api/appointments/`, {
+          // No need for auth headers if axios is configured properly
+        });
 
         const filteredAppointments = response.data.filter((appointment) =>
           ["pending", "confirmed", "flagged"].includes(appointment.status)
@@ -106,11 +100,10 @@ function ProfilePage() {
     };
 
     fetchAppointments();
-  }, []);
+  }, [user, navigate]);
 
   const handleUpdate = async () => {
     try {
-      const token = localStorage.getItem("token");
       const updatedFields = {};
 
       if (firstName !== user.first_name) updatedFields.first_name = firstName;
@@ -125,15 +118,14 @@ function ProfilePage() {
         `http://localhost:8000/api/users/${user.id}/`,
         updatedFields,
         {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+          // No need for auth headers if axios is configured properly
         }
       );
 
       // Update user state with only updated fields
-      setUser((prevUser) => ({ ...prevUser, ...updatedFields }));
+      // Assuming your AuthContext provides a way to update the user
+      // You might need to fetch the user data again or update the context
+
       setSnackbarMessage("Profile updated successfully");
       setSnackbarSeverity("success");
       setSnackbarOpen(true);
@@ -147,14 +139,11 @@ function ProfilePage() {
 
   const handlePasswordReset = async () => {
     try {
-      const token = localStorage.getItem("token");
       await axios.post(
         `http://localhost:8000/api/users/password-reset/`,
         { email },
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          // No need for auth headers if axios is configured properly
         }
       );
 
@@ -194,15 +183,12 @@ function ProfilePage() {
   };
 
   const handleSubmitFlag = async () => {
-    const token = localStorage.getItem("token");
     try {
       await axios.post(
         `http://localhost:8000/api/appointments/${selectedAppointmentId}/flag/`,
         { reason: flagReason },
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          // No need for auth headers if axios is configured properly
         }
       );
       setSnackbarMessage("Appointment flagged successfully");
@@ -448,6 +434,14 @@ function ProfilePage() {
                 // onClick={handleDelete}
               >
                 Delete Account
+              </Button>
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={logout} // Added logout button
+                sx={{ mt: 2 }}
+              >
+                Logout
               </Button>
             </Box>
           </CardContent>
