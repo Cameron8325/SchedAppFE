@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useContext,
+} from "react";
 import {
   Container,
   Typography,
@@ -10,6 +16,7 @@ import {
   Box,
   Badge,
   useMediaQuery,
+  CircularProgress,
 } from "@mui/material";
 import axios from "axios";
 import moment from "moment";
@@ -21,8 +28,12 @@ import FlaggedRequests from "../components/adminDash/FlaggedRequests";
 import ToCompletionRequests from "../components/adminDash/ToCompletionRequests";
 import AvailabilitySection from "../components/adminDash/AvailabilitySection";
 import { useTheme } from "@mui/material/styles";
+import { AuthContext } from "../context/AuthContext"; // Import AuthContext
 
 function AdminDashboard() {
+  // Access user and authentication state from AuthContext
+  const { user, isSuperUser, loading } = useContext(AuthContext);
+
   // Tab-related states
   const [selectedTab, setSelectedTab] = useState(0);
 
@@ -63,6 +74,7 @@ function AdminDashboard() {
   // User Details Modal states
   const [userDetailsModalIsOpen, setUserDetailsModalIsOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState({
+    id: null,
     first_name: "",
     last_name: "",
     email: "",
@@ -104,7 +116,9 @@ function AdminDashboard() {
   // Fetch appointments and filter based on status
   const fetchAppointments = useCallback(async () => {
     try {
-      const response = await axios.get("http://localhost:8000/api/appointments/");
+      const response = await axios.get(
+        "http://localhost:8000/api/appointments/"
+      );
       const sortedAppointments = response.data.sort(
         (a, b) => new Date(a.date) - new Date(b.date)
       );
@@ -161,7 +175,7 @@ function AdminDashboard() {
   const handleSubmitFlag = async () => {
     try {
       await axios.post(
-        `http://localhost:8000/api/appointments/${selectedAppointmentId}/flagged/`,
+        `http://localhost:8000/api/admin-panel/appointments/${selectedAppointmentId}/flag/`,
         { reason: flagReason }
       );
 
@@ -185,7 +199,9 @@ function AdminDashboard() {
   // Fetch available days and group by consecutive dates
   const fetchAvailableDays = useCallback(async () => {
     try {
-      const response = await axios.get("http://localhost:8000/api/available-days/");
+      const response = await axios.get(
+        "http://localhost:8000/api/available-days/"
+      );
       const data = response.data;
       const sortedData = data.sort((a, b) =>
         moment(a.date).diff(moment(b.date))
@@ -199,9 +215,11 @@ function AdminDashboard() {
   }, []);
 
   useEffect(() => {
-    fetchAppointments();
-    fetchAvailableDays();
-  }, [fetchAppointments, fetchAvailableDays]);
+    if (user && isSuperUser) {
+      fetchAppointments();
+      fetchAvailableDays();
+    }
+  }, [user, isSuperUser, fetchAppointments, fetchAvailableDays]);
 
   // Helper function to group consecutive dates
   const groupConsecutiveDates = (days) => {
@@ -229,7 +247,9 @@ function AdminDashboard() {
   // Handle status change of appointments
   const handleStatusChange = async (id, status) => {
     try {
-      await axios.post(`http://localhost:8000/api/appointments/${id}/${status}/`);
+      await axios.post(
+        `http://localhost:8000/api/admin-panel/appointments/${id}/${status}/`
+      );
       fetchAppointments(); // Refresh appointments
     } catch (error) {
       showErrorModal(
@@ -253,45 +273,24 @@ function AdminDashboard() {
         return;
       }
 
-      const response = await axios.get("http://localhost:8000/api/available-days/");
+      await axios.post(
+        "http://localhost:8000/api/admin-panel/set-availability/",
+        {
+          start_date: startDate,
+          end_date: endDate || startDate,
+          type: dayType,
+        }
+      );
 
-      const existingDays = response.data;
-      const conflictingDays = existingDays.filter((day) => {
-        const dayDate = moment(day.date);
-        return (
-          day.type !== dayType && dayDate.isBetween(start, end, "day", "[]")
-        );
-      });
+      setModalTitle("Availability");
+      setModalDescription("Availability updated successfully.");
+      setIsConfirmVisible(false);
+      setModalIsOpen(true);
+      fetchAvailableDays(); // Refresh available days
 
-      if (conflictingDays.length > 0) {
-        const conflictingDates = conflictingDays
-          .map((day) => moment(day.date).format("MM/DD/YYYY"))
-          .join(", ");
-        setModalTitle("Conflict Detected");
-        setModalDescription(
-          `The following date(s) already have a different day type: ${conflictingDates}. Please adjust your selection.`
-        );
-        setIsConfirmVisible(false);
-        setModalIsOpen(true);
-      } else {
-        await axios.post(
-          "http://localhost:8000/api/admin-panel/set-availability/",
-          {
-            start_date: startDate,
-            end_date: endDate || startDate,
-            type: dayType,
-          }
-        );
-        setModalTitle("Availability");
-        setModalDescription("Availability updated successfully.");
-        setIsConfirmVisible(false);
-        setModalIsOpen(true);
-        fetchAvailableDays(); // Refresh available days
-
-        setStartDate("");
-        setEndDate("");
-        setDayType("");
-      }
+      setStartDate("");
+      setEndDate("");
+      setDayType("");
     } catch (error) {
       showErrorModal("Error updating availability. Please try again later.");
       console.error("Error updating availability:", error);
@@ -464,6 +463,7 @@ function AdminDashboard() {
   // Open user details modal
   const openUserDetailsModal = (user) => {
     const userWithPhoneNumber = {
+      id: user.id, // Ensure the user ID is available
       first_name: user.first_name,
       last_name: user.last_name,
       email: user.email,
@@ -494,7 +494,7 @@ function AdminDashboard() {
         showErrorModal("Tokens updated successfully.");
       }
     } catch (error) {
-      console.error("Error updating tokens:", error.response.data || error);
+      console.error("Error updating tokens:", error.response?.data || error);
       showErrorModal("Error updating tokens. Please try again later.");
     }
   };
@@ -512,8 +512,31 @@ function AdminDashboard() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("lg")); // Adjust for mobile screens
 
+  if (loading) {
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        height="100vh"
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (!user || !isSuperUser) {
+    return (
+      <Container sx={{ marginTop: "2vh" }}>
+        <Typography variant="h5" color="error" align="center">
+          Access Denied: You do not have admin privileges.
+        </Typography>
+      </Container>
+    );
+  }
+
   return (
-    <Container sx={{ marginTop: '2vh' }}>
+    <Container sx={{ marginTop: "2vh" }}>
       <Typography variant="h4" component="h1" gutterBottom>
         Admin Dashboard
       </Typography>
@@ -901,7 +924,7 @@ function AdminDashboard() {
             ? "Are you sure you want to flag this appointment?"
             : modalStep === 2
             ? "Please provide a reason for flagging this appointment."
-            : "Your appointment has been flagged successfully."
+            : "" // No description for the success step
         }
         isConfirmVisible={modalStep !== 3} // Only show confirm button in step 1 and 2
         confirmButtonText={

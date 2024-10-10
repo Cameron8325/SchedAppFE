@@ -13,6 +13,7 @@ import CatalogPage from '../../pages/CatalogPage';
 import PasswordResetPage from '../../pages/PasswordResetPage.jsx';
 import NavBar from './navbar.jsx'
 import ProtectedRoute from './ProtectedRoute';
+import AdminRoute from './AdminRoute.js';
 
 function AppRoutes() {
     return (
@@ -34,9 +35,9 @@ function AppRoutes() {
                 <Route
                     path="/admin"
                     element={
-                        <ProtectedRoute>
+                        <AdminRoute>
                             <AdminDashboard />
-                        </ProtectedRoute>
+                        </AdminRoute>
                     }
                 />
                 <Route path="/login" element={<LoginPage />} />
