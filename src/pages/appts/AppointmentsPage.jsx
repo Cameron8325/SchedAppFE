@@ -126,33 +126,53 @@ function AppointmentsPage() {
     };
 
     const handleSelectSlot = ({ start }) => {
-        if (!user) {
-            // Non-logged-in users can see the appointments but can't book them
-            setModalTitle('Please Sign In to Continue');
-            setModalMessage("To reserve an appointment, you need to sign in or create an account.");
-            setIsConfirmVisible(true);
-            setConfirmButtonText('Sign In');
-            setModalIsOpen(true);
-            return;
-        }
-
         const today = moment().startOf('day');
         const selected = moment(start).startOf('day');
-
+    
         if (selected.isBefore(today)) {
+            // Prevent selecting past dates
             setModalTitle('Invalid Selection');
             setModalMessage("You cannot select today or past dates for appointments.");
             setIsConfirmVisible(false);
             setModalIsOpen(true);
-        } else {
-            setSelectedDate(start);
-            setModalTitle('Reserve Appointment');
-            setModalMessage(`Would you like to reserve your appointment for ${start.toDateString()}?`);
-            setIsConfirmVisible(true);
-            setConfirmButtonText('Confirm');
-            setModalIsOpen(true);
+            return;
         }
+    
+        // Check if the selected day is available
+        const selectedEvent = events.find(event => moment(event.start).isSame(selected, 'day') && event.type);
+    
+        if (!selectedEvent) {
+            // If the day is not available, show modal
+            setModalTitle('Unavailable Date');
+            setModalMessage("The selected date is not available for appointments.");
+            setIsConfirmVisible(false);
+            setModalIsOpen(true);
+            return;
+        }
+    
+        // Check if the selected day is fully booked
+        const isFullyBooked = events.some(event =>
+            moment(event.start).isSame(selected, 'day') && event.title === 'Fully Booked'
+        );
+    
+        if (isFullyBooked) {
+            // If the day is fully booked, show modal
+            setModalTitle('Fully Booked');
+            setModalMessage("Sorry, this date is fully booked. Please choose another date.");
+            setIsConfirmVisible(false);
+            setModalIsOpen(true);
+            return;
+        }
+    
+        // Otherwise, proceed with reservation
+        setSelectedDate(start);
+        setModalTitle('Reserve Appointment');
+        setModalMessage(`Would you like to reserve your appointment for ${start.toDateString()}?`);
+        setIsConfirmVisible(true);
+        setConfirmButtonText('Confirm');
+        setModalIsOpen(true);
     };
+    
 
     const handleReserve = async () => {
         if (!user) {
