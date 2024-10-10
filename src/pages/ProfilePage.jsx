@@ -20,6 +20,11 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from "@mui/material";
 import { Save, Delete, Flag, Edit, ExpandMore } from "@mui/icons-material";
 import TempleBuddhistIcon from "@mui/icons-material/TempleBuddhist";
@@ -27,7 +32,7 @@ import { useTheme } from "@mui/material/styles";
 import { useMediaQuery } from "@mui/material";
 import axios from "axios";
 import CustomModal from "../components/modal/CustomModal";
-import { AuthContext } from "../context/AuthContext"; // Updated import
+import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 function TabPanel(props) {
@@ -57,13 +62,15 @@ function ProfilePage() {
     setTabIndex(newValue);
   };
 
-  const { user, logout } = useContext(AuthContext); // Access user and logout from AuthContext
+  const { user, logout } = useContext(AuthContext);
 
   const [firstName, setFirstName] = useState(user?.first_name || "");
   const [lastName, setLastName] = useState(user?.last_name || "");
   const [email, setEmail] = useState(user?.email || "");
   const [username, setUsername] = useState(user?.username || "");
-  const [phoneNumber, setPhoneNumber] = useState(user?.profile?.phone_number || "");
+  const [phoneNumber, setPhoneNumber] = useState(
+    user?.profile?.phone_number || ""
+  );
   const [tokens, setTokens] = useState(user?.profile?.tokens || 0);
   const [appointments, setAppointments] = useState([]);
 
@@ -76,24 +83,46 @@ function ProfilePage() {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
 
+  // State variables for the reason modal
+  const [reasonModalIsOpen, setReasonModalIsOpen] = useState(false);
+  const [reasonModalContent, setReasonModalContent] = useState("");
+
+  // State variables for the account deletion modal
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [password, setPassword] = useState("");
+  const [deleteModalStep, setDeleteModalStep] = useState(1);
+
   useEffect(() => {
     if (!user) {
-      // If user is not authenticated, redirect to login page
       navigate("/login");
       return;
     }
 
     const fetchAppointments = async () => {
       try {
-        const response = await axios.get(`http://localhost:8000/api/appointments/`, {
-          // No need for auth headers if axios is configured properly
-        });
-
-        const filteredAppointments = response.data.filter((appointment) =>
-          ["pending", "confirmed", "flagged"].includes(appointment.status)
+        const token = localStorage.getItem("token"); // Include authentication if necessary
+        const response = await axios.get(
+          `http://localhost:8000/api/appointments/`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
 
-        setAppointments(filteredAppointments);
+        // Filter appointments based on status
+        const filteredAppointments = response.data.filter((appointment) =>
+          ["Pending", "Confirmed", "Flagged"].includes(
+            appointment.status_display
+          )
+        );
+
+        // Sort appointments by date in ascending order (earliest first)
+        const sortedAppointments = filteredAppointments.sort(
+          (a, b) => new Date(a.date) - new Date(b.date)
+        );
+
+        setAppointments(sortedAppointments);
       } catch (error) {
         console.error("Error fetching appointments:", error);
       }
@@ -116,14 +145,10 @@ function ProfilePage() {
 
       await axios.put(
         `http://localhost:8000/api/users/${user.id}/`,
-        updatedFields,
-        {
-          // No need for auth headers if axios is configured properly
-        }
+        updatedFields
       );
 
       // Update user state with only updated fields
-      // Assuming your AuthContext provides a way to update the user
       // You might need to fetch the user data again or update the context
 
       setSnackbarMessage("Profile updated successfully");
@@ -139,13 +164,9 @@ function ProfilePage() {
 
   const handlePasswordReset = async () => {
     try {
-      await axios.post(
-        `http://localhost:8000/api/users/password-reset/`,
-        { email },
-        {
-          // No need for auth headers if axios is configured properly
-        }
-      );
+      await axios.post(`http://localhost:8000/api/users/password-reset/`, {
+        email,
+      });
 
       setSnackbarMessage("Password reset link sent to your email");
       setSnackbarSeverity("success");
@@ -186,10 +207,7 @@ function ProfilePage() {
     try {
       await axios.post(
         `http://localhost:8000/api/appointments/${selectedAppointmentId}/flag/`,
-        { reason: flagReason },
-        {
-          // No need for auth headers if axios is configured properly
-        }
+        { reason: flagReason }
       );
       setSnackbarMessage("Appointment flagged successfully");
       setSnackbarSeverity("success");
@@ -207,6 +225,58 @@ function ProfilePage() {
       setSnackbarMessage("Error flagging appointment");
       setSnackbarSeverity("error");
       setSnackbarOpen(true);
+    }
+  };
+
+  // Functions to handle the reason modal
+  const openReasonModal = (reason) => {
+    setReasonModalContent(reason);
+    setReasonModalIsOpen(true);
+  };
+
+  const handleCloseReasonModal = () => {
+    setReasonModalIsOpen(false);
+    setReasonModalContent("");
+  };
+
+  // Functions to handle the account deletion modal
+  const handleOpenDeleteModal = () => {
+    setIsDeleteModalOpen(true);
+    setDeleteModalStep(1);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setPassword("");
+    setDeleteModalStep(1);
+  };
+
+  const handleDeleteModalConfirm = () => {
+    if (deleteModalStep === 1) {
+      setDeleteModalStep(2);
+    } else if (deleteModalStep === 2) {
+      handleAccountDeletionRequest();
+    } else if (deleteModalStep === 3) {
+      handleCloseDeleteModal();
+    }
+  };
+
+  const handleAccountDeletionRequest = async () => {
+    try {
+      await axios.post(
+        `http://localhost:8000/api/users/account-deletion-request/`,
+        { password },
+        { withCredentials: true } // Include credentials if necessary
+      );
+
+      setDeleteModalStep(3);
+    } catch (error) {
+      setSnackbarMessage(
+        error.response?.data?.error || "Error initiating account deletion."
+      );
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
+      setIsDeleteModalOpen(false);
     }
   };
 
@@ -359,7 +429,14 @@ function ProfilePage() {
                           Status: {appointment.status_display}
                         </Typography>
                         <Box display="flex" justifyContent="flex-end">
-                          {appointment.status !== "flagged" && (
+                          {appointment.status === "flagged" ? (
+                            <Button
+                              variant="outlined"
+                              onClick={() => openReasonModal(appointment.reason)}
+                            >
+                              View Reason
+                            </Button>
+                          ) : (
                             <Tooltip title="Flag this appointment">
                               <IconButton
                                 onClick={() => handleOpenFlagModal(appointment.id)}
@@ -393,7 +470,14 @@ function ProfilePage() {
                           Status: {appointment.status_display}
                         </Typography>
                         <Box display="flex" justifyContent="flex-end">
-                          {appointment.status !== "flagged" && (
+                          {appointment.status === "flagged" ? (
+                            <Button
+                              variant="outlined"
+                              onClick={() => openReasonModal(appointment.reason)}
+                            >
+                              View Reason
+                            </Button>
+                          ) : (
                             <Tooltip title="Flag this appointment">
                               <IconButton
                                 onClick={() => handleOpenFlagModal(appointment.id)}
@@ -431,14 +515,14 @@ function ProfilePage() {
                 variant="contained"
                 color="secondary"
                 startIcon={<Delete />}
-                // onClick={handleDelete}
+                onClick={handleOpenDeleteModal}
               >
                 Delete Account
               </Button>
               <Button
                 variant="contained"
                 color="secondary"
-                onClick={logout} // Added logout button
+                onClick={logout}
                 sx={{ mt: 2 }}
               >
                 Logout
@@ -478,7 +562,7 @@ function ProfilePage() {
           modalStep === 1
             ? "Are you sure you want to flag this appointment?"
             : modalStep === 2
-            ? "Please provide a reason for flagging this appointment, along with your contact information and preferences."
+            ? "Please provide a reason for flagging this appointment."
             : "Your appointment has been flagged successfully."
         }
         isConfirmVisible={modalStep !== 3}
@@ -490,6 +574,61 @@ function ProfilePage() {
         inputValue={flagReason}
         handleInputChange={(e) => setFlagReason(e.target.value)}
       />
+
+      {/* Reason Modal */}
+      <CustomModal
+        open={reasonModalIsOpen}
+        onClose={handleCloseReasonModal}
+        title="Flagged Appointment Reason"
+        description={reasonModalContent}
+        isConfirmVisible={false} // No confirm button needed
+      />
+
+      {/* Account Deletion Modal */}
+      <Dialog open={isDeleteModalOpen} onClose={handleCloseDeleteModal}>
+        <DialogTitle>
+          {deleteModalStep === 1
+            ? "Confirm Account Deletion"
+            : deleteModalStep === 2
+            ? "Enter Password"
+            : "Email Sent"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {deleteModalStep === 1 &&
+              "Are you sure you want to delete your account? This action cannot be undone."}
+            {deleteModalStep === 2 &&
+              "Please enter your password to confirm."}
+            {deleteModalStep === 3 &&
+              "An email has been sent that will allow you to permanently delete your account."}
+          </DialogContentText>
+          {deleteModalStep === 2 && (
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Password"
+              type="password"
+              fullWidth
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          )}
+        </DialogContent>
+        <DialogActions>
+          {deleteModalStep !== 3 && (
+            <Button onClick={handleCloseDeleteModal} color="primary">
+              Cancel
+            </Button>
+          )}
+          <Button onClick={handleDeleteModalConfirm} color="secondary">
+            {deleteModalStep === 1
+              ? "Confirm"
+              : deleteModalStep === 2
+              ? "Submit"
+              : "Close"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 }
