@@ -164,6 +164,15 @@ function AppointmentsPage() {
             return;
         }
     
+        if (!user) {
+            setModalTitle('Authentication Required');
+            setModalMessage("Please log in or register to reserve an appointment.");
+            setIsConfirmVisible(false);
+            setModalIsOpen(true);
+            return;
+        }
+
+        
         // Otherwise, proceed with reservation
         setSelectedDate(start);
         setModalTitle('Reserve Appointment');
@@ -175,12 +184,6 @@ function AppointmentsPage() {
     
 
     const handleReserve = async () => {
-        if (!user) {
-            setModalTitle('Authentication Required');
-            setModalMessage("Please log in to reserve an appointment.");
-            setIsConfirmVisible(false);
-            return;
-        }
 
         const newEvent = {
             user: user.id,
