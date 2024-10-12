@@ -96,6 +96,13 @@ function AdminDashboard() {
   const [errorModalIsOpen, setErrorModalIsOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  const [selectedWalkIn, setSelectedWalkIn] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
+  });
+
   // Reason Modal handler
   const openReasonModal = (reason) => {
     setReasonModalContent(reason);
@@ -461,20 +468,51 @@ function AdminDashboard() {
   };
 
   // Open user details modal
-  const openUserDetailsModal = (user) => {
-    const userWithPhoneNumber = {
-      id: user.id, // Ensure the user ID is available
-      first_name: user.first_name,
-      last_name: user.last_name,
-      email: user.email,
-      phone_number: user.profile?.phone_number || "N/A",
-      tokens: user.profile?.tokens || 0,
-    };
-
-    setSelectedUser(userWithPhoneNumber);
-    setSelectedUserTokens(userWithPhoneNumber.tokens);
-    setUserDetailsModalIsOpen(true);
+  const openUserDetailsModal = (appointment) => {
+  
+    // Check if the appointment object exists
+    if (!appointment) {
+      return;
+    }
+  
+    // Check if it's a regular user or a walk-in
+    if (appointment.user) {
+      // This is a registered user
+      const userWithProfile = {
+        id: appointment.user.id, // Ensure the user ID is available
+        first_name: appointment.user.first_name,
+        last_name: appointment.user.last_name,
+        email: appointment.user.email,
+        phone_number: appointment.user.profile?.phone_number || "N/A", // Fetch phone_number from Profile
+        tokens: appointment.user.profile?.tokens || 0, // Fetch tokens from Profile
+      };
+  
+      setSelectedUser(userWithProfile);
+      setSelectedUserTokens(userWithProfile.tokens);
+      setSelectedWalkIn(null); // Clear walk-in data
+  
+    } else if (appointment.walk_in_first_name) {
+      // This is a walk-in user
+      setSelectedWalkIn({
+        first_name: appointment.walk_in_first_name,
+        last_name: appointment.walk_in_last_name,
+        email: appointment.walk_in_email || "N/A",
+        phone: appointment.walk_in_phone || "N/A",
+      });
+      setSelectedUser(null); // Clear registered user data
+  
+    } else {
+      // Log the data for debugging if neither condition is met
+    }
+  
+    setUserDetailsModalIsOpen(true); // Open the modal
   };
+  
+  
+  
+  
+  
+  
 
   // Handle token update for a user
   const handleTokenUpdate = async () => {
@@ -860,34 +898,61 @@ function AdminDashboard() {
       <CustomModal
         open={userDetailsModalIsOpen}
         onClose={() => setUserDetailsModalIsOpen(false)}
-        title="User Details"
-        description={`Here are the details for ${selectedUser.first_name} ${selectedUser.last_name}:`}
-        isConfirmVisible={true}
+        title={selectedUser ? "User Details" : "Walk-In Details"} // Dynamically set the title
+        description={
+          selectedUser
+            ? `Here are the details for ${selectedUser.first_name} ${selectedUser.last_name}:`
+            : `Here are the details for Walk-In: ${selectedWalkIn.first_name} ${selectedWalkIn.last_name}:`
+        }
+        isConfirmVisible={!!selectedUser} // Only show the confirm button if it's a registered user
         confirmButtonText="Update Tokens"
         onConfirm={handleTokenUpdate}
       >
-        <Typography variant="body1">
-          <strong>Email:</strong> {selectedUser.email}
-        </Typography>
-        <Typography variant="body1">
-          <strong>Phone Number:</strong>{" "}
-          {selectedUser.phone_number
-            ? selectedUser.phone_number.replace(
-                /(\d{3})(\d{3})(\d{4})/,
-                "($1) $2-$3"
-              )
-            : "N/A"}
-        </Typography>
+        {selectedUser ? (
+          <>
+            <Typography variant="body1">
+              <strong>Email:</strong> {selectedUser.email}
+            </Typography>
+            <Typography variant="body1">
+              <strong>Phone Number:</strong>{" "}
+              {selectedUser.phone_number
+                ? selectedUser.phone_number.replace(
+                    /(\d{3})(\d{3})(\d{4})/,
+                    "($1) $2-$3"
+                  )
+                : "N/A"}
+            </Typography>
 
-        <TextField
-          label="Token Count"
-          variant="outlined"
-          fullWidth
-          margin="normal"
-          type="number"
-          value={selectedUserTokens}
-          onChange={(e) => setSelectedUserTokens(e.target.value)}
-        />
+            <TextField
+              label="Token Count"
+              variant="outlined"
+              fullWidth
+              margin="normal"
+              type="number"
+              value={selectedUserTokens}
+              onChange={(e) => setSelectedUserTokens(e.target.value)}
+            />
+          </>
+        ) : (
+          <>
+            {/* For Walk-In users */}
+            <Typography variant="body1">
+              <strong>Email:</strong> {selectedWalkIn.email}
+            </Typography>
+            <Typography variant="body1">
+              <strong>Phone Number:</strong>{" "}
+              {selectedWalkIn.phone
+                ? selectedWalkIn.phone.replace(
+                    /(\d{3})(\d{3})(\d{4})/,
+                    "($1) $2-$3"
+                  )
+                : "N/A"}
+            </Typography>
+            <Typography variant="body2" sx={{ color: "gray" }}>
+              * This is a walk-in appointment
+            </Typography>
+          </>
+        )}
       </CustomModal>
 
       {/* Error Modal */}

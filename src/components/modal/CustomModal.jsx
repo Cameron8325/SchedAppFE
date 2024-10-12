@@ -1,9 +1,7 @@
-// src/components/CustomModal.js
-
 import React, { useEffect, useContext } from 'react';
 import { Modal, Button, Typography, TextField, Checkbox, FormControlLabel, FormGroup, Box } from '@mui/material';
-import { useNavigate } from 'react-router-dom';  // Import the useNavigate hook
-import { AuthContext } from '../../context/AuthContext'  // Import AuthContext to check user authentication
+import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../../context/AuthContext';
 
 function CustomModal({
   open,
@@ -18,24 +16,28 @@ function CustomModal({
   handleDateSelection,
   showTextInput, 
   inputValue,    
-  handleInputChange, 
+  handleInputChange,
+  isSuperUser, // Add isSuperUser prop
+  isReservationStep, // Add isReservationStep prop
+  walkInDetails, // Add walkInDetails prop
+  handleWalkInInputChange, // Add handleWalkInInputChange to manage walk-in details
   children,
 }) {
-  const navigate = useNavigate();  // Initialize the navigate hook
-  const { user } = useContext(AuthContext);  // Get user from AuthContext
+  const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
 
   useEffect(() => {
     if (open) {
-      document.body.style.overflow = 'hidden';  // Disable background scroll when modal is open
-      document.documentElement.style.overflow = 'hidden'; // Ensure no scroll on html
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
     } else {
-      document.body.style.overflow = '';  // Re-enable scroll when modal is closed
-      document.documentElement.style.overflow = ''; // Ensure scroll back on html
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     }
 
     return () => {
-      document.body.style.overflow = '';  // Clean up on unmount
-      document.documentElement.style.overflow = ''; // Ensure scroll back on html
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     };
   }, [open]);
 
@@ -53,7 +55,7 @@ function CustomModal({
       onClose={onClose}
       aria-labelledby="custom-modal-title"
       aria-describedby="custom-modal-description"
-      disableScrollLock={true} // Ensure scroll lock is managed manually
+      disableScrollLock={true}
       sx={{
         display: 'flex',
         alignItems: 'center',
@@ -62,17 +64,16 @@ function CustomModal({
     >
       <Box
         sx={{
-          bgcolor: '#F0E5D8',  // Warm Cream for background
+          bgcolor: '#F0E5D8',
           boxShadow: 24,
           p: 4,
           width: '100%',
-          maxWidth: '500px',  // Limits the width of the modal
+          maxWidth: '500px',
           maxHeight: '90vh',
           overflowY: 'auto',
           borderRadius: 2,
-          margin: '0 16px',  // Ensures some margin on small viewports
-          boxSizing: 'border-box',
-          borderColor: '#8B5E3C',  // Earthy Brown for the border
+          margin: '0 16px',
+          borderColor: '#8B5E3C',
         }}
       >
         <Typography variant="h6" id="custom-modal-title" sx={{ color: '#4A4A48' }}>
@@ -89,11 +90,11 @@ function CustomModal({
                 <Checkbox 
                   onChange={handleSelectAll} 
                   checked={selectedDates.length === dateList.length} 
-                  sx={{ color: '#8B5E3C' }}  // Earthy Brown for checkbox
+                  sx={{ color: '#8B5E3C' }}
                 />
               }
               label="Select All"
-              sx={{ color: '#4A4A48' }}  // Deep Charcoal for text
+              sx={{ color: '#4A4A48' }}
             />
             {dateList.map((date) => (
               <FormControlLabel
@@ -102,11 +103,11 @@ function CustomModal({
                   <Checkbox 
                     checked={selectedDates.includes(date)}
                     onChange={() => handleDateSelection(date)}
-                    sx={{ color: '#8B5E3C' }}  // Earthy Brown for checkbox
+                    sx={{ color: '#8B5E3C' }}
                   />
                 }
                 label={date}
-                sx={{ color: '#4A4A48' }}  // Deep Charcoal for text
+                sx={{ color: '#4A4A48' }}
               />
             ))}
           </FormGroup>
@@ -119,28 +120,60 @@ function CustomModal({
             margin="normal"
             value={inputValue}
             onChange={handleInputChange}
-            InputLabelProps={{ style: { color: '#4A4A48' } }}  // Label color
+            InputLabelProps={{ style: { color: '#4A4A48' } }}
             InputProps={{
-              style: { backgroundColor: '#fff', color: '#4A4A48' },  // Input text and background
+              style: { backgroundColor: '#fff', color: '#4A4A48' },
             }}
           />
         )}
 
+        {isReservationStep && isSuperUser && (
+          <>
+            <TextField
+              label="First Name"
+              value={walkInDetails.firstName}
+              onChange={(e) => handleWalkInInputChange('firstName', e.target.value)}
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              label="Last Name"
+              value={walkInDetails.lastName}
+              onChange={(e) => handleWalkInInputChange('lastName', e.target.value)}
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              label="Email"
+              value={walkInDetails.email}
+              onChange={(e) => handleWalkInInputChange('email', e.target.value)}
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              label="Phone"
+              value={walkInDetails.phone}
+              onChange={(e) => handleWalkInInputChange('phone', e.target.value)}
+              fullWidth
+              margin="normal"
+            />
+          </>
+        )}
+
         {children}
 
-        {/* Conditionally render buttons based on whether the user is logged in */}
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
           {user ? (
             <>
               {isConfirmVisible && (
                 <Button
                   variant="contained"
-                  onClick={onConfirm}  // Confirm button for logged-in users
+                  onClick={onConfirm}
                   sx={{
-                    backgroundColor: '#8B5E3C',  // Earthy Brown
-                    color: '#F0E5D8',  // Warm Cream
+                    backgroundColor: '#8B5E3C',
+                    color: '#F0E5D8',
                     '&:hover': {
-                      backgroundColor: '#C2A773',  // Muted Gold hover effect
+                      backgroundColor: '#C2A773',
                     },
                     mr: 2,
                   }}
@@ -150,12 +183,12 @@ function CustomModal({
               )}
               <Button 
                 variant="contained" 
-                onClick={onClose}  // Close button for logged-in users
+                onClick={onClose}
                 sx={{
-                  backgroundColor: '#4A4A48',  // Deep Charcoal for secondary action
-                  color: '#F0E5D8',  // Warm Cream for text
+                  backgroundColor: '#4A4A48',
+                  color: '#F0E5D8',
                   '&:hover': {
-                    backgroundColor: '#C2A773',  // Muted Gold hover effect
+                    backgroundColor: '#C2A773',
                   },
                 }}
               >
@@ -166,12 +199,12 @@ function CustomModal({
             <>
               <Button
                 variant="contained"
-                onClick={() => navigate('/login')}  // Redirect to login page for unauthenticated users
+                onClick={() => navigate('/login')}
                 sx={{
-                  backgroundColor: '#8B5E3C',  // Earthy Brown
-                  color: '#F0E5D8',  // Warm Cream
+                  backgroundColor: '#8B5E3C',
+                  color: '#F0E5D8',
                   '&:hover': {
-                    backgroundColor: '#C2A773',  // Muted Gold hover effect
+                    backgroundColor: '#C2A773',
                   },
                   mr: 2,
                 }}
@@ -180,12 +213,12 @@ function CustomModal({
               </Button>
               <Button
                 variant="contained"
-                onClick={() => navigate('/register')}  // Redirect to register page for unauthenticated users
+                onClick={() => navigate('/register')}
                 sx={{
-                  backgroundColor: '#8B5E3C',  // Earthy Brown
-                  color: '#F0E5D8',  // Warm Cream
+                  backgroundColor: '#8B5E3C',
+                  color: '#F0E5D8',
                   '&:hover': {
-                    backgroundColor: '#C2A773',  // Muted Gold hover effect
+                    backgroundColor: '#C2A773',
                   },
                 }}
               >
