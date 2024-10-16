@@ -15,7 +15,6 @@ import {
   Tabs,
   Box,
   Badge,
-  useMediaQuery,
   CircularProgress,
 } from "@mui/material";
 import axios from "axios";
@@ -28,7 +27,6 @@ import FlaggedRequests from "../components/adminDash/FlaggedRequests";
 import ToCompletionRequests from "../components/adminDash/ToCompletionRequests";
 import AvailabilitySection from "../components/adminDash/AvailabilitySection";
 import AgendaPanel from "../components/adminDash/AgendaPanel";
-import { useTheme } from "@mui/material/styles";
 import { AuthContext } from "../context/AuthContext"; // Import AuthContext
 
 function AdminDashboard() {
@@ -539,9 +537,6 @@ function AdminDashboard() {
     []
   );
 
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("lg")); // Adjust for mobile screens
-
   if (loading) {
     return (
       <Box
@@ -577,9 +572,7 @@ function AdminDashboard() {
           value={selectedTab}
           onChange={handleTabChange}
           aria-label="admin dashboard tabs"
-          variant={isMobile ? "scrollable" : "standard"} // Conditionally use scrollable for mobile
-          scrollButtons={isMobile ? "auto" : false} // Enable scroll buttons on mobile
-          allowScrollButtonsMobile={isMobile} // Only enable scroll buttons for mobile
+          variant="scrollable" // Conditionally use scrollable for mobile
           sx={{
             ".MuiTabs-indicator": {
               backgroundColor: "#8B5E3C", // Custom indicator color (earthy brown)
