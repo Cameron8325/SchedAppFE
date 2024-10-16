@@ -27,6 +27,7 @@ import ProcessedRequests from "../components/adminDash/ProcessedRequests";
 import FlaggedRequests from "../components/adminDash/FlaggedRequests";
 import ToCompletionRequests from "../components/adminDash/ToCompletionRequests";
 import AvailabilitySection from "../components/adminDash/AvailabilitySection";
+import AgendaPanel from "../components/adminDash/AgendaPanel";
 import { useTheme } from "@mui/material/styles";
 import { AuthContext } from "../context/AuthContext"; // Import AuthContext
 
@@ -469,12 +470,11 @@ function AdminDashboard() {
 
   // Open user details modal
   const openUserDetailsModal = (appointment) => {
-  
     // Check if the appointment object exists
     if (!appointment) {
       return;
     }
-  
+
     // Check if it's a regular user or a walk-in
     if (appointment.user) {
       // This is a registered user
@@ -486,11 +486,10 @@ function AdminDashboard() {
         phone_number: appointment.user.profile?.phone_number || "N/A", // Fetch phone_number from Profile
         tokens: appointment.user.profile?.tokens || 0, // Fetch tokens from Profile
       };
-  
+
       setSelectedUser(userWithProfile);
       setSelectedUserTokens(userWithProfile.tokens);
       setSelectedWalkIn(null); // Clear walk-in data
-  
     } else if (appointment.walk_in_first_name) {
       // This is a walk-in user
       setSelectedWalkIn({
@@ -500,19 +499,12 @@ function AdminDashboard() {
         phone: appointment.walk_in_phone || "N/A",
       });
       setSelectedUser(null); // Clear registered user data
-  
     } else {
       // Log the data for debugging if neither condition is met
     }
-  
+
     setUserDetailsModalIsOpen(true); // Open the modal
   };
-  
-  
-  
-  
-  
-  
 
   // Handle token update for a user
   const handleTokenUpdate = async () => {
@@ -681,6 +673,15 @@ function AdminDashboard() {
               },
             }}
           />
+          <Tab
+            label="Agenda View"
+            sx={{
+              color: selectedTab === 7 ? "#8B5E3C" : "#4A4A48",
+              "&.Mui-selected": {
+                color: "#8B5E3C",
+              },
+            }}
+          />
         </Tabs>
       </Box>
 
@@ -827,6 +828,11 @@ function AdminDashboard() {
             openEditDayTypesModal={openEditDayTypesModal}
             openRemoveAvailabilityModal={openRemoveAvailabilityModal}
           />
+        )}
+        {selectedTab === 7 && (
+          <Box mb={3}>
+            <AgendaPanel />
+          </Box>
         )}
       </Box>
 
