@@ -9,13 +9,12 @@ import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import "moment-timezone";
 import "react-big-calendar/lib/css/react-big-calendar.css";
-import { Container, Typography } from "@mui/material";
+import { Container, Typography} from "@mui/material"; 
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext"; // Import AuthContext
 import CustomModal from "../../components/modal/CustomModal";
-import CustomToolbar from "../../components/calendar/toolbar/customToolbar.jsx";
-import CustomAdminAgenda from "../../components/calendar/agenda/CustomAdminAgenda.jsx";
+import CustomToolbar from "../../components/calendar/customToolbar";
 import "./AppointmentsPage.css";
 
 const localizer = momentLocalizer(moment);
@@ -42,7 +41,6 @@ function AppointmentsPage() {
     phone: "",
   }); // State for walk-in details
   const [isReservationStep, setIsReservationStep] = useState(false); // New state to track the reservation step
-  const [currentView, setCurrentView] = useState("month");
 
   const dayTypeMap = useMemo(
     () => ({
@@ -102,7 +100,7 @@ function AppointmentsPage() {
             end: moment(day.date).toDate(),
             title: spotsLeft === 0 ? "Fully Booked" : `${spotsLeft} spots left`,
             allDay: true,
-            backgroundColor: spotsLeft === 0 ? "#6B7B7A" : "#2389DA",
+            backgroundColor: spotsLeft === 0 ? "#546E7A" : "#3174ad",
             type: null,
           },
         ];
@@ -148,13 +146,13 @@ function AppointmentsPage() {
   const getBackgroundColor = (type) => {
     switch (type) {
       case "tea_tasting":
-        return "#8C4A6A"; // Plum Wine
+        return "#5B3758"; // Muted plum
       case "intro_gongfu":
-        return "#BF7433"; // Amber
+        return "#A04E2E"; // Sage green
       case "guided_meditation":
-        return "#2E706F"; // Deep Sea Green
+        return "#495C8D"; // Subdued indigo
       default:
-        return "#FFF"; // White
+        return "#4A6A8F"; // Desaturated blue
     }
   };
 
@@ -294,9 +292,7 @@ function AppointmentsPage() {
       <Calendar
         localizer={localizer}
         events={filteredEvents}
-        views={{ month: true, agenda: CustomAdminAgenda }}
-        onView={(view) => setCurrentView(view)}
-        view={currentView}
+        views={["month"]}
         startAccessor="start"
         endAccessor="end"
         selectable
@@ -311,8 +307,6 @@ function AppointmentsPage() {
           toolbar: (props) => (
             <CustomToolbar
               {...props}
-              currentView={currentView}
-              isSuperUser={isSuperUser}
               handleDayTypeChange={(type) =>
                 navigate(`/appointments?dayType=${type}`)
               }

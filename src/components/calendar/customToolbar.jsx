@@ -1,14 +1,8 @@
 import React from "react";
 import { ButtonGroup, Button } from "@mui/material";
-import './customToolbar.css';
+import './customToolbar.css'
 
-const CustomToolbar = ({ label, onNavigate, onView, handleDayTypeChange, isSuperUser, currentView }) => {
-  const handleViewSwitch = () => {
-    // Switch between "agenda" and "month" view
-    const newView = currentView === "agenda" ? "month" : "agenda";
-    onView(newView); // Trigger the onView handler to switch views
-  };
-
+const CustomToolbar = ({ label, onNavigate, handleDayTypeChange }) => {
   return (
     <div className="rbc-toolbar">
       <span className="rbc-btn-group">
@@ -34,12 +28,6 @@ const CustomToolbar = ({ label, onNavigate, onView, handleDayTypeChange, isSuper
           <Button sx={{ textTransform: 'none' }} onClick={() => handleDayTypeChange("guided_meditation")}>
             Guided Meditation
           </Button>
-          {/* Conditionally render Agenda button for admin/superuser */}
-          {isSuperUser && (
-            <Button sx={{ textTransform: 'none' }} onClick={handleViewSwitch}>
-              {currentView === "agenda" ? "Month" : "Agenda"}
-            </Button>
-          )}
         </ButtonGroup>
       </span>
     </div>
