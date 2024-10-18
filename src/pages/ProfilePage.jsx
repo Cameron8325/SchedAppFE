@@ -1,5 +1,3 @@
-// src/pages/ProfilePage.jsx
-
 import React, { useState, useEffect, useContext } from "react";
 import {
   Container,
@@ -10,8 +8,6 @@ import {
   CardContent,
   Grid,
   IconButton,
-  Snackbar,
-  Alert,
   Box,
   Tooltip,
   Avatar,
@@ -79,9 +75,9 @@ function ProfilePage() {
   const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
   const [flagReason, setFlagReason] = useState("");
 
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
 
   // State variables for the reason modal
   const [reasonModalIsOpen, setReasonModalIsOpen] = useState(false);
@@ -134,7 +130,7 @@ function ProfilePage() {
   const handleUpdate = async () => {
     try {
       const updatedFields = {};
-
+  
       if (firstName !== user.first_name) updatedFields.first_name = firstName;
       if (lastName !== user.last_name) updatedFields.last_name = lastName;
       if (email !== user.email) updatedFields.email = email;
@@ -142,45 +138,45 @@ function ProfilePage() {
       if (phoneNumber !== user.profile.phone_number) {
         updatedFields.profile = { phone_number: phoneNumber };
       }
-
+  
       await axios.put(
         `http://localhost:8000/api/users/${user.id}/`,
         updatedFields
       );
-
-      // Update user state with only updated fields
-      // You might need to fetch the user data again or update the context
-
-      setSnackbarMessage("Profile updated successfully");
-      setSnackbarSeverity("success");
-      setSnackbarOpen(true);
+  
+      // Show success modal
+      setModalTitle("Success");
+      setModalMessage("Profile updated successfully.");
+      setModalIsOpen(true);
       setIsEditing(false);
     } catch (error) {
-      setSnackbarMessage("Error updating profile");
-      setSnackbarSeverity("error");
-      setSnackbarOpen(true);
+      // Show error modal
+      setModalTitle("Error");
+      setModalMessage("Error updating profile. Please try again.");
+      setModalIsOpen(true);
     }
   };
+  
 
   const handlePasswordReset = async () => {
     try {
       await axios.post(`http://localhost:8000/api/users/password-reset/`, {
         email,
       });
-
-      setSnackbarMessage("Password reset link sent to your email");
-      setSnackbarSeverity("success");
-      setSnackbarOpen(true);
+  
+      // Show success modal
+      setModalTitle("Success");
+      setModalMessage("Password reset link sent to your email.");
+      setModalIsOpen(true);
     } catch (error) {
-      setSnackbarMessage("Error sending password reset email");
-      setSnackbarSeverity("error");
-      setSnackbarOpen(true);
+      // Show error modal
+      setModalTitle("Error");
+      setModalMessage("Error sending password reset email.");
+      setModalIsOpen(true);
     }
   };
+  
 
-  const handleCloseSnackbar = () => {
-    setSnackbarOpen(false);
-  };
 
   const handleOpenFlagModal = (appointmentId) => {
     setSelectedAppointmentId(appointmentId);
@@ -209,11 +205,13 @@ function ProfilePage() {
         `http://localhost:8000/api/appointments/${selectedAppointmentId}/flag/`,
         { reason: flagReason }
       );
-      setSnackbarMessage("Appointment flagged successfully");
-      setSnackbarSeverity("success");
-      setSnackbarOpen(true);
+  
+      // Show success modal
+      setModalTitle("Success");
+      setModalMessage("Appointment flagged successfully.");
+      setModalIsOpen(true);
+  
       handleCloseFlagModal();
-      // Update the appointment status locally
       setAppointments((prevAppointments) =>
         prevAppointments.map((appointment) =>
           appointment.id === selectedAppointmentId
@@ -222,11 +220,13 @@ function ProfilePage() {
         )
       );
     } catch (error) {
-      setSnackbarMessage("Error flagging appointment");
-      setSnackbarSeverity("error");
-      setSnackbarOpen(true);
+      // Show error modal
+      setModalTitle("Error");
+      setModalMessage("Error flagging appointment.");
+      setModalIsOpen(true);
     }
   };
+  
 
   // Functions to handle the reason modal
   const openReasonModal = (reason) => {
@@ -266,19 +266,23 @@ function ProfilePage() {
       await axios.post(
         `http://localhost:8000/api/users/account-deletion-request/`,
         { password },
-        { withCredentials: true } // Include credentials if necessary
+        { withCredentials: true }
       );
-
+  
+      // Show success modal
+      setModalTitle("Success");
+      setModalMessage("An email has been sent to delete your account.");
+      setModalIsOpen(true);
+  
       setDeleteModalStep(3);
     } catch (error) {
-      setSnackbarMessage(
-        error.response?.data?.error || "Error initiating account deletion."
-      );
-      setSnackbarSeverity("error");
-      setSnackbarOpen(true);
-      setIsDeleteModalOpen(false);
+      // Show error modal
+      setModalTitle("Error");
+      setModalMessage("Error initiating account deletion.");
+      setModalIsOpen(true);
     }
   };
+  
 
   return (
     <Container maxWidth="md">
@@ -532,20 +536,15 @@ function ProfilePage() {
         </Card>
       </TabPanel>
 
-      {/* Snackbar for feedback */}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-      >
-        <Alert
-          onClose={handleCloseSnackbar}
-          severity={snackbarSeverity}
-          sx={{ width: "100%" }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
+      {/*Feedback Modal */} 
+<CustomModal
+  open={modalIsOpen}
+  onClose={() => setModalIsOpen(false)}
+  title={modalTitle}
+  description={modalMessage}
+  isConfirmVisible={true}
+  confirmButtonText="Close"
+/>
 
       {/* Flag Modal */}
       <CustomModal

@@ -31,7 +31,7 @@ import { AuthContext } from "../context/AuthContext"; // Import AuthContext
 
 function AdminDashboard() {
   // Access user and authentication state from AuthContext
-  const { user, isSuperUser, loading } = useContext(AuthContext);
+  const { user, isSuperUser } = useContext(AuthContext);
 
   // Tab-related states
   const [selectedTab, setSelectedTab] = useState(0);
@@ -102,6 +102,9 @@ function AdminDashboard() {
     phone: "",
   });
 
+  const [loading, setLoading] = useState(true); // Initialize to true to show loader while fetching
+
+
   // Reason Modal handler
   const openReasonModal = (reason) => {
     setReasonModalContent(reason);
@@ -121,6 +124,7 @@ function AdminDashboard() {
 
   // Fetch appointments and filter based on status
   const fetchAppointments = useCallback(async () => {
+    setLoading(true); // Start loading before data fetch
     try {
       const response = await axios.get(
         "http://localhost:8000/api/appointments/"
@@ -149,6 +153,8 @@ function AdminDashboard() {
     } catch (error) {
       showErrorModal("Error fetching appointments. Please try again later.");
       console.error("Error fetching appointments:", error);
+    } finally {
+      setLoading(false); // Stop loading after data fetch is complete
     }
   }, []);
 
@@ -199,6 +205,7 @@ function AdminDashboard() {
 
   // Fetch available days and group by consecutive dates
   const fetchAvailableDays = useCallback(async () => {
+    setLoading(true); // Start loading before fetching available days
     try {
       const response = await axios.get(
         "http://localhost:8000/api/available-days/"
@@ -212,6 +219,8 @@ function AdminDashboard() {
     } catch (error) {
       showErrorModal("Error fetching available days. Please try again later.");
       console.error("Error fetching available days:", error);
+    } finally {
+      setLoading(false); // Stop loading after data fetch is complete
     }
   }, []);
 
