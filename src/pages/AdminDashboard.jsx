@@ -184,16 +184,10 @@ function AdminDashboard() {
         `http://localhost:8000/api/admin-panel/appointments/${selectedAppointmentId}/flag/`,
         { reason: flagReason }
       );
-
-      // Update flagged requests in the dashboard state
-      setFlaggedRequests((prevRequests) =>
-        prevRequests.map((appointment) =>
-          appointment.id === selectedAppointmentId
-            ? { ...appointment, status: "flagged" }
-            : appointment
-        )
-      );
-
+  
+      // Re-fetch appointments to update the state
+      await fetchAppointments();
+  
       // Move to the success step
       setModalStep(3);
     } catch (error) {
@@ -201,6 +195,7 @@ function AdminDashboard() {
       setErrorMessage("Error flagging appointment.");
     }
   };
+  
 
   // Fetch available days and group by consecutive dates
   const fetchAvailableDays = useCallback(async () => {
