@@ -10,17 +10,11 @@ import {
   IconButton,
   Box,
   Tooltip,
-  Avatar,
   Tabs,
   Tab,
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
 } from "@mui/material";
 import { Save, Delete, Flag, Edit, ExpandMore } from "@mui/icons-material";
 import TempleBuddhistIcon from "@mui/icons-material/TempleBuddhist";
@@ -67,7 +61,7 @@ function ProfilePage() {
   const [phoneNumber, setPhoneNumber] = useState(
     user?.profile?.phone_number || ""
   );
-  const [tokens, setTokens] = useState(user?.profile?.tokens || 0);
+  const [tokens] = useState(user?.profile?.tokens || 0);
   const [appointments, setAppointments] = useState([]);
 
   const [modalStep, setModalStep] = useState(1);
@@ -130,7 +124,7 @@ function ProfilePage() {
   const handleUpdate = async () => {
     try {
       const updatedFields = {};
-  
+
       if (firstName !== user.first_name) updatedFields.first_name = firstName;
       if (lastName !== user.last_name) updatedFields.last_name = lastName;
       if (email !== user.email) updatedFields.email = email;
@@ -138,12 +132,12 @@ function ProfilePage() {
       if (phoneNumber !== user.profile.phone_number) {
         updatedFields.profile = { phone_number: phoneNumber };
       }
-  
+
       await axios.put(
         `http://localhost:8000/api/users/${user.id}/`,
         updatedFields
       );
-  
+
       // Show success modal
       setModalTitle("Success");
       setModalMessage("Profile updated successfully.");
@@ -156,14 +150,13 @@ function ProfilePage() {
       setModalIsOpen(true);
     }
   };
-  
 
   const handlePasswordReset = async () => {
     try {
       await axios.post(`http://localhost:8000/api/users/password-reset/`, {
         email,
       });
-  
+
       // Show success modal
       setModalTitle("Success");
       setModalMessage("Password reset link sent to your email.");
@@ -175,8 +168,6 @@ function ProfilePage() {
       setModalIsOpen(true);
     }
   };
-  
-
 
   const handleOpenFlagModal = (appointmentId) => {
     setSelectedAppointmentId(appointmentId);
@@ -205,12 +196,12 @@ function ProfilePage() {
         `http://localhost:8000/api/appointments/${selectedAppointmentId}/flag/`,
         { reason: flagReason }
       );
-  
+
       // Show success modal
       setModalTitle("Success");
       setModalMessage("Appointment flagged successfully.");
       setModalIsOpen(true);
-  
+
       handleCloseFlagModal();
       setAppointments((prevAppointments) =>
         prevAppointments.map((appointment) =>
@@ -226,7 +217,6 @@ function ProfilePage() {
       setModalIsOpen(true);
     }
   };
-  
 
   // Functions to handle the reason modal
   const openReasonModal = (reason) => {
@@ -268,12 +258,12 @@ function ProfilePage() {
         { password },
         { withCredentials: true }
       );
-  
+
       // Show success modal
       setModalTitle("Success");
       setModalMessage("An email has been sent to delete your account.");
       setModalIsOpen(true);
-  
+
       setDeleteModalStep(3);
     } catch (error) {
       // Show error modal
@@ -282,62 +272,126 @@ function ProfilePage() {
       setModalIsOpen(true);
     }
   };
-  
 
   return (
-    <Container maxWidth="md">
-      <Typography variant="h4" component="h1" gutterBottom>
+    <Container maxWidth="md" sx={{ mt: 4 }}>
+      <Typography
+        variant="h4"
+        component="h1"
+        gutterBottom
+        sx={{ color: "#333333" }}
+      >
         Your Profile
       </Typography>
+  
+{/* Username and Tokens Section */}
+<Card
+  sx={{
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center", // Ensure both items are aligned vertically in the center
+    backgroundColor: "#F0E5D8",
+    borderRadius: "8px",
+    boxShadow: "0 3px 6px rgba(0, 0, 0, 0.1)",
+    mb: 4,
+    p: 2,
+  }}
+>
+  {/* Username Section */}
+  <Box
+    sx={{
+      display: "flex",
+      alignItems: "center", // Center align the username vertically
+    }}
+  >
+    <Typography variant="h5" sx={{ color: "#333333" }}>
+      {username}
+    </Typography>
+  </Box>
 
-      {/* Avatar and Username Section */}
-      <Card
-        style={{ display: "flex", justifyContent: "space-between" }}
-        sx={{ marginBottom: 4 }}
-      >
-        <CardContent>
-          <Avatar
-            alt={username}
-            src="/path-to-avatar-image.jpg"
-            sx={{ width: 100, height: 100 }}
-          />
-          <Typography variant="h5">{username}</Typography>
-        </CardContent>
+  {/* Tokens Section */}
+  <Box
+    sx={{
+      display: "flex",
+      alignItems: "center", // Center align the tokens and icon vertically
+    }}
+  >
+    <Typography variant="h5" mr={1} sx={{ color: "#333333" }}>
+      Tokens: {tokens}
+    </Typography>
+    <TempleBuddhistIcon fontSize="large" sx={{ color: "#8B5E3C" }} />
+  </Box>
+</Card>
 
-        <CardContent
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <Typography variant="h4" mr={1}>
-            Tokens: {tokens}
-          </Typography>
-          <TempleBuddhistIcon fontSize="large" />
-        </CardContent>
-      </Card>
-
+  
       {/* Tabs */}
-      <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-        <Tabs value={tabIndex} onChange={handleTabChange} aria-label="profile tabs">
-          <Tab label="Account Details" />
-          <Tab label="Appointments" />
-          <Tab label="Settings" />
-        </Tabs>
-      </Box>
+      <Box sx={{ borderBottom: 1, borderColor: "divider", mt: 2, mb: 3 }}>
+  <Tabs
+    value={tabIndex}
+    onChange={handleTabChange}
+    aria-label="profile tabs"
+    sx={{
+      ".MuiTabs-indicator": {
+        backgroundColor: "#8B5E3C", // Earthy brown for the indicator
+      },
+    }}
+  >
+    <Tab
+      label="Account Details"
+      sx={{
+        color: tabIndex === 0 ? "#8B5E3C" : "#4A4A48", // Earthy brown for selected, gray for unselected
+        "&.Mui-selected": {
+          color: "#8B5E3C", // Earthy brown for selected tab
+        },
+      }}
+    />
+    <Tab
+      label="Appointments"
+      sx={{
+        color: tabIndex === 1 ? "#8B5E3C" : "#4A4A48", // Adjust text color based on selected index
+        "&.Mui-selected": {
+          color: "#8B5E3C", // Earthy brown for selected tab
+        },
+      }}
+    />
+    <Tab
+      label="Settings"
+      sx={{
+        color: tabIndex === 2 ? "#8B5E3C" : "#4A4A48", // Same color logic
+        "&.Mui-selected": {
+          color: "#8B5E3C",
+        },
+      }}
+    />
+  </Tabs>
+</Box>
 
+  
       {/* Account Details Tab */}
       <TabPanel value={tabIndex} index={0}>
-        <Card sx={{ position: "relative" }}>
+        <Card
+          sx={{
+            position: "relative",
+            backgroundColor: "#FAF8F6",
+            borderRadius: "8px",
+            boxShadow: "0 3px 6px rgba(0, 0, 0, 0.1)",
+            mt: 2,
+          }}
+        >
           <CardContent>
-            <Box display="flex" justifyContent="space-between" alignItems="center">
-              <Typography variant="h6">Account Details</Typography>
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <Typography variant="h6" sx={{ color: "#333333" }}>
+                Account Details
+              </Typography>
               <IconButton
                 aria-label="edit account details"
                 onClick={() => setIsEditing(!isEditing)}
               >
-                <Edit />
+                <Edit sx={{ color: "#8B5E3C" }} />
               </IconButton>
             </Box>
             <Grid container spacing={2} sx={{ mt: 1 }}>
@@ -395,7 +449,13 @@ function ProfilePage() {
                 <Grid item xs={6}>
                   <Button
                     variant="contained"
-                    color="primary"
+                    sx={{
+                      backgroundColor: "#8B5E3C",
+                      color: "#F0E5D8",
+                      "&:hover": {
+                        backgroundColor: "#704A35",
+                      },
+                    }}
                     startIcon={<Save />}
                     onClick={handleUpdate}
                   >
@@ -407,35 +467,57 @@ function ProfilePage() {
           </CardContent>
         </Card>
       </TabPanel>
-
+  
       {/* Appointments Tab */}
       <TabPanel value={tabIndex} index={1}>
         {isMobile ? (
-          <Accordion>
+          <Accordion
+            sx={{
+              backgroundColor: "#F0E5D8",
+              borderRadius: "8px",
+              mt: 2,
+            }}
+          >
             <AccordionSummary
-              expandIcon={<ExpandMore />}
+              expandIcon={<ExpandMore sx={{ color: "#8B5E3C" }} />}
               aria-controls="appointments-content"
               id="appointments-header"
             >
-              <Typography variant="h6">Your Appointments</Typography>
+              <Typography variant="h6" sx={{ color: "#333333" }}>
+                Your Appointments
+              </Typography>
             </AccordionSummary>
             <AccordionDetails>
               <Grid container spacing={2}>
                 {appointments.map((appointment) => (
                   <Grid item xs={12} key={appointment.id}>
-                    <Card sx={{ marginBottom: 4, paddingBottom: 2 }}>
+                    <Card
+                      sx={{
+                        backgroundColor: "#FAF8F6",
+                        borderRadius: "8px",
+                        mb: 2,
+                        boxShadow: "0 3px 6px rgba(0, 0, 0, 0.1)",
+                      }}
+                    >
                       <CardContent>
-                        <Typography variant="body1">
+                        <Typography variant="body1" sx={{ color: "#333333" }}>
                           {new Date(appointment.date).toLocaleDateString()} -{" "}
                           {appointment.day_type_display}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="body2" sx={{ color: "#666666" }}>
                           Status: {appointment.status_display}
                         </Typography>
                         <Box display="flex" justifyContent="flex-end">
                           {appointment.status === "flagged" ? (
                             <Button
                               variant="outlined"
+                              sx={{
+                                borderColor: "#8B5E3C",
+                                color: "#8B5E3C",
+                                "&:hover": {
+                                  backgroundColor: "#F0E5D8",
+                                },
+                              }}
                               onClick={() => openReasonModal(appointment.reason)}
                             >
                               View Reason
@@ -443,9 +525,11 @@ function ProfilePage() {
                           ) : (
                             <Tooltip title="Flag this appointment">
                               <IconButton
-                                onClick={() => handleOpenFlagModal(appointment.id)}
+                                onClick={() =>
+                                  handleOpenFlagModal(appointment.id)
+                                }
                               >
-                                <Flag />
+                                <Flag sx={{ color: "#8B5E3C" }} />
                               </IconButton>
                             </Tooltip>
                           )}
@@ -458,25 +542,48 @@ function ProfilePage() {
             </AccordionDetails>
           </Accordion>
         ) : (
-          <Card sx={{ marginBottom: 4 }}>
+          <Card
+            sx={{
+              backgroundColor: "#F0E5D8",
+              borderRadius: "8px",
+              mt: 2,
+              boxShadow: "0 3px 6px rgba(0, 0, 0, 0.1)",
+            }}
+          >
             <CardContent>
-              <Typography variant="h6">Your Appointments</Typography>
+              <Typography variant="h6" sx={{ color: "#333333", mb: 2 }}>
+                Your Appointments
+              </Typography>
               <Grid container spacing={2}>
                 {appointments.map((appointment) => (
                   <Grid item xs={12} key={appointment.id}>
-                    <Card sx={{ marginBottom: 4, paddingBottom: 2 }}>
+                    <Card
+                      sx={{
+                        backgroundColor: "#FAF8F6",
+                        borderRadius: "8px",
+                        mb: 2,
+                        boxShadow: "0 3px 6px rgba(0, 0, 0, 0.1)",
+                      }}
+                    >
                       <CardContent>
-                        <Typography variant="body1">
+                        <Typography variant="body1" sx={{ color: "#333333" }}>
                           {new Date(appointment.date).toLocaleDateString()} -{" "}
                           {appointment.day_type_display}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="body2" sx={{ color: "#666666" }}>
                           Status: {appointment.status_display}
                         </Typography>
                         <Box display="flex" justifyContent="flex-end">
                           {appointment.status === "flagged" ? (
                             <Button
                               variant="outlined"
+                              sx={{
+                                borderColor: "#8B5E3C",
+                                color: "#8B5E3C",
+                                "&:hover": {
+                                  backgroundColor: "#F0E5D8",
+                                },
+                              }}
                               onClick={() => openReasonModal(appointment.reason)}
                             >
                               View Reason
@@ -484,9 +591,11 @@ function ProfilePage() {
                           ) : (
                             <Tooltip title="Flag this appointment">
                               <IconButton
-                                onClick={() => handleOpenFlagModal(appointment.id)}
+                                onClick={() =>
+                                  handleOpenFlagModal(appointment.id)
+                                }
                               >
-                                <Flag />
+                                <Flag sx={{ color: "#8B5E3C" }} />
                               </IconButton>
                             </Tooltip>
                           )}
@@ -500,52 +609,139 @@ function ProfilePage() {
           </Card>
         )}
       </TabPanel>
+  
+{/* Settings Tab */}
+<TabPanel value={tabIndex} index={2}>
+  <Card
+    sx={{
+      backgroundColor: "#FAF8F6",
+      borderRadius: "8px",
+      mt: 2,
+      boxShadow: "0 3px 6px rgba(0, 0, 0, 0.1)",
+      padding: 3, // Add padding for better spacing
+    }}
+  >
+    <CardContent>
+      <Typography variant="h5" sx={{ color: "#333333", mb: 3 }}>
+        Settings
+      </Typography>
 
-      {/* Settings Tab */}
-      <TabPanel value={tabIndex} index={2}>
-        <Card>
-          <CardContent>
-            <Typography variant="h6">Settings</Typography>
-            <Box display="flex" flexDirection="column" alignItems="flex-start">
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handlePasswordReset}
-                sx={{ mb: 2 }}
-              >
-                Change Password
-              </Button>
-              <Button
-                variant="contained"
-                color="secondary"
-                startIcon={<Delete />}
-                onClick={handleOpenDeleteModal}
-              >
-                Delete Account
-              </Button>
-              <Button
-                variant="contained"
-                color="secondary"
-                onClick={logout}
-                sx={{ mt: 2 }}
-              >
-                Logout
-              </Button>
-            </Box>
-          </CardContent>
-        </Card>
-      </TabPanel>
+      <Grid container spacing={3}>
+        {/* Password Section */}
+        <Grid item xs={12} md={6}>
+          <Card
+            sx={{
+              backgroundColor: "#FFF",
+              padding: 2,
+              borderRadius: "8px",
+              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+            }}
+          >
+            <Typography variant="h6" sx={{ color: "#333333", mb: 1 }}>
+              Account Security
+            </Typography>
+            <Typography variant="body2" sx={{ color: "#666666", mb: 2 }}>
+              Update your password regularly to keep your account secure.
+            </Typography>
+            <Button
+              variant="contained"
+              fullWidth
+              onClick={handlePasswordReset}
+              sx={{
+                backgroundColor: "#8B5E3C",
+                color: "#FFF",
+                "&:hover": {
+                  backgroundColor: "#704A35",
+                },
+              }}
+            >
+              Change Password
+            </Button>
+          </Card>
+        </Grid>
 
-      {/*Feedback Modal */} 
-<CustomModal
-  open={modalIsOpen}
-  onClose={() => setModalIsOpen(false)}
-  title={modalTitle}
-  description={modalMessage}
-  isConfirmVisible={true}
-  confirmButtonText="Close"
-/>
+        {/* Delete Account Section */}
+        <Grid item xs={12} md={6}>
+          <Card
+            sx={{
+              backgroundColor: "#FFF",
+              padding: 2,
+              borderRadius: "8px",
+              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+            }}
+          >
+            <Typography variant="h6" sx={{ color: "#333333", mb: 1 }}>
+              Account Management
+            </Typography>
+            <Typography variant="body2" sx={{ color: "#666666", mb: 2 }}>
+              Permanently delete your account if you no longer wish to use the service.
+            </Typography>
+            <Button
+              variant="contained"
+              fullWidth
+              startIcon={<Delete />}
+              onClick={handleOpenDeleteModal}
+              sx={{
+                backgroundColor: "#8B5E3C",
+                color: "#FFF",
+                "&:hover": {
+                  backgroundColor: "#704A35",
+                },
+              }}
+            >
+              Delete Account
+            </Button>
+          </Card>
+        </Grid>
 
+        {/* Logout Section */}
+        <Grid item xs={12} md={6}>
+          <Card
+            sx={{
+              backgroundColor: "#FFF",
+              padding: 2,
+              borderRadius: "8px",
+              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+            }}
+          >
+            <Typography variant="h6" sx={{ color: "#333333", mb: 1 }}>
+              Logout
+            </Typography>
+            <Typography variant="body2" sx={{ color: "#666666", mb: 2 }}>
+              You can logout of your account and sign in again later.
+            </Typography>
+            <Button
+              variant="contained"
+              fullWidth
+              onClick={logout}
+              sx={{
+                backgroundColor: "#8B5E3C",
+                color: "#FFF",
+                "&:hover": {
+                  backgroundColor: "#704A35",
+                },
+              }}
+            >
+              Logout
+            </Button>
+          </Card>
+        </Grid>
+      </Grid>
+    </CardContent>
+  </Card>
+</TabPanel>
+
+  
+      {/* Feedback Modal */}
+      <CustomModal
+        open={modalIsOpen}
+        onClose={() => setModalIsOpen(false)}
+        title={modalTitle}
+        description={modalMessage}
+        isConfirmVisible={true}
+        confirmButtonText="Close"
+      />
+  
       {/* Flag Modal */}
       <CustomModal
         open={isFlagModalOpen}
@@ -573,7 +769,7 @@ function ProfilePage() {
         inputValue={flagReason}
         handleInputChange={(e) => setFlagReason(e.target.value)}
       />
-
+  
       {/* Reason Modal */}
       <CustomModal
         open={reasonModalIsOpen}
@@ -582,26 +778,31 @@ function ProfilePage() {
         description={reasonModalContent}
         isConfirmVisible={false} // No confirm button needed
       />
-
+  
       {/* Account Deletion Modal */}
-      <Dialog open={isDeleteModalOpen} onClose={handleCloseDeleteModal}>
-        <DialogTitle>
-          {deleteModalStep === 1
+      <CustomModal
+        isOpen={isDeleteModalOpen}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleDeleteModalConfirm}
+        title={
+          deleteModalStep === 1
             ? "Confirm Account Deletion"
             : deleteModalStep === 2
             ? "Enter Password"
-            : "Email Sent"}
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            {deleteModalStep === 1 &&
-              "Are you sure you want to delete your account? This action cannot be undone."}
-            {deleteModalStep === 2 &&
-              "Please enter your password to confirm."}
-            {deleteModalStep === 3 &&
-              "An email has been sent that will allow you to permanently delete your account."}
-          </DialogContentText>
-          {deleteModalStep === 2 && (
+            : "Email Sent"
+        }
+      >
+        {deleteModalStep === 1 && (
+          <Typography sx={{ color: "#333333" }}>
+            Are you sure you want to delete your account? This action cannot be
+            undone.
+          </Typography>
+        )}
+        {deleteModalStep === 2 && (
+          <>
+            <Typography sx={{ color: "#333333", mb: 2 }}>
+              Please enter your password to confirm.
+            </Typography>
             <TextField
               autoFocus
               margin="dense"
@@ -611,25 +812,18 @@ function ProfilePage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-          )}
-        </DialogContent>
-        <DialogActions>
-          {deleteModalStep !== 3 && (
-            <Button onClick={handleCloseDeleteModal} color="primary">
-              Cancel
-            </Button>
-          )}
-          <Button onClick={handleDeleteModalConfirm} color="secondary">
-            {deleteModalStep === 1
-              ? "Confirm"
-              : deleteModalStep === 2
-              ? "Submit"
-              : "Close"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          </>
+        )}
+        {deleteModalStep === 3 && (
+          <Typography sx={{ color: "#333333" }}>
+            An email has been sent that will allow you to permanently delete your
+            account.
+          </Typography>
+        )}
+      </CustomModal>
     </Container>
   );
+  
 }
 
 export default ProfilePage;
