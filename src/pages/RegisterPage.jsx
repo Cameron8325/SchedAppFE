@@ -1,10 +1,8 @@
-// src/pages/RegisterPage.jsx
-
 import React, { useState, useContext } from 'react';
 import { Container, TextField, Button, Typography, Box, Grid, CircularProgress, Alert } from '@mui/material';
 import { AuthContext } from "../context/AuthContext"; // Updated import
-
 import { useNavigate } from 'react-router-dom';
+import CustomModal from '../components/modal/CustomModal'; // Import CustomModal component
 
 function RegisterPage() {
     const [username, setUsername] = useState('');
@@ -16,9 +14,10 @@ function RegisterPage() {
     const [phoneNumber, setPhoneNumber] = useState('');
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(false);
+    const [modalOpen, setModalOpen] = useState(false); // Modal visibility state
 
     const navigate = useNavigate();
-    const { register, login } = useContext(AuthContext); // Access register and login from AuthContext
+    const { register } = useContext(AuthContext); // Access register and login from AuthContext
 
     const handleRegister = async (e) => {
         e.preventDefault();
@@ -26,9 +25,7 @@ function RegisterPage() {
         setMessage('');
         try {
             await register(username, firstName, lastName, email, password, passwordConfirm, phoneNumber);
-            // Optionally, log in the user automatically after registration
-            await login(email, password); // Assuming email is used for login
-            navigate('/appointments'); // Redirect to appointments page after successful registration
+            setModalOpen(true); // Show modal after successful registration
         } catch (error) {
             if (error.response && error.response.data) {
                 // Extract error messages from response data
@@ -47,6 +44,11 @@ function RegisterPage() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleModalClose = () => {
+        setModalOpen(false);
+        navigate('/login'); // Optionally, redirect to login page after closing the modal
     };
 
     return (
@@ -208,6 +210,15 @@ function RegisterPage() {
                     </Alert>
                 )}
             </Box>
+
+            {/* CustomModal to notify user to check their email */}
+            <CustomModal
+                open={modalOpen}
+                onClose={handleModalClose}
+                title="Verify Your Email"
+                description="Thank you for registering! A verification link has been sent to your email. Please check your inbox to complete the registration."
+                isConfirmVisible={false} // Hides the confirm button
+            />
         </Container>
     );
 }
