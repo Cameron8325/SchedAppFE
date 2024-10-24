@@ -1,5 +1,3 @@
-// src/components/navbar/routes.js
-
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import HomePage from '../../pages/HomePage';
@@ -11,10 +9,11 @@ import RegisterPage from '../../pages/RegisterPage';
 import AdminDashboard from '../../pages/AdminDashboard';
 import CatalogPage from '../../pages/CatalogPage';
 import PasswordResetPage from '../../pages/PasswordResetPage.jsx';
-import AccountDeletionConfirm from '../../pages/AccountDeletionConfirm.jsx'; // Import the AccountDeletionConfirm component
+import AccountDeletionConfirm from '../../pages/AccountDeletionConfirm.jsx';
 import NavBar from './navbar.jsx';
 import ProtectedRoute from './ProtectedRoute';
 import AdminRoute from './AdminRoute.js';
+import EmailConfirmed from '../../pages/EmailConfirmed';
 
 function AppRoutes() {
     return (
@@ -49,6 +48,8 @@ function AppRoutes() {
                     path="/users/delete-account-confirm/:uidb64/:token"
                     element={<AccountDeletionConfirm />}
                 />
+                {/* Corrected Verification Route */}
+                <Route path="/verify-email/:uid/:token" element={<EmailConfirmed />} />
             </Routes>
         </Router>
     );

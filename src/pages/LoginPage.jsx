@@ -1,15 +1,16 @@
-// src/pages/LoginPage.js
-
 import React, { useState, useContext } from 'react';
 import { Container, TextField, Button, Typography, Box, Grid, CircularProgress, Alert } from '@mui/material';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 function LoginPage() {
     const [usernameEmail, setUsernameEmail] = useState('');
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
+    const [resendMessage, setResendMessage] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showResend, setShowResend] = useState(false);
 
     const { login } = useContext(AuthContext);
     const navigate = useNavigate();
@@ -18,17 +19,39 @@ function LoginPage() {
         e.preventDefault();
         setLoading(true);
         setMessage('');
+        setResendMessage('');
+        setShowResend(false);
         try {
             await login(usernameEmail, password);
             navigate('/appointments'); // Redirect to appointments page after successful login
         } catch (error) {
             if (error.response && error.response.data && error.response.data.error) {
                 setMessage(error.response.data.error);
+                if (error.response.data.error === 'Email is not verified.') {
+                    setShowResend(true);
+                }
             } else {
                 setMessage('Invalid credentials or server error');
             }
         } finally {
             setLoading(false);
+        }
+    };
+
+    const resendVerificationEmail = async () => {
+        try {
+            const response = await axios.post('http://localhost:8000/api/users/resend-verification-email/', {
+                email: usernameEmail  // 'usernameEmail' can be either email or username
+            });
+            if (response.data.message) {
+                setResendMessage(response.data.message);
+            }
+        } catch (error) {
+            if (error.response && error.response.data && error.response.data.error) {
+                setResendMessage(error.response.data.error);
+            } else {
+                setResendMessage('Failed to resend verification email.');
+            }
         }
     };
 
@@ -104,9 +127,39 @@ function LoginPage() {
 
                 {/* Error Message */}
                 {message && (
-                    <Alert severity="error" sx={{ marginTop: '1rem' }}>
+                    <Alert severity={showResend ? "warning" : "error"} sx={{ marginTop: '1rem' }}>
                         {message}
                     </Alert>
+                )}
+
+                {/* Resend Verification Button */}
+                {showResend && (
+                    <Box sx={{ marginTop: '1rem' }}>
+                        <Typography variant="body2" sx={{ color: '#4A4A48' }}>
+                            Didn't receive the verification email?
+                        </Typography>
+                        <Button
+                            variant="text"
+                            onClick={resendVerificationEmail}
+                            sx={{
+                                textTransform: 'none',
+                                color: '#8B5E3C',
+                                '&:hover': {
+                                    textDecoration: 'underline',
+                                },
+                            }}
+                        >
+                            Resend Verification Email
+                        </Button>
+                        {resendMessage && (
+                            <Alert 
+                                severity={resendMessage.includes('sent') ? "success" : "error"} 
+                                sx={{ marginTop: '0.5rem' }}
+                            >
+                                {resendMessage}
+                            </Alert>
+                        )}
+                    </Box>
                 )}
             </Box>
         </Container>
