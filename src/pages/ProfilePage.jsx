@@ -15,6 +15,7 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  CircularProgress
 } from "@mui/material";
 import { Save, Delete, Flag, Edit, ExpandMore } from "@mui/icons-material";
 import TempleBuddhistIcon from "@mui/icons-material/TempleBuddhist";
@@ -82,6 +83,8 @@ function ProfilePage() {
   const [password, setPassword] = useState("");
   const [deleteModalStep, setDeleteModalStep] = useState(1);
 
+  const [loading, setLoading] = useState(false);
+  
   useEffect(() => {
     if (!user) {
       navigate("/login");
@@ -134,7 +137,7 @@ function ProfilePage() {
       }
 
       await axios.put(
-        `http://localhost:8000/api/users/${user.id}/`,
+        `http://localhost:8000/api/users/update/`,
         updatedFields
       );
 
@@ -252,24 +255,20 @@ function ProfilePage() {
   };
 
   const handleAccountDeletionRequest = async () => {
+    setLoading(true); // Start loading spinner
     try {
       await axios.post(
         `http://localhost:8000/api/users/account-deletion-request/`,
         { password },
         { withCredentials: true }
       );
-
-      // Show success modal
-      setModalTitle("Success");
-      setModalMessage("An email has been sent to delete your account.");
-      setModalIsOpen(true);
-
-      setDeleteModalStep(3);
+      setDeleteModalStep(3); // Move to next step on success
     } catch (error) {
-      // Show error modal
       setModalTitle("Error");
       setModalMessage("Error initiating account deletion.");
       setModalIsOpen(true);
+    } finally {
+      setLoading(false); // Stop loading spinner after request
     }
   };
 
@@ -738,7 +737,7 @@ function ProfilePage() {
         onClose={() => setModalIsOpen(false)}
         title={modalTitle}
         description={modalMessage}
-        isConfirmVisible={true}
+        isConfirmVisible={false}
         confirmButtonText="Close"
       />
   
@@ -781,46 +780,48 @@ function ProfilePage() {
   
       {/* Account Deletion Modal */}
       <CustomModal
-        isOpen={isDeleteModalOpen}
-        onClose={handleCloseDeleteModal}
-        onConfirm={handleDeleteModalConfirm}
-        title={
-          deleteModalStep === 1
-            ? "Confirm Account Deletion"
-            : deleteModalStep === 2
-            ? "Enter Password"
-            : "Email Sent"
-        }
-      >
-        {deleteModalStep === 1 && (
-          <Typography sx={{ color: "#333333" }}>
-            Are you sure you want to delete your account? This action cannot be
-            undone.
+      open={isDeleteModalOpen}
+      onClose={handleCloseDeleteModal}
+      onConfirm={handleDeleteModalConfirm}
+      title={
+        deleteModalStep === 1
+          ? "Confirm Account Deletion"
+          : deleteModalStep === 2
+          ? "Enter Password"
+          : "Email Sent"
+      }
+      isConfirmVisible={deleteModalStep !== 3} // Hide Confirm button on step 3
+      confirmButtonText={loading ? <CircularProgress size={20} /> : "Submit"} // Show spinner while loading
+      confirmButtonDisabled={loading} // Disable button while loading
+    >
+      {deleteModalStep === 1 && (
+        <Typography sx={{ color: "#333333" }}>
+          Are you sure you want to delete your account? This action cannot be undone.
+        </Typography>
+      )}
+      {deleteModalStep === 2 && (
+        <>
+          <Typography sx={{ color: "#333333", mb: 2 }}>
+            Please enter your password to confirm.
           </Typography>
-        )}
-        {deleteModalStep === 2 && (
-          <>
-            <Typography sx={{ color: "#333333", mb: 2 }}>
-              Please enter your password to confirm.
-            </Typography>
-            <TextField
-              autoFocus
-              margin="dense"
-              label="Password"
-              type="password"
-              fullWidth
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </>
-        )}
-        {deleteModalStep === 3 && (
-          <Typography sx={{ color: "#333333" }}>
-            An email has been sent that will allow you to permanently delete your
-            account.
-          </Typography>
-        )}
-      </CustomModal>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Password"
+            type="password"
+            fullWidth
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </>
+      )}
+      {deleteModalStep === 3 && (
+        <Typography sx={{ color: "#333333" }}>
+          An email has been sent that will allow you to permanently delete your account.
+        </Typography>
+      )}
+    </CustomModal>
+
     </Container>
   );
   
