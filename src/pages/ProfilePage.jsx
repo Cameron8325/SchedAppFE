@@ -95,7 +95,7 @@ function ProfilePage() {
       try {
         const token = localStorage.getItem("token"); // Include authentication if necessary
         const response = await axios.get(
-          `http://localhost:8000/api/appointments/`,
+          `http://localhost:8000/api/users/appointments/`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
