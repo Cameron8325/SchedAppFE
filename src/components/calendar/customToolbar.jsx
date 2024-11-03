@@ -1,22 +1,24 @@
 import React from "react";
 import { ButtonGroup, Button } from "@mui/material";
-import './customToolbar.css'
+import './customToolbar.css';
 
 const CustomToolbar = ({ label, onNavigate, handleDayTypeChange }) => {
   return (
     <div className="rbc-toolbar">
-      <span className="rbc-btn-group">
-        {/* "Back" and "Next" navigation buttons */}
-        <button onClick={() => onNavigate("PREV")}>Back</button>
-        <button onClick={() => onNavigate("TODAY")}>Today</button>
-        <button onClick={() => onNavigate("NEXT")}>Next</button>
+      {/* Navigation Buttons */}
+      <span className="rbc-btn-group navigation-buttons">
+        <ButtonGroup>
+          <Button onClick={() => onNavigate("PREV")} sx={{ textTransform: 'none'}}>Back</Button>
+          <Button onClick={() => onNavigate("TODAY")} sx={{ textTransform: 'none'}}>Today</Button>
+          <Button onClick={() => onNavigate("NEXT")} sx={{ textTransform: 'none'}}>Next</Button>
+        </ButtonGroup>
       </span>
 
-      {/* Display current date label (Month and Year) */}
+      {/* Current Date Label */}
       <span className="rbc-toolbar-label">{label}</span>
 
-      {/* Custom Filter Buttons */}
-      <span className="rbc-btn-group">
+      {/* Filter Buttons */}
+      <span className="rbc-btn-group filter-buttons">
         <ButtonGroup color="primary">
           <Button sx={{ textTransform: 'none' }} onClick={() => handleDayTypeChange("all")}>All</Button>
           <Button sx={{ textTransform: 'none' }} onClick={() => handleDayTypeChange("tea_tasting")}>

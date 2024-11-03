@@ -1,6 +1,7 @@
+/* Toolbar Container */
 .rbc-toolbar {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column; /* Stack items vertically on small screens */
   align-items: center;
   margin-bottom: 16px;
   padding: 8px 16px;
@@ -9,25 +10,72 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.rbc-toolbar .rbc-btn-group {
+/* Section containing navigation buttons and label */
+.toolbar-section {
   display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
 }
 
-.rbc-toolbar .rbc-btn-group button {
+/* Navigation Buttons */
+.navigation-buttons button {
   background-color: #8B5E3C;
   color: white;
   border: none;
   padding: 6px 12px;
   cursor: pointer;
-  margin: 0 5px;
+  margin: 4px;
   border-radius: 4px;
   transition: background-color 0.3s ease;
 }
 
-.rbc-toolbar .rbc-btn-group button:hover {
+.navigation-buttons button:hover {
   background-color: #303f9f;
 }
 
-.rbc-toolbar .MuiButton-root {
-  text-transform: none;
+/* Toolbar Label */
+.rbc-toolbar-label {
+  text-align: center;
+  flex: 1;
+  margin: 4px;
+}
+
+/* Filter Buttons */
+.filter-buttons .MuiButtonGroup-root {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.filter-buttons .MuiButton-root {
+  background-color: #8B5E3C !important;
+  color: white !important;
+  margin: 4px !important;
+  padding: 6px 12px !important;
+  border-radius: 4px !important;
+  text-transform: none !important;
+}
+
+.filter-buttons .MuiButton-root:hover {
+  background-color: #303f9f !important;
+}
+
+/* Media Query for larger screens */
+@media (min-width: 830px) {
+  .rbc-toolbar {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .toolbar-section {
+    width: auto;
+    margin-bottom: 0;
+  }
+
+  .filter-buttons {
+    width: auto;
+  }
 }
