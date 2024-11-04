@@ -107,7 +107,7 @@ function PasswordResetPage() {
                                 fullWidth
                                 sx={{
                                     backgroundColor: '#8B5E3C',
-                                    color: '#F0E5D8',
+                                    color: '#fff',
                                     '&:hover': {
                                         backgroundColor: '#C2A773',
                                     },

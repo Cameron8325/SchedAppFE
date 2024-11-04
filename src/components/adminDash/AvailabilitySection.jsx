@@ -75,7 +75,7 @@ const AvailabilitySection = ({
           sx={{
             mb: 3,
             backgroundColor: '#8B5E3C',  // Earthy Brown
-            color: '#F0E5D8',  // Warm Cream text
+            color: '#FFF',  // White
             '&:hover': {
               backgroundColor: '#704A35',  // Darker brown hover effect
             },
@@ -116,7 +116,7 @@ const AvailabilitySection = ({
                       sx={{
                         mr: 2,
                         backgroundColor: '#8B5E3C',  // Earthy Brown
-                        color: '#F0E5D8',  // Warm Cream text
+                        color: '#FFF',  // White
                         '&:hover': {
                           backgroundColor: '#704A35',  // Darker brown hover effect
                         },
@@ -129,7 +129,7 @@ const AvailabilitySection = ({
                       onClick={() => openRemoveAvailabilityModal(group)}
                       sx={{
                         backgroundColor: '#C2A773',  // Muted Gold
-                        color: '#F0E5D8',  // Warm Cream text
+                        color: '#FFF',  // White
                         '&:hover': {
                           backgroundColor: '#A9905E',  // Darker muted gold hover
                         },

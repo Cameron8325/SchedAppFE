@@ -171,7 +171,7 @@ function CustomModal({
                   onClick={onConfirm}
                   sx={{
                     backgroundColor: '#8B5E3C',
-                    color: '#F0E5D8',
+                    color: '#FFF',
                     '&:hover': {
                       backgroundColor: '#C2A773',
                     },
@@ -186,7 +186,7 @@ function CustomModal({
                 onClick={onClose}
                 sx={{
                   backgroundColor: '#4A4A48',
-                  color: '#F0E5D8',
+                  color: '#FFF',
                   '&:hover': {
                     backgroundColor: '#C2A773',
                   },
@@ -202,7 +202,7 @@ function CustomModal({
                 onClick={() => navigate('/login')}
                 sx={{
                   backgroundColor: '#8B5E3C',
-                  color: '#F0E5D8',
+                  color: '#FFF',
                   '&:hover': {
                     backgroundColor: '#C2A773',
                   },
@@ -216,7 +216,7 @@ function CustomModal({
                 onClick={() => navigate('/register')}
                 sx={{
                   backgroundColor: '#8B5E3C',
-                  color: '#F0E5D8',
+                  color: '#FFF',
                   '&:hover': {
                     backgroundColor: '#C2A773',
                   },

@@ -30,7 +30,7 @@ function CatalogPage() {
             variant="contained"
             sx={{
               backgroundColor: '#8B5E3C',  // Earthy Brown
-              color: '#F0E5D8',  // Warm Cream
+              color: '#FFF',  // Warm Cream
               '&:hover': {
                 backgroundColor: '#C2A773'  // Muted Gold hover
               }
@@ -57,7 +57,7 @@ function CatalogPage() {
             variant="contained"
             sx={{
               backgroundColor: '#8B5E3C',  // Earthy Brown
-              color: '#F0E5D8',  // Warm Cream
+              color: '#FFF',  // Warm Cream
               '&:hover': {
                 backgroundColor: '#C2A773'  // Muted Gold hover
               }
@@ -84,7 +84,7 @@ function CatalogPage() {
             variant="contained"
             sx={{
               backgroundColor: '#8B5E3C',  // Earthy Brown
-              color: '#F0E5D8',  // Warm Cream
+              color: '#FFF',  // Warm Cream
               '&:hover': {
                 backgroundColor: '#C2A773'  // Muted Gold hover
               }

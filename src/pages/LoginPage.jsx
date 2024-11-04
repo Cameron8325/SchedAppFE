@@ -113,7 +113,7 @@ function LoginPage() {
                                 disabled={loading}
                                 sx={{
                                     backgroundColor: '#8B5E3C',  // Earthy Brown
-                                    color: '#F0E5D8',  // Warm Cream
+                                    color: '#fff',  // Warm Cream
                                     '&:hover': {
                                         backgroundColor: '#C2A773',  // Muted Gold
                                     },

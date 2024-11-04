@@ -63,12 +63,15 @@ const EmailConfirmed = () => {
           textAlign: 'center'
         }}
       >
-        <Typography variant="h5" gutterBottom>
+        <Typography variant="h4" component="h1" gutterBottom sx={{ color: '#4A4A48' }}>
+          Email Confirmation
+        </Typography>
+        <Typography variant="body1" sx={{ color: isVerified ? '#4A4A48' : 'error.main', marginTop: '1rem' }}>
           {statusMessage}
         </Typography>
         {!isVerified && (
           <div>
-            <Typography variant="body1" sx={{ marginTop: '1rem' }}>
+            <Typography variant="body2" sx={{ marginTop: '1rem', color: '#4A4A48' }}>
               If you didn't receive the verification email, please enter your email below to resend it.
             </Typography>
             <TextField
@@ -78,17 +81,32 @@ const EmailConfirmed = () => {
               value={emailInput}
               onChange={(e) => setEmailInput(e.target.value)}
               required
-              sx={{ marginTop: '1rem' }}
+              sx={{ 
+                marginTop: '1rem',
+                backgroundColor: '#fff',
+                '& .MuiInputLabel-root': { color: '#4A4A48' },
+                '& .MuiInputBase-input': { color: '#4A4A48' }
+              }}
             />
             <Button 
               variant="contained" 
               onClick={resendVerificationEmail} 
-              sx={{ marginTop: '1rem', backgroundColor: '#8B5E3C', color: '#F0E5D8' }}
+              sx={{ 
+                marginTop: '1rem', 
+                backgroundColor: '#8B5E3C', 
+                color: '#fff',
+                '&:hover': {
+                  backgroundColor: '#C2A773',
+                }
+              }}
             >
               Resend Verification Email
             </Button>
             {resendMessage && (
-              <Alert severity={resendMessage.includes('sent') ? "success" : "error"} sx={{ marginTop: '1rem' }}>
+              <Alert 
+                severity={resendMessage.includes('sent') ? "success" : "error"} 
+                sx={{ marginTop: '1rem' }}
+              >
                 {resendMessage}
               </Alert>
             )}
