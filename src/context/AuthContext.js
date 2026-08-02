@@ -1,7 +1,7 @@
 // src/context/AuthContext.js
 
 import React, { createContext, useState, useEffect, useCallback } from 'react';
-import api from '../api/client';
+import api, { setAuthSessionActive } from '../api/client';
 
 export const AuthContext = createContext(null);
 
@@ -24,12 +24,16 @@ export const AuthProvider = ({ children }) => {
         try {
             const response = await api.get('/api/users/check-user/');
             setUser(response.data);
+            setAuthSessionActive(true);
 
             const superUserStatus = await api.get('/api/users/check-superuser/');
             setIsSuperUser(superUserStatus.data.is_superuser);
         } catch (error) {
             setUser(null);
             setIsSuperUser(false);
+            if (error.response?.status === 401) {
+                setAuthSessionActive(false);
+            }
             if (!error.response || error.response.status !== 401) {
                 console.error('Error fetching current user:', error);
             }
@@ -53,26 +57,62 @@ export const AuthProvider = ({ children }) => {
 
     const login = useCallback(async (username_email, password) => {
         await api.post('/api/users/login/', { username_email, password });
+        setAuthSessionActive(true);
         await initializeCsrf(); // Reinitialize CSRF token after login
         await refreshUser();
     }, [refreshUser, initializeCsrf]);
 
     const logout = useCallback(async () => {
+        // Disable refresh before the request so an in-flight 401 cannot restore
+        // a session while logout is clearing the cookies.
+        setAuthSessionActive(false);
+        setUser(null);
+        setIsSuperUser(false);
         try {
             await api.post('/api/users/logout/');
         } catch (error) {
             console.error('Logout failed:', error);
         } finally {
-            setUser(null);
-            setIsSuperUser(false);
             await initializeCsrf();
         }
     }, [initializeCsrf]);
 
-    // Fetch current user when component mounts
+    // Bootstrap from a quiet session-status endpoint so signed-out visitors do
+    // not generate a 401 followed by a pointless refresh request.
     useEffect(() => {
-        initializeCsrf();
-        refreshUser();
+        let mounted = true;
+
+        const bootstrapAuth = async () => {
+            await initializeCsrf();
+            try {
+                const response = await api.get('/api/users/session-status/');
+                if (!mounted) return;
+                if (response.data.has_session) {
+                    setAuthSessionActive(true);
+                    await refreshUser();
+                } else {
+                    setAuthSessionActive(false);
+                    setLoading(false);
+                }
+            } catch (error) {
+                // Preserve compatibility during a rolling frontend/backend deploy.
+                if (mounted) await refreshUser();
+            }
+        };
+
+        const handleExpiredSession = () => {
+            setUser(null);
+            setIsSuperUser(false);
+            setLoading(false);
+        };
+
+        window.addEventListener('auth:expired', handleExpiredSession);
+        bootstrapAuth();
+
+        return () => {
+            mounted = false;
+            window.removeEventListener('auth:expired', handleExpiredSession);
+        };
     }, [initializeCsrf, refreshUser]);
 
     return (

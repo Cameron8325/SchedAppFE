@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { Link as RouterLink, NavLink } from 'react-router-dom';
+import { Link as RouterLink, NavLink, useNavigate } from 'react-router-dom';
 import {
   AppBar,
   Toolbar,
@@ -30,10 +30,14 @@ function NavBar() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const navigate = useNavigate();
 
-  const handleLogout = async () => {
-    await logout();
-    window.location.href = '/';
+  const handleLogout = () => {
+    // Auth state clears synchronously; let the cookie-clearing request finish
+    // while the user is returned home without a cold-server delay.
+    logout();
+    setDrawerOpen(false);
+    navigate('/', { replace: true });
   };
 
   const accountLinks = user
