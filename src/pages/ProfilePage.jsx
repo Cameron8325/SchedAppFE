@@ -17,7 +17,8 @@ import { Delete, Flag, Edit, Visibility } from "@mui/icons-material";
 import TempleBuddhistIcon from "@mui/icons-material/TempleBuddhist";
 import { useTheme } from "@mui/material/styles";
 import { useMediaQuery } from "@mui/material";
-import axios from "axios";
+import moment from "moment";
+import api from "../api/client";
 import CustomModal from "../components/modal/CustomModal";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -49,7 +50,7 @@ function ProfilePage() {
     setTabIndex(newValue);
   };
 
-  const { user, logout } = useContext(AuthContext);
+  const { user, logout, refreshUser } = useContext(AuthContext);
 
   const [firstName, setFirstName] = useState(user?.first_name || "");
   const [lastName, setLastName] = useState(user?.last_name || "");
@@ -81,8 +82,8 @@ function ProfilePage() {
 
   const [loading, setLoading] = useState(false);
   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
+  const [appointmentsLoading, setAppointmentsLoading] = useState(true);
 
-  
   useEffect(() => {
     if (!user) {
       navigate("/login");
@@ -90,22 +91,14 @@ function ProfilePage() {
     }
 
     const fetchAppointments = async () => {
+      setAppointmentsLoading(true);
       try {
-        const token = localStorage.getItem("token"); // Include authentication if necessary
-        const response = await axios.get(
-          `http://localhost:8000/api/users/appointments/`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        // Authentication rides on the HttpOnly cookies handled by the API client.
+        const response = await api.get(`/api/users/appointments/`);
 
-        // Filter appointments based on status
+        // Only show appointments that are still upcoming/active
         const filteredAppointments = response.data.filter((appointment) =>
-          ["Pending", "Confirmed", "Flagged"].includes(
-            appointment.status_display
-          )
+          ["pending", "confirmed", "flagged"].includes(appointment.status)
         );
 
         // Sort appointments by date in ascending order (earliest first)
@@ -116,6 +109,8 @@ function ProfilePage() {
         setAppointments(sortedAppointments);
       } catch (error) {
         console.error("Error fetching appointments:", error);
+      } finally {
+        setAppointmentsLoading(false);
       }
     };
 
@@ -134,10 +129,8 @@ function ProfilePage() {
         updatedFields.profile = { phone_number: phoneNumber };
       }
 
-      await axios.put(
-        `http://localhost:8000/api/users/update/`,
-        updatedFields
-      );
+      await api.put(`/api/users/update/`, updatedFields);
+      await refreshUser(); // keep the rest of the app in sync with the new details
 
       // Show success modal
       setModalTitle("Success");
@@ -145,9 +138,11 @@ function ProfilePage() {
       setModalIsOpen(true);
       setIsEditing(false);
     } catch (error) {
-      // Show error modal
+      // Show error modal with the server's explanation when available
       setModalTitle("Error");
-      setModalMessage("Error updating profile. Please try again.");
+      setModalMessage(
+        error.response?.data?.error || "Error updating profile. Please try again."
+      );
       setModalIsOpen(true);
     }
   };
@@ -155,7 +150,7 @@ function ProfilePage() {
   const handlePasswordReset = async () => {
     setIsPasswordLoading(true);
     try {
-      await axios.post(`http://localhost:8000/api/users/password-reset/`, {
+      await api.post(`/api/users/password-reset/`, {
         email,
       });
 
@@ -196,8 +191,8 @@ function ProfilePage() {
 
   const handleSubmitFlag = async () => {
     try {
-      await axios.post(
-        `http://localhost:8000/api/appointments/${selectedAppointmentId}/flag/`,
+      await api.post(
+        `/api/admin-panel/appointments/${selectedAppointmentId}/flag/`,
         { reason: flagReason }
       );
 
@@ -258,15 +253,13 @@ function ProfilePage() {
   const handleAccountDeletionRequest = async () => {
     setLoading(true); // Start loading spinner
     try {
-      await axios.post(
-        `http://localhost:8000/api/users/account-deletion-request/`,
-        { password },
-        { withCredentials: true }
-      );
+      await api.post(`/api/users/account-deletion-request/`, { password });
       setDeleteModalStep(3); // Move to next step on success
     } catch (error) {
       setModalTitle("Error");
-      setModalMessage("Error initiating account deletion.");
+      setModalMessage(
+        error.response?.data?.error || "Error initiating account deletion."
+      );
       setModalIsOpen(true);
     } finally {
       setLoading(false); // Stop loading spinner after request
@@ -385,6 +378,28 @@ function ProfilePage() {
     <Typography variant="h6" sx={{ color: "#333333", mb: 2 }}>
       Upcoming Appointments
     </Typography>
+    {appointmentsLoading ? (
+      <Box display="flex" justifyContent="center" py={4}>
+        <CircularProgress />
+      </Box>
+    ) : appointments.length === 0 ? (
+      <Box textAlign="center" py={3}>
+        <Typography variant="body1" sx={{ color: "#666666", mb: 2 }}>
+          You have no upcoming appointments.
+        </Typography>
+        <Button
+          variant="contained"
+          onClick={() => navigate("/appointments")}
+          sx={{
+            backgroundColor: "#8B5E3C",
+            color: "#FFF",
+            "&:hover": { backgroundColor: "#704A35" },
+          }}
+        >
+          Book an Appointment
+        </Button>
+      </Box>
+    ) : (
     <Grid container spacing={2}>
       {appointments.map((appointment) => (
         <Grid item xs={12} key={appointment.id}>
@@ -401,7 +416,7 @@ function ProfilePage() {
           >
             <Box>
               <Typography variant="body1" sx={{ color: "#333333" }}>
-                {new Date(appointment.date).toLocaleDateString()} - {appointment.day_type_display}
+                {moment(appointment.date).format("MM/DD/YYYY")} - {appointment.day_type_display}
               </Typography>
               <Typography variant="body2" sx={{ color: "#666666" }}>
                 Status: {appointment.status_display}
@@ -439,6 +454,7 @@ function ProfilePage() {
         </Grid>
       ))}
     </Grid>
+    )}
   </Card>
 </TabPanel>
 

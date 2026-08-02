@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { Box, Typography, Divider } from "@mui/material";
+import api from "../../api/client";
+import { Box, Typography, Divider, CircularProgress } from "@mui/material";
 import moment from "moment";
 
 const AgendaPanel = () => {
@@ -17,12 +17,11 @@ const AgendaPanel = () => {
   useEffect(() => {
     const fetchAgenda = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/api/available-days/");
-        const availableDaysData = response.data;
-        setAvailableDays(availableDaysData);
-        setLoading(false);
+        const response = await api.get("/api/available-days/");
+        setAvailableDays(response.data);
       } catch (error) {
         console.error("Error fetching agenda:", error);
+      } finally {
         setLoading(false);
       }
     };
@@ -32,14 +31,8 @@ const AgendaPanel = () => {
 
   if (loading) {
     return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        height="100vh"
-        sx={{ backgroundColor: "#F0E5D8" }}
-      >
-        <Typography sx={{ color: "#4A4A48" }}>Loading...</Typography>
+      <Box display="flex" justifyContent="center" alignItems="center" py={6}>
+        <CircularProgress />
       </Box>
     );
   }
@@ -50,9 +43,10 @@ const AgendaPanel = () => {
         <Typography sx={{ color: "#4A4A48" }}>No available days to display</Typography>
       ) : (
         availableDays.map((day) => {
-          const confirmedCount = day.appointments.filter((a) => a.status === "confirmed").length;
-          const pendingCount = day.appointments.filter((a) => a.status === "pending").length;
-          const flaggedCount = day.appointments.filter((a) => a.status === "flagged").length;
+          const appointments = day.appointments || [];
+          const confirmedCount = appointments.filter((a) => a.status === "confirmed").length;
+          const pendingCount = appointments.filter((a) => a.status === "pending").length;
+          const flaggedCount = appointments.filter((a) => a.status === "flagged").length;
 
           return (
             <Box

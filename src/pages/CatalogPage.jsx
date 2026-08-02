@@ -1,101 +1,79 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';  // Import useNavigate
-import { Container, Typography, Button, Card, CardContent, CardActions } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@mui/material';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import teaPouring from '../img/tea-pouring.jpg';
+import teaRitual from '../img/tea-ritual.jpg';
+import teaTogether from '../img/tea-together.jpg';
+
+const sessions = [
+  {
+    title: 'Tea Tasting',
+    dayType: 'tea_tasting',
+    image: teaTogether,
+    alt: 'Two guests tasting tea together at a low tea table.',
+    meta: ['Up to 4 guests', 'Guided tasting'],
+    description:
+      'Compare a curated flight across several infusions. We talk through origin, processing, aroma, texture, and the small decisions that change what lands in the cup.',
+  },
+  {
+    title: 'Intro to Gongfu',
+    dayType: 'intro_gongfu',
+    image: teaRitual,
+    alt: 'Hands pouring tea from a lidded brewing cup into a glass pitcher.',
+    meta: ['Hands-on', 'Beginner friendly'],
+    description:
+      'Learn the working rhythm of Gong Fu Cha. You will handle the core teaware, practice water and timing, and see why repeated short infusions reveal more than one long steep.',
+  },
+  {
+    title: 'Tea and Meditation',
+    dayType: 'guided_meditation',
+    image: teaPouring,
+    alt: 'Hot water being poured into a clay teapot.',
+    meta: ['Quiet session', 'No experience needed'],
+    description:
+      'Settle into a guided practice built around warmth, aroma, and deliberate movement. The tea gives attention somewhere concrete to return to.',
+  },
+];
 
 function CatalogPage() {
-  const navigate = useNavigate();  // Use useNavigate instead of useHistory
-
-  const handleRedirect = (dayType) => {
-    navigate(`/appointments?dayType=${dayType}`);
-  };
+  const navigate = useNavigate();
 
   return (
-    <Container>
-      <Typography variant="h4" component="h1" gutterBottom sx={{marginTop: '2vh' }}>
-        Explore Our Appointments
-      </Typography>
+    <main>
+      <header className="tea-catalog-hero">
+        <div>
+          <p className="tea-kicker" style={{ color: '#B33A24' }}>The sessions</p>
+          <h1 className="tea-session-heading">Come curious.<br />Leave practiced.</h1>
+        </div>
+        <p>
+          Each format opens a different door into tea. Pick the experience that
+          fits what you want to notice, learn, or slow down for.
+        </p>
+      </header>
 
-      {/* Tea Tasting Section */}
-      <Card style={{ marginBottom: '1rem' }}>
-        <CardContent>
-          <Typography variant="h5" component="h2" gutterBottom>
-            Tea Tasting
-          </Typography>
-          <Typography variant="body1" component="p">
-            Experience the rich flavors and aromas of different teas in a guided tasting session. Learn about the origins and processing methods of various teas, and enjoy a serene tea tasting experience.
-          </Typography>
-        </CardContent>
-        <CardActions>
-          <Button
-            variant="contained"
-            sx={{
-              backgroundColor: '#8B5E3C',  // Earthy Brown
-              color: '#FFF',  // Warm Cream
-              '&:hover': {
-                backgroundColor: '#C2A773'  // Muted Gold hover
-              }
-            }}
-            onClick={() => handleRedirect('tea_tasting')}
-          >
-            Schedule a Tea Tasting
-          </Button>
-        </CardActions>
-      </Card>
-
-      {/* Intro to Gongfu Section */}
-      <Card style={{ marginBottom: '1rem' }}>
-        <CardContent>
-          <Typography variant="h5" component="h2" gutterBottom>
-            Intro to Gongfu
-          </Typography>
-          <Typography variant="body1" component="p">
-            Discover the art of Gongfu tea preparation. This session introduces you to traditional Chinese tea ceremonies, focusing on technique, mindfulness, and the cultural significance of Gongfu Cha.
-          </Typography>
-        </CardContent>
-        <CardActions>
-          <Button
-            variant="contained"
-            sx={{
-              backgroundColor: '#8B5E3C',  // Earthy Brown
-              color: '#FFF',  // Warm Cream
-              '&:hover': {
-                backgroundColor: '#C2A773'  // Muted Gold hover
-              }
-            }}
-            onClick={() => handleRedirect('intro_gongfu')}
-          >
-            Schedule an Intro to Gongfu
-          </Button>
-        </CardActions>
-      </Card>
-
-      {/* Guided Meditation Section */}
-      <Card style={{ marginBottom: '1rem' }}>
-        <CardContent>
-          <Typography variant="h5" component="h2" gutterBottom>
-            Guided Meditation
-          </Typography>
-          <Typography variant="body1" component="p">
-            Join us for a calming guided meditation session. Whether you're new to meditation or experienced, this session will help you relax, focus, and find inner peace through mindful practices.
-          </Typography>
-        </CardContent>
-        <CardActions>
-          <Button
-            variant="contained"
-            sx={{
-              backgroundColor: '#8B5E3C',  // Earthy Brown
-              color: '#FFF',  // Warm Cream
-              '&:hover': {
-                backgroundColor: '#C2A773'  // Muted Gold hover
-              }
-            }}
-            onClick={() => handleRedirect('guided_meditation')}
-          >
-            Schedule a Guided Meditation
-          </Button>
-        </CardActions>
-      </Card>
-    </Container>
+      {sessions.map((session, index) => (
+        <article className="tea-catalog-row" key={session.dayType}>
+          <img src={session.image} alt={session.alt} className="tea-catalog-row__image" />
+          <div>
+            <p className="tea-kicker" style={{ color: '#B33A24' }}>Session 0{index + 1}</p>
+            <h2>{session.title}</h2>
+            <div className="tea-catalog-row__meta">
+              {session.meta.map((item) => <span key={item}>{item}</span>)}
+            </div>
+            <p>{session.description}</p>
+            <Button
+              variant="contained"
+              endIcon={<ArrowForwardIcon />}
+              onClick={() => navigate(`/appointments?dayType=${session.dayType}`)}
+              sx={{ mt: 1 }}
+            >
+              Find a date
+            </Button>
+          </div>
+        </article>
+      ))}
+    </main>
   );
 }
 

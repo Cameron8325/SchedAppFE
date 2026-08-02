@@ -137,10 +137,12 @@ function RegisterPage() {
                             <TextField
                                 label="Phone Number"
                                 variant="outlined"
+                                type="tel"
                                 fullWidth
                                 value={phoneNumber}
                                 onChange={(e) => setPhoneNumber(e.target.value)}
                                 required
+                                helperText="7-15 digits, e.g. 5551234567"
                                 InputLabelProps={{ style: { color: '#4A4A48' } }}
                                 InputProps={{
                                     style: { backgroundColor: '#fff', color: '#4A4A48' },
@@ -158,6 +160,7 @@ function RegisterPage() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
+                                helperText="At least 8 characters and not entirely numeric"
                                 InputLabelProps={{ style: { color: '#4A4A48' } }}
                                 InputProps={{
                                     style: { backgroundColor: '#fff', color: '#4A4A48' },

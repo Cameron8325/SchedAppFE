@@ -1,204 +1,153 @@
-// src/components/navbar/NavBar.js
-
-import React, { useState, useContext } from "react";
-import { Link as RouterLink } from "react-router-dom";
+import React, { useContext, useState } from 'react';
+import { Link as RouterLink, NavLink } from 'react-router-dom';
 import {
   AppBar,
   Toolbar,
-  Typography,
   Button,
   Drawer,
   IconButton,
   List,
-  ListItem,
+  ListItemButton,
   ListItemText,
-  Divider,
   Box,
-} from "@mui/material";
-import { Menu as MenuIcon } from "@mui/icons-material";
-import { useTheme, useMediaQuery } from "@mui/material";
-import { AuthContext } from "../../context/AuthContext";
+  useMediaQuery,
+  useTheme,
+} from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
+import { AuthContext } from '../../context/AuthContext';
+
+const publicLinks = [
+  { to: '/', label: 'Home' },
+  { to: '/catalog', label: 'Sessions' },
+  { to: '/appointments', label: 'Calendar' },
+  { to: '/about', label: 'Our practice' },
+];
 
 function NavBar() {
   const { user, isSuperUser, logout } = useContext(AuthContext);
   const [drawerOpen, setDrawerOpen] = useState(false);
-
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md")); // Detect if screen is md or smaller
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const handleLogout = async () => {
-    try {
-      await logout();
-      window.location.href = "/"; // Redirect to home after logout
-    } catch (error) {
-      console.error("Logout failed:", error);
-      // Optionally, display an error message to the user
-    }
+    await logout();
+    window.location.href = '/';
   };
 
-  const toggleDrawer = (open) => (event) => {
-    if (
-      event.type === "keydown" &&
-      (event.key === "Tab" || event.key === "Shift")
-    ) {
-      return;
-    }
-    setDrawerOpen(open);
-  };
+  const accountLinks = user
+    ? [
+        ...(isSuperUser ? [{ to: '/admin', label: 'Operations' }] : []),
+        { to: '/profile', label: 'My visits' },
+      ]
+    : [{ to: '/login', label: 'Sign in' }];
 
-  const navLinks = (
-    <>
-      <ListItem component={RouterLink} to="/">
-        <ListItemText primary="Home" sx={{ color: "#4A4A48" }} />
-      </ListItem>
-      <ListItem component={RouterLink} to="/about">
-        <ListItemText primary="About" sx={{ color: "#4A4A48" }} />
-      </ListItem>
-      <ListItem component={RouterLink} to="/catalog">
-        <ListItemText primary="Catalog" sx={{ color: "#4A4A48" }} />
-      </ListItem>
-      <ListItem component={RouterLink} to="/appointments">
-        <ListItemText primary="Appointments" sx={{ color: "#4A4A48" }} />
-      </ListItem>
-      <Divider />
-      {user ? (
-        <>
-          {isSuperUser ? (
-            <ListItem component={RouterLink} to="/admin">
-              <ListItemText
-                primary="Admin Dashboard"
-                sx={{ color: "#4A4A48" }}
-              />
-            </ListItem>
-          ) : (
-            <ListItem component={RouterLink} to="/profile">
-              <ListItemText primary="Profile" sx={{ color: "#4A4A48" }} />
-            </ListItem>
-          )}
-          <ListItem onClick={handleLogout}>
-            <ListItemText primary="Logout" sx={{ color: "#4A4A48" }} />
-          </ListItem>
-        </>
-      ) : (
-        <>
-          <ListItem component={RouterLink} to="/login">
-            <ListItemText primary="Login" sx={{ color: "#4A4A48" }} />
-          </ListItem>
-          <ListItem component={RouterLink} to="/register">
-            <ListItemText primary="Register" sx={{ color: "#4A4A48" }} />
-          </ListItem>
-        </>
-      )}
-    </>
-  );
+  const allLinks = [...publicLinks, ...accountLinks];
 
   return (
-    <AppBar position="static" sx={{ backgroundColor: "#4A4A48" }}>
-      <Toolbar>
-        <Typography variant="h6" sx={{ flexGrow: 1, color: "#F0E5D8" }}>
-          Gong Fu Tea Scheduler
-        </Typography>
+    <AppBar
+      position="sticky"
+      elevation={0}
+      sx={{
+        color: '#17201D',
+        backgroundColor: 'rgba(255,253,247,.96)',
+        borderBottom: '1px solid #D7D1C4',
+        backdropFilter: 'blur(12px)',
+      }}
+    >
+      <Toolbar sx={{ maxWidth: 1280, width: '100%', mx: 'auto', minHeight: { xs: 64, md: 72 }, px: { xs: 2, md: 4 } }}>
+        <Box
+          component={RouterLink}
+          to="/"
+          aria-label="Ceremonial Artifex home"
+          sx={{ display: 'flex', alignItems: 'center', gap: 1.4, color: 'inherit', textDecoration: 'none', mr: 'auto' }}
+        >
+          <Box
+            aria-hidden="true"
+            sx={{
+              display: 'grid',
+              placeItems: 'center',
+              width: 34,
+              height: 34,
+              color: '#FFFDF7',
+              backgroundColor: '#B33A24',
+              borderRadius: '50%',
+              fontFamily: 'Georgia, serif',
+              fontSize: 12,
+              fontWeight: 700,
+              letterSpacing: '-0.04em',
+            }}
+          >
+            CA
+          </Box>
+          <Box>
+            <Box sx={{ fontFamily: 'Georgia, serif', fontSize: { xs: 16, md: 19 }, lineHeight: 1 }}>
+              Ceremonial Artifex
+            </Box>
+            <Box sx={{ mt: 0.45, color: '#6D756F', fontSize: 9, fontWeight: 800, letterSpacing: '.14em', textTransform: 'uppercase' }}>
+              Sessions by reservation
+            </Box>
+          </Box>
+        </Box>
 
         {isMobile ? (
-          <>
-            <IconButton
-              edge="end"
-              onClick={toggleDrawer(true)}
-              sx={{ color: "#F0E5D8" }}
-            >
-              <MenuIcon />
-            </IconButton>
-
-            <Drawer
-              anchor="right"
-              open={drawerOpen}
-              onClose={toggleDrawer(false)}
-            >
-              <Box
-                role="presentation"
-                onClick={toggleDrawer(false)}
-                onKeyDown={toggleDrawer(false)}
-                sx={{
-                  width: 250,
-                  backgroundColor: "#F0E5D8",
-                  height: "100%",
-                  color: "#4A4A48",
-                }}
-              >
-                <List>{navLinks}</List>
-              </Box>
-            </Drawer>
-          </>
+          <IconButton onClick={() => setDrawerOpen(true)} aria-label="Open menu" sx={{ color: '#17201D' }}>
+            <MenuIcon />
+          </IconButton>
         ) : (
-          <>
-            <Button sx={{ color: "#F0E5D8" }} component={RouterLink} to="/">
-              Home
-            </Button>
-            <Button
-              sx={{ color: "#F0E5D8" }}
-              component={RouterLink}
-              to="/about"
-            >
-              About
-            </Button>
-            <Button
-              sx={{ color: "#F0E5D8" }}
-              component={RouterLink}
-              to="/catalog"
-            >
-              Catalog
-            </Button>
-            <Button
-              sx={{ color: "#F0E5D8" }}
-              component={RouterLink}
-              to="/appointments"
-            >
-              Appointments
-            </Button>
+          <Box component="nav" aria-label="Main navigation" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            {publicLinks.slice(1).map((link) => (
+              <Button
+                key={link.to}
+                component={NavLink}
+                to={link.to}
+                sx={{ color: '#3F4945', px: 1.5, '&.active': { color: '#B33A24' } }}
+              >
+                {link.label}
+              </Button>
+            ))}
+            {isSuperUser && (
+              <Button component={NavLink} to="/admin" sx={{ color: '#3F4945', px: 1.5, '&.active': { color: '#B33A24' } }}>
+                Operations
+              </Button>
+            )}
             {user ? (
               <>
-                {isSuperUser ? (
-                  <Button
-                    sx={{ color: "#F0E5D8" }}
-                    component={RouterLink}
-                    to="/admin"
-                  >
-                    Admin Dashboard
-                  </Button>
-                ) : (
-                  <Button
-                    sx={{ color: "#F0E5D8" }}
-                    component={RouterLink}
-                    to="/profile"
-                  >
-                    Profile
-                  </Button>
-                )}
-                <Button sx={{ color: "#F0E5D8" }} onClick={handleLogout}>
-                  Logout
-                </Button>
+                <IconButton component={RouterLink} to="/profile" aria-label="My visits" sx={{ ml: 1, color: '#173F36' }}>
+                  <PersonOutlineIcon />
+                </IconButton>
+                <Button onClick={handleLogout} sx={{ color: '#58625E', px: 1 }}>Sign out</Button>
               </>
             ) : (
-              <>
-                <Button
-                  sx={{ color: "#F0E5D8" }}
-                  component={RouterLink}
-                  to="/login"
-                >
-                  Login
-                </Button>
-                <Button
-                  sx={{ color: "#F0E5D8" }}
-                  component={RouterLink}
-                  to="/register"
-                >
-                  Register
-                </Button>
-              </>
+              <Button component={RouterLink} to="/login" variant="outlined" sx={{ ml: 1 }}>
+                Sign in
+              </Button>
             )}
-          </>
+          </Box>
         )}
       </Toolbar>
+
+      <Drawer anchor="right" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+        <Box sx={{ width: 300, minHeight: '100%', backgroundColor: '#FFFDF7', p: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 1, pb: 2, borderBottom: '1px solid #D7D1C4' }}>
+            <Box sx={{ fontFamily: 'Georgia, serif', fontSize: 20 }}>Ceremonial Artifex</Box>
+            <IconButton onClick={() => setDrawerOpen(false)} aria-label="Close menu"><CloseIcon /></IconButton>
+          </Box>
+          <List>
+            {allLinks.map((link) => (
+              <ListItemButton key={link.to} component={RouterLink} to={link.to} onClick={() => setDrawerOpen(false)}>
+                <ListItemText primary={link.label} />
+              </ListItemButton>
+            ))}
+            {user && (
+              <ListItemButton onClick={handleLogout}>
+                <ListItemText primary="Sign out" />
+              </ListItemButton>
+            )}
+          </List>
+        </Box>
+      </Drawer>
     </AppBar>
   );
 }

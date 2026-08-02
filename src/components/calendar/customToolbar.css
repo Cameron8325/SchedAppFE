@@ -1,81 +1,55 @@
-/* Toolbar Container */
 .rbc-toolbar {
-  display: flex;
-  flex-direction: column; /* Stack items vertically on small screens */
+  display: grid;
+  margin-bottom: 1rem;
+  padding: 0 0 1rem;
+  grid-template-columns: auto 1fr auto;
+  gap: 1rem;
   align-items: center;
-  margin-bottom: 16px;
-  padding: 8px 16px;
-  background-color: #F0E5D8;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid #d7d1c4;
 }
 
-/* Section containing navigation buttons and label */
-.toolbar-section {
-  display: flex;
-  flex-wrap: wrap;
-  width: 100%;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-/* Navigation Buttons */
-.navigation-buttons button {
-  background-color: #8B5E3C;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  cursor: pointer;
-  margin: 4px;
-  border-radius: 4px;
-  transition: background-color 0.3s ease;
-}
-
-.navigation-buttons button:hover {
-  background-color: #303f9f;
-}
-
-/* Toolbar Label */
 .rbc-toolbar-label {
-  text-align: center;
-  flex: 1;
-  margin: 4px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.35rem;
 }
 
-/* Filter Buttons */
-.filter-buttons .MuiButtonGroup-root {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+.rbc-toolbar .MuiButtonGroup-root {
+  gap: 2px;
 }
 
-.filter-buttons .MuiButton-root {
-  background-color: #8B5E3C !important;
-  color: white !important;
-  margin: 4px !important;
-  padding: 6px 12px !important;
-  border-radius: 4px !important;
-  text-transform: none !important;
+.rbc-toolbar .MuiButton-root {
+  min-width: 0;
+  min-height: 36px;
+  padding: 0.35rem 0.65rem;
+  border-color: #c8c1b4;
+  border-radius: 2px !important;
+  color: #3f4945;
+  font-size: 0.72rem;
 }
 
-.filter-buttons .MuiButton-root:hover {
-  background-color: #303f9f !important;
+.rbc-toolbar .MuiButton-root:hover,
+.rbc-toolbar .MuiButton-root.filter-active {
+  border-color: #173f36;
+  background: #173f36;
+  color: #fffdf7;
 }
 
-/* Media Query for larger screens */
-@media (min-width: 830px) {
+@media (max-width: 940px) {
   .rbc-toolbar {
-    flex-direction: row;
-    justify-content: space-between;
+    grid-template-columns: 1fr;
   }
 
-  .toolbar-section {
-    width: auto;
-    margin-bottom: 0;
+  .rbc-toolbar-label {
+    grid-row: 1;
   }
 
-  .filter-buttons {
-    width: auto;
+  .filter-buttons .MuiButtonGroup-root {
+    display: flex;
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .filter-buttons .MuiButton-root {
+    flex: 0 0 auto;
   }
 }

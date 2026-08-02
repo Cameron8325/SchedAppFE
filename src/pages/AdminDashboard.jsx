@@ -17,7 +17,7 @@ import {
   Badge,
   CircularProgress,
 } from "@mui/material";
-import axios from "axios";
+import api from "../api/client";
 import moment from "moment";
 import CustomModal from "../components/modal/CustomModal";
 import UserSearch from "../components/adminDash/UserSearch";
@@ -91,9 +91,10 @@ function AdminDashboard() {
   const [flagReason, setFlagReason] = useState("");
   const [modalStep, setModalStep] = useState(1); // Track the steps of the modal
 
-  // Error Modal states
+  // Notice/Error Modal states
   const [errorModalIsOpen, setErrorModalIsOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [errorModalTitle, setErrorModalTitle] = useState("Error");
 
   const [selectedWalkIn, setSelectedWalkIn] = useState({
     first_name: "",
@@ -111,9 +112,10 @@ function AdminDashboard() {
     setReasonModalIsOpen(true);
   };
 
-  // Error modal handler
-  const showErrorModal = (message) => {
+  // Notice/Error modal handler
+  const showErrorModal = (message, title = "Error") => {
     setErrorMessage(message);
+    setErrorModalTitle(title);
     setErrorModalIsOpen(true);
   };
 
@@ -126,9 +128,7 @@ function AdminDashboard() {
   const fetchAppointments = useCallback(async () => {
     setLoading(true); // Start loading before data fetch
     try {
-      const response = await axios.get(
-        "http://localhost:8000/api/appointments/"
-      );
+      const response = await api.get("/api/appointments/");
       const sortedAppointments = response.data.sort(
         (a, b) => new Date(a.date) - new Date(b.date)
       );
@@ -186,8 +186,8 @@ function AdminDashboard() {
 
   const handleSubmitFlag = async () => {
     try {
-      await axios.post(
-        `http://localhost:8000/api/admin-panel/appointments/${selectedAppointmentId}/flag/`,
+      await api.post(
+        `/api/admin-panel/appointments/${selectedAppointmentId}/flag/`,
         { reason: flagReason }
       );
   
@@ -207,9 +207,7 @@ function AdminDashboard() {
   const fetchAvailableDays = useCallback(async () => {
     setLoading(true); // Start loading before fetching available days
     try {
-      const response = await axios.get(
-        "http://localhost:8000/api/available-days/"
-      );
+      const response = await api.get("/api/available-days/");
       const data = response.data;
       const sortedData = data.sort((a, b) =>
         moment(a.date).diff(moment(b.date))
@@ -257,13 +255,12 @@ function AdminDashboard() {
   // Handle status change of appointments
   const handleStatusChange = async (id, status) => {
     try {
-      await axios.post(
-        `http://localhost:8000/api/admin-panel/appointments/${id}/${status}/`
-      );
+      await api.post(`/api/admin-panel/appointments/${id}/${status}/`);
       fetchAppointments(); // Refresh appointments
     } catch (error) {
       showErrorModal(
-        `Error updating appointment to ${status}. Please try again later.`
+        error.response?.data?.error ||
+          `Error updating appointment to ${status}. Please try again later.`
       );
       console.error(`Error updating appointment to ${status}:`, error);
     }
@@ -271,6 +268,10 @@ function AdminDashboard() {
 
   // Handle marking days as available
   const markAvailable = async () => {
+    if (!startDate || !dayType) {
+      showErrorModal("Please choose a start date and a day type first.");
+      return;
+    }
     try {
       const start = moment(startDate);
       const end = endDate ? moment(endDate) : start;
@@ -283,14 +284,11 @@ function AdminDashboard() {
         return;
       }
 
-      await axios.post(
-        "http://localhost:8000/api/admin-panel/set-availability/",
-        {
-          start_date: startDate,
-          end_date: endDate || startDate,
-          type: dayType,
-        }
-      );
+      await api.post("/api/admin-panel/set-availability/", {
+        start_date: startDate,
+        end_date: endDate || startDate,
+        type: dayType,
+      });
 
       setModalTitle("Availability");
       setModalDescription("Availability updated successfully.");
@@ -302,7 +300,10 @@ function AdminDashboard() {
       setEndDate("");
       setDayType("");
     } catch (error) {
-      showErrorModal("Error updating availability. Please try again later.");
+      showErrorModal(
+        error.response?.data?.error ||
+          "Error updating availability. Please try again later."
+      );
       console.error("Error updating availability:", error);
     }
   };
@@ -310,22 +311,13 @@ function AdminDashboard() {
   // Handle removal of availability
   const handleRemoveAvailable = async () => {
     try {
-      if (selectedDates.length === 1) {
-        const apiFormattedDate = moment(selectedDates[0], "MM/DD/YYYY").format(
+      for (let date of selectedDates) {
+        const apiFormattedDate = moment(date, "MM/DD/YYYY").format(
           "YYYY-MM-DD"
         );
-        await axios.delete(
-          `http://localhost:8000/api/admin-panel/remove-availability/?start_date=${apiFormattedDate}&end_date=${apiFormattedDate}`
+        await api.delete(
+          `/api/admin-panel/remove-availability/?start_date=${apiFormattedDate}&end_date=${apiFormattedDate}`
         );
-      } else {
-        for (let date of selectedDates) {
-          const apiFormattedDate = moment(date, "MM/DD/YYYY").format(
-            "YYYY-MM-DD"
-          );
-          await axios.delete(
-            `http://localhost:8000/api/admin-panel/remove-availability/?start_date=${apiFormattedDate}&end_date=${apiFormattedDate}`
-          );
-        }
       }
 
       setModalTitle("Availability");
@@ -334,8 +326,13 @@ function AdminDashboard() {
       setModalIsOpen(true);
       fetchAvailableDays(); // Refresh available days
     } catch (error) {
-      showErrorModal("Error removing available days. Please try again later.");
+      setModalIsOpen(false);
+      showErrorModal(
+        error.response?.data?.error ||
+          "Error removing available days. Please try again later."
+      );
       console.error("Error removing available days:", error);
+      fetchAvailableDays();
     }
   };
 
@@ -448,14 +445,11 @@ function AdminDashboard() {
           const apiFormattedDate = moment(item.date, "MM/DD/YYYY").format(
             "YYYY-MM-DD"
           );
-          await axios.post(
-            `http://localhost:8000/api/admin-panel/set-availability/`,
-            {
-              start_date: apiFormattedDate,
-              end_date: apiFormattedDate,
-              type: item.newType,
-            }
-          );
+          await api.post(`/api/admin-panel/set-availability/`, {
+            start_date: apiFormattedDate,
+            end_date: apiFormattedDate,
+            type: item.newType,
+          });
         }
       }
 
@@ -517,13 +511,14 @@ function AdminDashboard() {
         return;
       }
 
-      const response = await axios.post(
-        `http://localhost:8000/api/admin-panel/update-tokens/${selectedUser.id}/`,
-        { tokens: parseInt(selectedUserTokens) } // Ensure it's an integer
+      const response = await api.post(
+        `/api/admin-panel/update-tokens/${selectedUser.id}/`,
+        { tokens: parseInt(selectedUserTokens, 10) } // Ensure it's an integer
       );
 
       if (response.status === 200) {
-        showErrorModal("Tokens updated successfully.");
+        setUserDetailsModalIsOpen(false);
+        showErrorModal("Tokens updated successfully.", "Success");
       }
     } catch (error) {
       console.error("Error updating tokens:", error.response?.data || error);
@@ -565,10 +560,19 @@ function AdminDashboard() {
   }
 
   return (
-    <Container sx={{ marginTop: "2vh" }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Admin Dashboard
-      </Typography>
+    <Container className="tea-admin-shell">
+      <header className="tea-admin-heading">
+        <div>
+          <p className="tea-kicker" style={{ color: "#B33A24" }}>Owner operations</p>
+          <Typography variant="h3" component="h1" sx={{ mt: 1, fontSize: { xs: '2.4rem', md: '3.7rem' } }}>
+            Today at the tea table.
+          </Typography>
+        </div>
+        <div className="tea-admin-heading__status" aria-label="Appointment overview">
+          <span><strong>{incomingRequests.length}</strong>Awaiting review</span>
+          <span><strong>{flaggedRequests.length}</strong>Need attention</span>
+        </div>
+      </header>
 
       {/* Tabs Section */}
       <Box mt={2} mb={3}>
@@ -683,7 +687,7 @@ function AdminDashboard() {
       </Box>
 
       {/* Content Section */}
-      <Box p={3}>
+      <Box className="tea-admin-content">
         {selectedTab === 0 && (
           <>
             <Box mb={3}>
@@ -958,11 +962,11 @@ function AdminDashboard() {
         )}
       </CustomModal>
 
-      {/* Error Modal */}
+      {/* Notice/Error Modal */}
       <CustomModal
         open={errorModalIsOpen}
         onClose={() => setErrorModalIsOpen(false)}
-        title="Error"
+        title={errorModalTitle}
         description={errorMessage}
         isConfirmVisible={false} // No need for a confirm button
       />

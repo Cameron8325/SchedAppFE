@@ -89,7 +89,11 @@ const AvailabilitySection = ({
         <Typography variant="h5" component="h2" gutterBottom sx={{ color: '#4A4A48' }}>
           Available Days
         </Typography>
-        {!isMobile ? (
+        {availableDays.length === 0 ? (
+          <Typography variant="body1" sx={{ color: '#4A4A48', py: 2 }}>
+            No available days scheduled. Use the form above to open days for booking.
+          </Typography>
+        ) : !isMobile ? (
           <Table style={{ tableLayout: 'fixed', marginBottom: '2rem' }}>
             <TableHead>
               <TableRow>

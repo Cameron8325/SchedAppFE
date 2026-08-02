@@ -2,12 +2,19 @@ import React from "react";
 import { ButtonGroup, Button } from "@mui/material";
 import './customToolbar.css';
 
-const CustomToolbar = ({ label, onNavigate, handleDayTypeChange }) => {
+const FILTERS = [
+  { value: "all", label: "All" },
+  { value: "tea_tasting", label: "Tea Tasting" },
+  { value: "intro_gongfu", label: "Intro to Gongfu" },
+  { value: "guided_meditation", label: "Guided Meditation" },
+];
+
+const CustomToolbar = ({ label, onNavigate, handleDayTypeChange, activeDayType = "all" }) => {
   return (
     <div className="rbc-toolbar">
       {/* Navigation Buttons */}
       <span className="rbc-btn-group navigation-buttons">
-        <ButtonGroup>
+        <ButtonGroup aria-label="calendar navigation">
           <Button onClick={() => onNavigate("PREV")} sx={{ textTransform: 'none'}}>Back</Button>
           <Button onClick={() => onNavigate("TODAY")} sx={{ textTransform: 'none'}}>Today</Button>
           <Button onClick={() => onNavigate("NEXT")} sx={{ textTransform: 'none'}}>Next</Button>
@@ -19,17 +26,17 @@ const CustomToolbar = ({ label, onNavigate, handleDayTypeChange }) => {
 
       {/* Filter Buttons */}
       <span className="rbc-btn-group filter-buttons">
-        <ButtonGroup color="primary">
-          <Button sx={{ textTransform: 'none' }} onClick={() => handleDayTypeChange("all")}>All</Button>
-          <Button sx={{ textTransform: 'none' }} onClick={() => handleDayTypeChange("tea_tasting")}>
-            Tea Tasting
-          </Button>
-          <Button sx={{ textTransform: 'none' }} onClick={() => handleDayTypeChange("intro_gongfu")}>
-            Intro to Gongfu
-          </Button>
-          <Button sx={{ textTransform: 'none' }} onClick={() => handleDayTypeChange("guided_meditation")}>
-            Guided Meditation
-          </Button>
+        <ButtonGroup color="primary" aria-label="filter by session type">
+          {FILTERS.map((filter) => (
+            <Button
+              key={filter.value}
+              className={activeDayType === filter.value ? "filter-active" : ""}
+              sx={{ textTransform: 'none' }}
+              onClick={() => handleDayTypeChange(filter.value)}
+            >
+              {filter.label}
+            </Button>
+          ))}
         </ButtonGroup>
       </span>
     </div>

@@ -1,67 +1,70 @@
-.container {
-  background-color: #F0E5D8;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border: 2px solid #8B5E3C;
-}
-
-.calendar {
-  border: 1px solid #8B5E3C;
-  border-radius: 8px;
-  background-color: #fff;
-}
-
 .rbc-calendar {
-  font-family: 'Roboto', sans-serif;
+  color: #17201d;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
 }
 
 .rbc-month-view {
-  background-color: #A4B494;
+  border-color: #d7d1c4;
+  background: #fffdf7;
 }
 
 .rbc-header {
-  background-color: #4A4A48;
-  color: #fff;
-  padding: 10px;
-  font-weight: bold;
+  padding: 0.8rem 0.4rem;
+  border-color: #d7d1c4;
+  background: #173f36;
+  color: #fffdf7;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.rbc-day-bg + .rbc-day-bg,
+.rbc-month-row + .rbc-month-row {
+  border-color: #e2ddd2;
+}
+
+.rbc-off-range-bg {
+  background: #eeeae1;
 }
 
 .rbc-today {
-  background-color: #E3F2FD;
+  background: #f5e8dc;
+}
+
+.rbc-date-cell {
+  padding: 0.45rem 0.55rem 0;
+  color: #58625e;
+  font-size: 0.8rem;
 }
 
 .rbc-event {
+  padding: 0.25rem 0.45rem;
+  border: 0;
+  border-radius: 2px;
   color: #fff;
-  border-radius: 4px;
-  padding: 4px 8px;
-  /* background-color: #8B5E3C !important; */
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
-.rbc-toolbar {
-  margin-bottom: 1rem;
-  padding: 8px 16px;
-  background-color: #F0E5D8;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.rbc-toolbar .rbc-btn-group button {
-  background-color: #8B5E3C;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  cursor: pointer;
-  margin: 0 5px;
-  border-radius: 4px;
-  transition: background-color 0.3s ease;
-}
-
-.rbc-toolbar .rbc-btn-group button:hover {
-  background-color: #303f9f;
+.rbc-event:focus {
+  outline: 2px solid #17201d;
+  outline-offset: 1px;
 }
 
 .rbc-show-more {
-  background-color: #C2A773;
-  color: #fff;
+  color: #862718;
+  background: transparent;
+  font-weight: 700;
+}
+
+@media (max-width: 700px) {
+  .rbc-event {
+    padding: 2px 3px;
+    font-size: 0.62rem;
+  }
+
+  .rbc-date-cell {
+    padding-right: 3px;
+    font-size: 0.7rem;
+  }
 }

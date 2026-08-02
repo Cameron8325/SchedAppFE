@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/client';
 import { Container, Typography, Button, Alert, Box, TextField } from '@mui/material';
 
 const EmailConfirmed = () => {
@@ -14,7 +14,7 @@ const EmailConfirmed = () => {
   useEffect(() => {
     const verifyEmail = async () => {
       try {
-        const response = await axios.get(`http://localhost:8000/api/users/verify/${uid}/${token}/`);  // Use the uid and token from the URL
+        const response = await api.get(`/api/users/verify/${uid}/${token}/`);  // Use the uid and token from the URL
         if (response.data.message) {
           setStatusMessage('Your email has been verified. You can now log in.');
           setIsVerified(true);
@@ -37,7 +37,7 @@ const EmailConfirmed = () => {
       return;
     }
     try {
-      const response = await axios.post('http://localhost:8000/api/users/resend-verification-email/', {
+      const response = await api.post('/api/users/resend-verification-email/', {
         email: emailInput,  // Send the entered email
       });
       if (response.data.message) {

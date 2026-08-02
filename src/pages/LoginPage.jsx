@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { Container, TextField, Button, Typography, Box, Grid, CircularProgress, Alert } from '@mui/material';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api/client';
 
 function LoginPage() {
     const [usernameEmail, setUsernameEmail] = useState('');
@@ -40,7 +40,7 @@ function LoginPage() {
 
     const resendVerificationEmail = async () => {
         try {
-            const response = await axios.post('http://localhost:8000/api/users/resend-verification-email/', {
+            const response = await api.post('/api/users/resend-verification-email/', {
                 email: usernameEmail  // 'usernameEmail' can be either email or username
             });
             if (response.data.message) {

@@ -9,10 +9,16 @@ import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import "moment-timezone";
 import "react-big-calendar/lib/css/react-big-calendar.css";
-import { Container, Typography, CircularProgress} from "@mui/material"; 
-import axios from "axios";
+import {
+  Container,
+  Typography,
+  CircularProgress,
+  Box,
+  Alert,
+} from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
-import { AuthContext } from "../../context/AuthContext"; // Import AuthContext
+import api from "../../api/client";
+import { AuthContext } from "../../context/AuthContext";
 import CustomModal from "../../components/modal/CustomModal";
 import CustomToolbar from "../../components/calendar/customToolbar";
 import "./AppointmentsPage.css";
@@ -23,8 +29,21 @@ function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
 
+const getBackgroundColor = (type) => {
+  switch (type) {
+    case "tea_tasting":
+      return "#5B3758"; // muted plum
+    case "intro_gongfu":
+      return "#A04E2E"; // terracotta
+    case "guided_meditation":
+      return "#495C8D"; // subdued indigo
+    default:
+      return "#4A6A8F"; // desaturated blue
+  }
+};
+
 function AppointmentsPage() {
-  const { user, isSuperUser } = useContext(AuthContext); // Access user and isSuperUser from context
+  const { user, isSuperUser } = useContext(AuthContext);
   const [events, setEvents] = useState([]);
   const [filteredEvents, setFilteredEvents] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
@@ -34,14 +53,16 @@ function AppointmentsPage() {
   const [isConfirmVisible, setIsConfirmVisible] = useState(true);
   const [confirmButtonText, setConfirmButtonText] = useState("Confirm");
   const [selectedDayType, setSelectedDayType] = useState("all");
-  const [loading, setLoading] = useState(false);  // Declare loading state
+  const [loading, setLoading] = useState(false); // reserve action in flight
+  const [fetching, setFetching] = useState(true); // calendar data loading
+  const [fetchError, setFetchError] = useState("");
   const [walkInDetails, setWalkInDetails] = useState({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
-  }); // State for walk-in details
-  const [isReservationStep, setIsReservationStep] = useState(false); // New state to track the reservation step
+  });
+  const [isReservationStep, setIsReservationStep] = useState(false);
 
   const dayTypeMap = useMemo(
     () => ({
@@ -55,70 +76,52 @@ function AppointmentsPage() {
   const query = useQuery();
   const navigate = useNavigate();
 
-  
-
-  const fetchAppointmentsAndAvailableDays = useCallback(async () => {
+  const fetchAvailableDays = useCallback(async () => {
+    setFetching(true);
+    setFetchError("");
     try {
-      // Fetch appointments and available days without authentication
-      const appointmentsResponse = await axios.get(
-        "http://localhost:8000/api/appointments/"
-      );
-      const availableDaysResponse = await axios.get(
-        "http://localhost:8000/api/available-days/"
-      );
+      // The server returns each available day with its remaining spots, so no
+      // appointment data (or PII) is needed on the public calendar.
+      const response = await api.get("/api/available-days/");
 
-      const appointmentsData = appointmentsResponse.data;
-      const availableDaysData = availableDaysResponse.data;
-
-      // Process and combine appointments and available days
-      const groupedAppointments = appointmentsData.reduce(
-        (acc, appointment) => {
-          const date = moment(appointment.date)
-            .startOf("day")
-            .format("YYYY-MM-DD");
-          if (!acc[date]) acc[date] = [];
-          acc[date].push(appointment);
-          return acc;
-        },
-        {}
-      );
-
-      const eventsData = availableDaysData.flatMap((day) => {
-        const date = moment(day.date).startOf("day").format("YYYY-MM-DD");
-        const appointments = groupedAppointments[date] || [];
-        const spotsLeft = 4 - appointments.length;
-        const dayType = dayTypeMap[day.type];
-
+      const eventsData = response.data.flatMap((day) => {
+        const start = moment(day.date).startOf("day").toDate();
+        const spotsLeft = day.spots_left;
         return [
           {
-            start: moment(day.date).toDate(),
-            end: moment(day.date).toDate(),
-            title: dayType,
+            start,
+            end: start,
+            title: dayTypeMap[day.type] || day.type,
             allDay: true,
             backgroundColor: getBackgroundColor(day.type),
             type: day.type,
           },
           {
-            start: moment(day.date).toDate(),
-            end: moment(day.date).toDate(),
+            start,
+            end: start,
             title: spotsLeft === 0 ? "Fully Booked" : `${spotsLeft} spots left`,
             allDay: true,
             backgroundColor: spotsLeft === 0 ? "#546E7A" : "#3174ad",
             type: null,
+            spotsLeft,
           },
         ];
       });
 
       setEvents(eventsData);
-      setFilteredEvents(eventsData);
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error("Error fetching available days:", error);
+      setFetchError(
+        "We couldn't load the appointment calendar. Please refresh the page or try again later."
+      );
+    } finally {
+      setFetching(false);
     }
   }, [dayTypeMap]);
 
   useEffect(() => {
-    fetchAppointmentsAndAvailableDays();
-  }, [fetchAppointmentsAndAvailableDays]);
+    fetchAvailableDays();
+  }, [fetchAvailableDays]);
 
   useEffect(() => {
     const dayTypeQuery = query.get("dayType");
@@ -133,10 +136,7 @@ function AppointmentsPage() {
         (event) => event.type === selectedDayType
       );
       const spotsLeftEvents = events
-        .filter(
-          (event) =>
-            event.title.includes("spots left") || event.title === "Fully Booked"
-        )
+        .filter((event) => event.type === null)
         .filter((event) =>
           dayTypeEvents.some((dayEvent) =>
             moment(dayEvent.start).isSame(event.start, "day")
@@ -146,17 +146,12 @@ function AppointmentsPage() {
     }
   }, [selectedDayType, events]);
 
-  const getBackgroundColor = (type) => {
-    switch (type) {
-      case "tea_tasting":
-        return "#5B3758"; // Muted plum
-      case "intro_gongfu":
-        return "#A04E2E"; // Sage green
-      case "guided_meditation":
-        return "#495C8D"; // Subdued indigo
-      default:
-        return "#4A6A8F"; // Desaturated blue
-    }
+  const showInfoModal = (title, message) => {
+    setModalTitle(title);
+    setModalMessage(message);
+    setIsConfirmVisible(false);
+    setIsReservationStep(false);
+    setModalIsOpen(true);
   };
 
   const handleSelectSlot = ({ start }) => {
@@ -164,22 +159,18 @@ function AppointmentsPage() {
     const selected = moment(start).startOf("day");
 
     if (!user) {
-      setModalTitle("Authentication Required");
-      setModalMessage("Please log in or register to reserve an appointment.");
-      setIsConfirmVisible(false);
-      setIsReservationStep(false); // Not a reservation step
-      setModalIsOpen(true);
+      showInfoModal(
+        "Authentication Required",
+        "Please log in or register to reserve an appointment."
+      );
       return;
     }
 
-    if (selected.isBefore(today)) {
-      setModalTitle("Invalid Selection");
-      setModalMessage(
-        "You cannot select today or past dates for appointments."
+    if (selected.isSameOrBefore(today)) {
+      showInfoModal(
+        "Invalid Selection",
+        "Appointments must be booked at least one day in advance."
       );
-      setIsConfirmVisible(false);
-      setIsReservationStep(false); // Not a reservation step
-      setModalIsOpen(true);
       return;
     }
 
@@ -188,11 +179,10 @@ function AppointmentsPage() {
     );
 
     if (!selectedEvent) {
-      setModalTitle("Unavailable Date");
-      setModalMessage("The selected date is not available for appointments.");
-      setIsConfirmVisible(false);
-      setIsReservationStep(false); // Not a reservation step
-      setModalIsOpen(true);
+      showInfoModal(
+        "Unavailable Date",
+        "The selected date is not available for appointments."
+      );
       return;
     }
 
@@ -203,138 +193,165 @@ function AppointmentsPage() {
     );
 
     if (isFullyBooked) {
-      setModalTitle("Fully Booked");
-      setModalMessage(
+      showInfoModal(
+        "Fully Booked",
         "Sorry, this date is fully booked. Please choose another date."
       );
-      setIsConfirmVisible(false);
-      setIsReservationStep(false); // Not a reservation step
-      setModalIsOpen(true);
       return;
     }
 
     // Valid reservation step
     setSelectedDate(start);
-    setModalTitle("Reserve Appointment");
+    setModalTitle(isSuperUser ? "Reserve Walk-In Appointment" : "Reserve Appointment");
     setModalMessage(
-      `Would you like to reserve your appointment for ${start.toDateString()}?`
+      isSuperUser
+        ? `Enter the walk-in guest's details to reserve ${selected.format(
+            "MMMM Do, YYYY"
+          )} (${dayTypeMap[selectedEvent.type]}).`
+        : `Would you like to request an appointment for ${selected.format(
+            "MMMM Do, YYYY"
+          )} (${dayTypeMap[selectedEvent.type]})?`
     );
     setIsConfirmVisible(true);
     setConfirmButtonText("Confirm");
-    setIsReservationStep(true); // This is now a valid reservation step
+    setIsReservationStep(true);
     setModalIsOpen(true);
   };
 
   const handleReserve = async () => {
-    // Check if walk-in details are missing for super users
     if (
       isSuperUser &&
-      (!walkInDetails.firstName || !walkInDetails.lastName || !walkInDetails.email || !walkInDetails.phone)
+      (!walkInDetails.firstName ||
+        !walkInDetails.lastName ||
+        !walkInDetails.email ||
+        !walkInDetails.phone)
     ) {
-      // If any field is missing, show a modal informing the user
-      setModalTitle("Missing Information");
-      setModalMessage("Please fill out all walk-in details before submitting the reservation.");
-      setIsConfirmVisible(false);
-      setModalIsOpen(true);
+      showInfoModal(
+        "Missing Information",
+        "Please fill out all walk-in details before submitting the reservation."
+      );
       return;
     }
-  
-    setLoading(true); // Show loading spinner on reserve action
+
+    setLoading(true);
     try {
-      if (isSuperUser) {
-        const walkInEvent = {
-          walk_in_first_name: walkInDetails.firstName,
-          walk_in_last_name: walkInDetails.lastName,
-          walk_in_email: walkInDetails.email,
-          walk_in_phone: walkInDetails.phone,
-          date: moment(selectedDate).format("YYYY-MM-DD"),
-          status: "pending",
-        };
-  
-        await axios.post("http://localhost:8000/api/appointments/", walkInEvent, {
-          withCredentials: true,
-        });
-      } else if (user) {
-        const newEvent = {
-          user: user.id,
-          date: moment(selectedDate).format("YYYY-MM-DD"),
-          status: "pending",
-        };
-  
-        await axios.post("http://localhost:8000/api/appointments/", newEvent, {
-          withCredentials: true,
-        });
-      }
-  
-      await fetchAppointmentsAndAvailableDays(); // Refresh events after booking
-      setModalTitle("Appointment Confirmed");
-      setModalMessage("Your appointment has been confirmed! We've sent a reminder to your email.");
-      setIsConfirmVisible(false);
+      const payload = isSuperUser
+        ? {
+            walk_in_first_name: walkInDetails.firstName,
+            walk_in_last_name: walkInDetails.lastName,
+            walk_in_email: walkInDetails.email,
+            walk_in_phone: walkInDetails.phone,
+            date: moment(selectedDate).format("YYYY-MM-DD"),
+          }
+        : {
+            date: moment(selectedDate).format("YYYY-MM-DD"),
+          };
+
+      await api.post("/api/appointments/", payload);
+
+      await fetchAvailableDays();
+      setWalkInDetails({ firstName: "", lastName: "", email: "", phone: "" });
+      showInfoModal(
+        "Request Submitted",
+        "Your appointment request has been submitted and is pending approval. We'll email you once it's confirmed."
+      );
     } catch (error) {
-      console.error("Error:", error.response ? error.response.data : error.message);
-      setModalTitle("Error");
-      setModalMessage("Something went wrong. Please try to reserve your appointment again.");
-      setIsConfirmVisible(false);
+      const serverMessage = error.response?.data?.error;
+      showInfoModal(
+        "Unable to Reserve",
+        serverMessage ||
+          "Something went wrong. Please try to reserve your appointment again."
+      );
     } finally {
-      setLoading(false); // Hide loading spinner after request
+      setLoading(false);
     }
   };
-  
 
   return (
-    <Container>
-      <Typography
-        variant="h4"
-        component="h1"
-        gutterBottom
-        sx={{ marginTop: "2vh" }}
-      >
-        Schedule an Appointment
-      </Typography>
+    <Container className="tea-calendar-shell">
+      <header className="tea-page-heading">
+        <div>
+          <p className="tea-kicker" style={{ color: "#B33A24" }}>Reservations</p>
+          <Typography variant="h2" component="h1" sx={{ mt: 1, fontSize: { xs: '2.7rem', md: '4.6rem' }, lineHeight: 1 }}>
+            Find your seat.
+          </Typography>
+        </div>
+        <p>
+          Open dates show the session and remaining capacity. Choose a day to
+          request one of four seats at the table.
+        </p>
+      </header>
 
-      <Calendar
-        localizer={localizer}
-        events={filteredEvents}
-        views={["month"]}
-        startAccessor="start"
-        endAccessor="end"
-        selectable
-        onSelectSlot={handleSelectSlot}
-        onSelectEvent={handleSelectSlot}
-        style={{ height: 500 }}
-        eventPropGetter={(event) => ({
-          style: { backgroundColor: event.backgroundColor },
-        })}
-        longPressThreshold={1}
-        components={{
-          toolbar: (props) => (
-            <CustomToolbar
-              {...props}
-              handleDayTypeChange={(type) =>
-                navigate(`/appointments?dayType=${type}`)
-              }
+      {fetchError && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {fetchError}
+        </Alert>
+      )}
+
+      {fetching ? (
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <>
+          {events.length === 0 && !fetchError && (
+            <Alert severity="info" sx={{ mb: 2 }}>
+              No available days have been posted yet. Please check back soon.
+            </Alert>
+          )}
+          <div className="tea-calendar-frame">
+            <Calendar
+              localizer={localizer}
+              events={filteredEvents}
+              views={["month"]}
+              startAccessor="start"
+              endAccessor="end"
+              selectable
+              onSelectSlot={handleSelectSlot}
+              onSelectEvent={handleSelectSlot}
+              style={{ height: 620 }}
+              eventPropGetter={(event) => ({
+                style: { backgroundColor: event.backgroundColor },
+              })}
+              longPressThreshold={1}
+              components={{
+                toolbar: (props) => (
+                  <CustomToolbar
+                    {...props}
+                    activeDayType={selectedDayType}
+                    handleDayTypeChange={(type) =>
+                      navigate(
+                        type === "all"
+                          ? "/appointments"
+                          : `/appointments?dayType=${type}`
+                      )
+                    }
+                  />
+                ),
+              }}
             />
-          ),
-        }}
+          </div>
+        </>
+      )}
+
+      <CustomModal
+        open={modalIsOpen}
+        onClose={() => setModalIsOpen(false)}
+        title={modalTitle}
+        description={modalMessage}
+        onConfirm={handleReserve}
+        isConfirmVisible={isConfirmVisible}
+        confirmButtonText={
+          loading ? <CircularProgress size={20} /> : confirmButtonText
+        }
+        confirmButtonDisabled={loading}
+        isSuperUser={isSuperUser}
+        isReservationStep={isReservationStep}
+        walkInDetails={walkInDetails}
+        handleWalkInInputChange={(field, value) =>
+          setWalkInDetails({ ...walkInDetails, [field]: value })
+        }
       />
-
-<CustomModal
-  open={modalIsOpen}
-  onClose={() => setModalIsOpen(false)}
-  title={modalTitle}
-  description={modalMessage}
-  onConfirm={handleReserve}
-  isConfirmVisible={isConfirmVisible}
-  confirmButtonText={loading ? <CircularProgress size={20} /> : confirmButtonText} // Show spinner while loading
-  confirmButtonDisabled={loading} // Disable confirm button while loading
-  isSuperUser={isSuperUser} 
-  isReservationStep={isReservationStep}
-  walkInDetails={walkInDetails}
-  handleWalkInInputChange={(field, value) =>
-    setWalkInDetails({ ...walkInDetails, [field]: value })
-  }
-/>
-
     </Container>
   );
 }

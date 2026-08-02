@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom'; // Import useNavigate
 import { Container, TextField, Button, Typography, Box, Grid } from '@mui/material';
-import axios from 'axios';
+import api from '../api/client';
 
 function PasswordResetPage() {
     const { uidb64, token } = useParams();
@@ -19,24 +19,15 @@ function PasswordResetPage() {
         }
     
         try {
-            const response = await axios.post(
-                `http://localhost:8000/api/users/reset/${uidb64}/${token}/`,
+            await api.post(
+                `/api/users/reset/${uidb64}/${token}/`,
                 {
                     new_password1: newPassword,
                     new_password2: confirmPassword,
-                },
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
                 }
             );
             setMessage('Password reset successful. You can now log in.');
             setSuccess(true);
-
-            // Clear any stored tokens if necessary
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
 
             // Redirect to the login page after 3 seconds
             setTimeout(() => {
@@ -122,8 +113,7 @@ function PasswordResetPage() {
                 {/* Error/Success Message */}
                 {message && (
                     <Typography
-                        color={success ? "success" : "error"}
-                        sx={{ marginTop: '1rem' }}
+                        sx={{ marginTop: '1rem', color: success ? 'success.main' : 'error.main' }}
                     >
                         {message}
                         {success && (

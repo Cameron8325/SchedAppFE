@@ -9,7 +9,7 @@ import {
   Box,
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api/client";
 
 function AccountDeletionConfirm() {
   const { uidb64, token } = useParams();
@@ -22,8 +22,8 @@ function AccountDeletionConfirm() {
   const handleAccountDeletion = async () => {
     setIsDeleting(true);
     try {
-      await axios.post(
-        `http://localhost:8000/api/users/account-deletion-confirm/${uidb64}/${token}/`
+      await api.post(
+        `/api/users/account-deletion-confirm/${uidb64}/${token}/`
       );
 
       setSnackbarMessage("Your account has been deleted successfully. You will be automatically redirected.");

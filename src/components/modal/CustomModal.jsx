@@ -11,6 +11,7 @@ function CustomModal({
   onConfirm,
   isConfirmVisible,
   confirmButtonText,
+  confirmButtonDisabled,
   dateList,
   selectedDates,
   handleDateSelection,
@@ -145,6 +146,7 @@ function CustomModal({
             />
             <TextField
               label="Email"
+              type="email"
               value={walkInDetails.email}
               onChange={(e) => handleWalkInInputChange('email', e.target.value)}
               fullWidth
@@ -152,6 +154,7 @@ function CustomModal({
             />
             <TextField
               label="Phone"
+              type="tel"
               value={walkInDetails.phone}
               onChange={(e) => handleWalkInInputChange('phone', e.target.value)}
               fullWidth
@@ -169,6 +172,7 @@ function CustomModal({
                 <Button
                   variant="contained"
                   onClick={onConfirm}
+                  disabled={confirmButtonDisabled}
                   sx={{
                     backgroundColor: '#8B5E3C',
                     color: '#FFF',

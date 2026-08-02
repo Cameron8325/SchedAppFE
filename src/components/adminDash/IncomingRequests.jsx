@@ -35,7 +35,11 @@ const IncomingRequests = ({
       >
         Incoming Requests
       </Typography>
-      {!isMobile ? (
+      {incomingRequests.length === 0 ? (
+        <Typography variant="body1" sx={{ color: '#4A4A48', py: 2 }}>
+          No incoming requests right now.
+        </Typography>
+      ) : !isMobile ? (
         <Table style={{ tableLayout: 'fixed' }}>
           <TableHead>
             <TableRow>
