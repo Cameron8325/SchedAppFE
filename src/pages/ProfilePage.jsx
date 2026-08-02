@@ -33,7 +33,7 @@ function TabPanel(props) {
       aria-labelledby={`profile-tab-${index}`}
       {...other}
     >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+      {value === index && <Box sx={{ px: { xs: 0, sm: 3 }, py: { xs: 2, sm: 3 } }}>{children}</Box>}
     </div>
   );
 }
@@ -267,12 +267,12 @@ function ProfilePage() {
   };
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
+    <Container maxWidth="md" className="tea-profile-shell" sx={{ mt: { xs: 2, sm: 4 }, mb: 4 }}>
     <Typography
       variant="h4"
       component="h1"
       align="center"
-      sx={{ color: "#333333", mb: 3 }}
+      sx={{ color: "#333333", mb: { xs: 2, sm: 3 }, fontSize: { xs: '2rem', sm: '2.4rem' } }}
     >
       Profile Overview
     </Typography>
@@ -285,8 +285,10 @@ function ProfilePage() {
         backgroundColor: "#F9F6F3",
         borderRadius: 2,
         boxShadow: 2,
-        p: 3,
+        p: { xs: 2, sm: 3 },
         mb: 3,
+        gap: 2,
+        flexWrap: "wrap",
       }}
     >
       <Box>
@@ -306,21 +308,23 @@ function ProfilePage() {
       value={tabIndex}
       onChange={handleTabChange}
       aria-label="profile tabs"
-      centered
+      centered={!isMobile}
+      variant={isMobile ? "fullWidth" : "standard"}
       sx={{
         ".MuiTabs-indicator": {
           backgroundColor: "#8B5E3C",
         },
         mb: 3,
+        minHeight: { xs: 44, sm: 48 },
       }}
     >
-      <Tab label="Account" sx={{ color: tabIndex === 0 ? "#8B5E3C" : "#4A4A48" }} />
-      <Tab label="Appointments" sx={{ color: tabIndex === 1 ? "#8B5E3C" : "#4A4A48" }} />
-      <Tab label="Settings" sx={{ color: tabIndex === 2 ? "#8B5E3C" : "#4A4A48" }} />
+      <Tab label="Account" sx={{ minWidth: 0, px: { xs: 0.5, sm: 2 }, fontSize: { xs: '0.72rem', sm: '0.875rem' }, color: tabIndex === 0 ? "#8B5E3C" : "#4A4A48" }} />
+      <Tab label="Appointments" sx={{ minWidth: 0, px: { xs: 0.5, sm: 2 }, fontSize: { xs: '0.72rem', sm: '0.875rem' }, color: tabIndex === 1 ? "#8B5E3C" : "#4A4A48" }} />
+      <Tab label="Settings" sx={{ minWidth: 0, px: { xs: 0.5, sm: 2 }, fontSize: { xs: '0.72rem', sm: '0.875rem' }, color: tabIndex === 2 ? "#8B5E3C" : "#4A4A48" }} />
     </Tabs>
   
     <TabPanel value={tabIndex} index={0}>
-      <Card sx={{ backgroundColor: "#FAF8F6", borderRadius: 2, p: 3 }}>
+      <Card sx={{ backgroundColor: "#FAF8F6", borderRadius: 2, p: { xs: 2, sm: 3 } }}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <Typography variant="h6" sx={{ color: "#333333" }}>
             Account Details
@@ -374,7 +378,7 @@ function ProfilePage() {
     </TabPanel>
   
     <TabPanel value={tabIndex} index={1}>
-  <Card sx={{ backgroundColor: "#F9F6F3", borderRadius: 2, p: 3 }}>
+  <Card sx={{ backgroundColor: "#F9F6F3", borderRadius: 2, p: { xs: 2, sm: 3 } }}>
     <Typography variant="h6" sx={{ color: "#333333", mb: 2 }}>
       Upcoming Appointments
     </Typography>
@@ -410,8 +414,10 @@ function ProfilePage() {
               boxShadow: 1,
               p: 2,
               display: "flex",
+              flexDirection: { xs: "column", sm: "row" },
               justifyContent: "space-between",
-              alignItems: "center",
+              alignItems: { xs: "flex-start", sm: "center" },
+              gap: 1.5,
             }}
           >
             <Box>
@@ -460,7 +466,7 @@ function ProfilePage() {
 
   
     <TabPanel value={tabIndex} index={2}>
-      <Card sx={{ backgroundColor: "#FAF8F6", borderRadius: 2, p: 3 }}>
+      <Card sx={{ backgroundColor: "#FAF8F6", borderRadius: 2, p: { xs: 2, sm: 3 } }}>
         <Typography variant="h6" sx={{ color: "#333333", mb: 2 }}>
           Account Settings
         </Typography>

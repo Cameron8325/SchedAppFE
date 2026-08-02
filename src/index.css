@@ -423,6 +423,29 @@ img {
 }
 
 @media (max-width: 560px) {
+  .tea-calendar-shell,
+  .tea-admin-shell {
+    padding-top: 2.25rem !important;
+  }
+
+  .tea-calendar-frame {
+    padding: 0.55rem;
+    overflow: hidden;
+  }
+
+  .tea-admin-heading {
+    gap: 1.25rem;
+  }
+
+  .tea-admin-content {
+    margin-top: 1rem;
+    padding: 0.5rem;
+  }
+
+  .tea-profile-shell {
+    padding-inline: 16px !important;
+  }
+
   .tea-hero {
     min-height: calc(90svh - 64px);
   }

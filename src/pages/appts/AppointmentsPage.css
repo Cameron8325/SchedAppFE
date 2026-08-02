@@ -58,13 +58,19 @@
 }
 
 @media (max-width: 700px) {
+  .rbc-header {
+    padding: 0.65rem 0.1rem;
+    font-size: 0.6rem;
+    letter-spacing: 0.04em;
+  }
+
   .rbc-event {
     padding: 2px 3px;
     font-size: 0.62rem;
   }
 
   .rbc-date-cell {
-    padding-right: 3px;
+    padding: 0.35rem 3px 0 0;
     font-size: 0.7rem;
   }
 }

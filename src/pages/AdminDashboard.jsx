@@ -11,6 +11,8 @@ import {
   TextField,
   MenuItem,
   Select,
+  FormControl,
+  InputLabel,
   Tab,
   Tabs,
   Box,
@@ -576,12 +578,31 @@ function AdminDashboard() {
 
       {/* Tabs Section */}
       <Box mt={2} mb={3}>
+        <FormControl fullWidth size="small" sx={{ display: { xs: "flex", md: "none" } }}>
+          <InputLabel id="admin-section-label">Dashboard section</InputLabel>
+          <Select
+            labelId="admin-section-label"
+            value={selectedTab}
+            label="Dashboard section"
+            onChange={(event) => setSelectedTab(Number(event.target.value))}
+          >
+            <MenuItem value={0}>Overview</MenuItem>
+            <MenuItem value={1}>User Search</MenuItem>
+            <MenuItem value={2}>Incoming Requests ({incomingRequests.length})</MenuItem>
+            <MenuItem value={3}>Processed Requests</MenuItem>
+            <MenuItem value={4}>Flagged Requests ({flaggedRequests.length})</MenuItem>
+            <MenuItem value={5}>To Completion</MenuItem>
+            <MenuItem value={6}>Availability</MenuItem>
+            <MenuItem value={7}>Agenda View</MenuItem>
+          </Select>
+        </FormControl>
         <Tabs
           value={selectedTab}
           onChange={handleTabChange}
           aria-label="admin dashboard tabs"
           variant="scrollable" // Conditionally use scrollable for mobile
           sx={{
+            display: { xs: "none", md: "flex" },
             ".MuiTabs-indicator": {
               backgroundColor: "#8B5E3C", // Custom indicator color (earthy brown)
             },

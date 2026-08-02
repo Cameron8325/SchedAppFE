@@ -53,3 +53,51 @@
     flex: 0 0 auto;
   }
 }
+
+@media (max-width: 600px) {
+  .rbc-toolbar {
+    gap: 0.65rem;
+    padding-bottom: 0.9rem;
+  }
+
+  .rbc-toolbar-label {
+    grid-row: 1;
+    text-align: center;
+    font-size: 1.2rem;
+  }
+
+  .navigation-buttons {
+    grid-row: 2;
+  }
+
+  .navigation-buttons .MuiButtonGroup-root {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .navigation-buttons .MuiButton-root {
+    width: 100%;
+  }
+
+  .filter-buttons {
+    grid-row: 3;
+  }
+
+  .filter-buttons .MuiButtonGroup-root {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.4rem;
+    overflow: visible;
+  }
+
+  .filter-buttons .MuiButton-root {
+    width: 100%;
+    min-height: 40px;
+    padding-inline: 0.4rem;
+    border: 1px solid #c8c1b4 !important;
+    font-size: 0.68rem;
+    line-height: 1.15;
+  }
+}
