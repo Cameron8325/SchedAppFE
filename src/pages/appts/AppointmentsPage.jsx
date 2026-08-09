@@ -55,6 +55,7 @@ function AppointmentsPage() {
   const [selectedDayType, setSelectedDayType] = useState("all");
   const [loading, setLoading] = useState(false); // reserve action in flight
   const [fetching, setFetching] = useState(true); // calendar data loading
+  const [showSlowLoadMessage, setShowSlowLoadMessage] = useState(false);
   const [fetchError, setFetchError] = useState("");
   const [walkInDetails, setWalkInDetails] = useState({
     firstName: "",
@@ -122,6 +123,16 @@ function AppointmentsPage() {
   useEffect(() => {
     fetchAvailableDays();
   }, [fetchAvailableDays]);
+
+  useEffect(() => {
+    if (!fetching) {
+      setShowSlowLoadMessage(false);
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => setShowSlowLoadMessage(true), 2500);
+    return () => window.clearTimeout(timer);
+  }, [fetching]);
 
   useEffect(() => {
     const dayTypeQuery = query.get("dayType");
@@ -289,8 +300,21 @@ function AppointmentsPage() {
       )}
 
       {fetching ? (
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
+        <Box
+          display="flex"
+          flexDirection="column"
+          gap={2}
+          justifyContent="center"
+          alignItems="center"
+          minHeight={400}
+          aria-live="polite"
+        >
           <CircularProgress />
+          <Typography variant="body2" color="text.secondary" textAlign="center">
+            {showSlowLoadMessage
+              ? "The reservation service is waking up. This can take about 30 seconds."
+              : "Opening the reservation calendar…"}
+          </Typography>
         </Box>
       ) : (
         <>

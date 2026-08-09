@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { Container, TextField, Button, Typography, Box, Grid, CircularProgress, Alert } from '@mui/material';
 import { AuthContext } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import api from '../api/client';
 
 function LoginPage() {
@@ -79,8 +79,9 @@ function LoginPage() {
                                 fullWidth
                                 value={usernameEmail}
                                 onChange={(e) => setUsernameEmail(e.target.value)}
+                                autoComplete="username"
                                 required
-                                InputLabelProps={{ style: { color: '#4A4A48' } }}  // Label color
+                                InputLabelProps={{ shrink: true, style: { color: '#4A4A48' } }}  // Label color
                                 InputProps={{
                                     style: { backgroundColor: '#fff', color: '#4A4A48' },  // Input text color
                                 }}
@@ -96,8 +97,9 @@ function LoginPage() {
                                 fullWidth
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
+                                autoComplete="current-password"
                                 required
-                                InputLabelProps={{ style: { color: '#4A4A48' } }}  // Label color
+                                InputLabelProps={{ shrink: true, style: { color: '#4A4A48' } }}  // Label color
                                 InputProps={{
                                     style: { backgroundColor: '#fff', color: '#4A4A48' },  // Input text color
                                 }}
@@ -124,6 +126,13 @@ function LoginPage() {
                         </Grid>
                     </Grid>
                 </form>
+
+                <Typography variant="body2" sx={{ marginTop: '1rem', color: '#4A4A48', textAlign: 'center' }}>
+                    New to Ceremonial Artifex?{' '}
+                    <RouterLink to="/register" style={{ color: '#8B5E3C', fontWeight: 700 }}>
+                        Create an account
+                    </RouterLink>
+                </Typography>
 
                 {/* Error Message */}
                 {message && (
