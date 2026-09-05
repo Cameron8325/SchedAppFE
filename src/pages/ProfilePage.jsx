@@ -11,7 +11,8 @@ import {
   Tooltip,
   Tabs,
   Tab,
-  CircularProgress
+  CircularProgress,
+  Alert
 } from "@mui/material";
 import { Delete, Flag, Edit, Visibility } from "@mui/icons-material";
 import TempleBuddhistIcon from "@mui/icons-material/TempleBuddhist";
@@ -59,7 +60,7 @@ function ProfilePage() {
   const [phoneNumber, setPhoneNumber] = useState(
     user?.profile?.phone_number || ""
   );
-  const [tokens] = useState(user?.profile?.tokens || 0);
+  const tokens = user?.profile?.tokens || 0;
   const [appointments, setAppointments] = useState([]);
 
   const [modalStep, setModalStep] = useState(1);
@@ -83,6 +84,21 @@ function ProfilePage() {
   const [loading, setLoading] = useState(false);
   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
   const [appointmentsLoading, setAppointmentsLoading] = useState(true);
+  const [appointmentsError, setAppointmentsError] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const restoreSavedDetails = () => {
+    setFirstName(user?.first_name || '');
+    setLastName(user?.last_name || '');
+    setEmail(user?.email || '');
+    setUsername(user?.username || '');
+    setPhoneNumber(user?.profile?.phone_number || '');
+  };
+
+  const toggleEditing = () => {
+    restoreSavedDetails();
+    setIsEditing(!isEditing);
+  };
 
   useEffect(() => {
     if (!user) {
@@ -92,13 +108,15 @@ function ProfilePage() {
 
     const fetchAppointments = async () => {
       setAppointmentsLoading(true);
+      setAppointmentsError('');
       try {
         // Authentication rides on the HttpOnly cookies handled by the API client.
         const response = await api.get(`/api/users/appointments/`);
 
         // Only show appointments that are still upcoming/active
         const filteredAppointments = response.data.filter((appointment) =>
-          ["pending", "confirmed", "flagged"].includes(appointment.status)
+          ["pending", "confirmed", "flagged"].includes(appointment.status) &&
+          moment(appointment.date).isSameOrAfter(moment().startOf('day'), 'day')
         );
 
         // Sort appointments by date in ascending order (earliest first)
@@ -108,6 +126,7 @@ function ProfilePage() {
 
         setAppointments(sortedAppointments);
       } catch (error) {
+        setAppointmentsError('We could not load your appointments. Please refresh to try again.');
         console.error("Error fetching appointments:", error);
       } finally {
         setAppointmentsLoading(false);
@@ -118,6 +137,7 @@ function ProfilePage() {
   }, [user, navigate]);
 
   const handleUpdate = async () => {
+    setSaving(true);
     try {
       const updatedFields = {};
 
@@ -144,6 +164,8 @@ function ProfilePage() {
         error.response?.data?.error || "Error updating profile. Please try again."
       );
       setModalIsOpen(true);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -205,7 +227,7 @@ function ProfilePage() {
       setAppointments((prevAppointments) =>
         prevAppointments.map((appointment) =>
           appointment.id === selectedAppointmentId
-            ? { ...appointment, status: "flagged" }
+            ? { ...appointment, status: "flagged", status_display: "Flagged", reason: flagReason.trim() }
             : appointment
         )
       );
@@ -330,7 +352,9 @@ function ProfilePage() {
             Account Details
           </Typography>
           <IconButton
-            onClick={() => setIsEditing(!isEditing)}
+            onClick={toggleEditing}
+            aria-label={isEditing ? 'Cancel editing' : 'Edit account details'}
+            disabled={saving}
             sx={{ color: "#8B5E3C" }}
           >
             <Edit />
@@ -368,8 +392,9 @@ function ProfilePage() {
                   },
                 }}
                 onClick={handleUpdate}
+                disabled={saving}
               >
-                Save Changes
+                {saving ? 'Saving…' : 'Save Changes'}
               </Button>
             </Grid>
           )}
@@ -386,6 +411,8 @@ function ProfilePage() {
       <Box display="flex" justifyContent="center" py={4}>
         <CircularProgress />
       </Box>
+    ) : appointmentsError ? (
+      <Alert severity="error">{appointmentsError}</Alert>
     ) : appointments.length === 0 ? (
       <Box textAlign="center" py={3}>
         <Typography variant="body1" sx={{ color: "#666666", mb: 2 }}>
@@ -546,6 +573,7 @@ function ProfilePage() {
       isConfirmVisible={modalStep !== 3}
       confirmButtonText={modalStep === 1 ? "Confirm" : modalStep === 2 ? "Submit" : "Close"}
       onConfirm={handleModalConfirm}
+      confirmButtonDisabled={modalStep === 2 && !flagReason.trim()}
       showTextInput={modalStep === 2}
       inputValue={flagReason}
       handleInputChange={(e) => setFlagReason(e.target.value)}

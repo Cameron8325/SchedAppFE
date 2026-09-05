@@ -124,7 +124,7 @@ const ProcessedRequests = ({
                 <TableCell>
                   <Button
                     onClick={() => handleOpenFlagModal(appointment.id)}
-                    disabled={appointment.status === 'flagged'}
+                    disabled={appointment.status !== 'confirmed'}
                     sx={{
                       backgroundColor: 'inherit',
                       color: '#4A4A48',
@@ -140,7 +140,7 @@ const ProcessedRequests = ({
                     onClick={() =>
                       handleStatusChange(appointment.id, 'to_completion')
                     }
-                    disabled={appointment.status === 'to_completion'}
+                    disabled={appointment.status !== 'confirmed'}
                     sx={{
                       backgroundColor: 'inherit',
                       color: '#4A4A48',
@@ -192,7 +192,7 @@ const ProcessedRequests = ({
                 >
                   <Button
                     onClick={() => handleOpenFlagModal(appointment.id)}
-                    disabled={appointment.status === 'flagged'}
+                    disabled={appointment.status !== 'confirmed'}
                     sx={{
                       backgroundColor: 'inherit',
                       color: '#4A4A48',
@@ -207,7 +207,7 @@ const ProcessedRequests = ({
                     onClick={() =>
                       handleStatusChange(appointment.id, 'to_completion')
                     }
-                    disabled={appointment.status === 'to_completion'}
+                    disabled={appointment.status !== 'confirmed'}
                     sx={{
                       backgroundColor: 'inherit',
                       color: '#4A4A48',

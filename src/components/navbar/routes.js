@@ -9,6 +9,7 @@ import RegisterPage from '../../pages/RegisterPage';
 import AdminDashboard from '../../pages/AdminDashboard';
 import CatalogPage from '../../pages/CatalogPage';
 import PasswordResetPage from '../../pages/PasswordResetPage.jsx';
+import ForgotPasswordPage from '../../pages/ForgotPasswordPage.jsx';
 import AccountDeletionConfirm from '../../pages/AccountDeletionConfirm.jsx';
 import NavBar from './navbar.jsx';
 import ProtectedRoute from './ProtectedRoute';
@@ -42,6 +43,7 @@ function AppRoutes() {
                 />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                 <Route path="/reset/:uidb64/:token" element={<PasswordResetPage />} />
                 {/* Add the account deletion confirmation route */}
                 <Route

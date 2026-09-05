@@ -232,15 +232,12 @@ function AppointmentsPage() {
   const handleReserve = async () => {
     if (
       isSuperUser &&
-      (!walkInDetails.firstName ||
-        !walkInDetails.lastName ||
-        !walkInDetails.email ||
-        !walkInDetails.phone)
+      (!walkInDetails.firstName.trim() ||
+        !walkInDetails.lastName.trim() ||
+        !walkInDetails.email.trim() ||
+        !walkInDetails.phone.trim())
     ) {
-      showInfoModal(
-        "Missing Information",
-        "Please fill out all walk-in details before submitting the reservation."
-      );
+      setModalMessage('Please fill out all walk-in details before submitting the reservation.');
       return;
     }
 
@@ -268,11 +265,7 @@ function AppointmentsPage() {
       );
     } catch (error) {
       const serverMessage = error.response?.data?.error;
-      showInfoModal(
-        "Unable to Reserve",
-        serverMessage ||
-          "Something went wrong. Please try to reserve your appointment again."
-      );
+      setModalMessage(serverMessage || 'Something went wrong. Please try to reserve your appointment again.');
     } finally {
       setLoading(false);
     }
@@ -369,6 +362,8 @@ function AppointmentsPage() {
           loading ? <CircularProgress size={20} /> : confirmButtonText
         }
         confirmButtonDisabled={loading}
+        closeButtonDisabled={loading}
+        showAuthActions={!user}
         isSuperUser={isSuperUser}
         isReservationStep={isReservationStep}
         walkInDetails={walkInDetails}

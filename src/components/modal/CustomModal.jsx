@@ -12,6 +12,8 @@ function CustomModal({
   isConfirmVisible,
   confirmButtonText,
   confirmButtonDisabled,
+  closeButtonDisabled = false,
+  showAuthActions = false,
   dateList,
   selectedDates,
   handleDateSelection,
@@ -53,7 +55,7 @@ function CustomModal({
   return (
     <Modal
       open={open}
-      onClose={onClose}
+      onClose={closeButtonDisabled ? undefined : onClose}
       aria-labelledby="custom-modal-title"
       aria-describedby="custom-modal-description"
       disableScrollLock={true}
@@ -166,7 +168,7 @@ function CustomModal({
         {children}
 
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-          {user ? (
+          {user || !showAuthActions ? (
             <>
               {isConfirmVisible && (
                 <Button
@@ -188,6 +190,7 @@ function CustomModal({
               <Button 
                 variant="contained" 
                 onClick={onClose}
+                disabled={closeButtonDisabled}
                 sx={{
                   backgroundColor: '#4A4A48',
                   color: '#FFF',
@@ -228,6 +231,7 @@ function CustomModal({
               >
                 Register
               </Button>
+              <Button onClick={onClose}>Close</Button>
             </>
           )}
         </Box>

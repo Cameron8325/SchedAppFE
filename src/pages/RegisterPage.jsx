@@ -15,6 +15,7 @@ function RegisterPage() {
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(false);
     const [modalOpen, setModalOpen] = useState(false); // Modal visibility state
+    const [verificationEmailSent, setVerificationEmailSent] = useState(true);
 
     const navigate = useNavigate();
     const { register } = useContext(AuthContext); // Access register and login from AuthContext
@@ -24,7 +25,8 @@ function RegisterPage() {
         setLoading(true);
         setMessage('');
         try {
-            await register(username, firstName, lastName, email, password, passwordConfirm, phoneNumber);
+            const result = await register(username, firstName, lastName, email, password, passwordConfirm, phoneNumber);
+            setVerificationEmailSent(result.verification_email_sent !== false);
             setModalOpen(true); // Show modal after successful registration
         } catch (error) {
             if (error.response && error.response.data) {
@@ -218,8 +220,10 @@ function RegisterPage() {
             <CustomModal
                 open={modalOpen}
                 onClose={handleModalClose}
-                title="Verify Your Email"
-                description="Thank you for registering! A verification link has been sent to your email. Please check your inbox to complete the registration."
+                title={verificationEmailSent ? 'Verify Your Email' : 'Account Created'}
+                description={verificationEmailSent
+                    ? 'Thank you for registering! A verification link has been sent to your email. Please check your inbox to complete the registration.'
+                    : 'Your account was created, but we could not send the verification email. Sign in and choose Resend Verification Email to try again.'}
                 isConfirmVisible={false} // Hides the confirm button
             />
         </Container>

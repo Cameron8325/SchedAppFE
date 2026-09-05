@@ -127,6 +127,10 @@ function LoginPage() {
                     </Grid>
                 </form>
 
+                <Button component={RouterLink} to="/forgot-password" sx={{ mt: 1 }}>
+                    Forgot your password?
+                </Button>
+
                 <Typography variant="body2" sx={{ marginTop: '1rem', color: '#4A4A48', textAlign: 'center' }}>
                     New to Ceremonial Artifex?{' '}
                     <RouterLink to="/register" style={{ color: '#8B5E3C', fontWeight: 700 }}>
